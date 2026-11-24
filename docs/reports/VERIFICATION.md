@@ -45,3 +45,5 @@ Two validated Vivify derivatives were cloned to Application Support cache/maps a
 NativeAvatarRenderer compiles against installed 1.40.8 assemblies with zero warnings/errors; no runtime or headset appearance verification yet. MysticalSnowWalls remains unsafe to retest; its own shader differs from the final structured-buffer resource. Broader conversion stopped at the disk guard; approximately 533 MiB free observed. Only verified generated MSL cache was archived (about 19 MB recovered), no unrelated data removed.
 
 Post-install codesign --verify --deep --strict completed with exit code 0. The game remained closed. This verifies bundle signing, not gameplay.
+
+Latest local checks: 17 Python tests passed with explicit implementation/python module path; schema/registry/evidence validator passed. An initial test invocation omitted that module path and failed collection (ModuleNotFoundError); corrected invocation passed. Commit 61df0ab was pushed and remote testing SHA verified. An overlapping earlier push caused one ref-lock rejection; sequential retry succeeded without force or history rewriting.
