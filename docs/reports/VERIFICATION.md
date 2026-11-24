@@ -35,3 +35,13 @@ Compliance infrastructure is structural and scoped. Most functional requirement 
 - Runtime copies of both verified Vivify derivatives were cloned into Application Support/cache/maps, hashes checked and the allowlist atomically regenerated. The bridge no longer needs Desktop access for those map bundles.
 - Free built-in NativeAvatarRenderer compiled successfully with no warnings. Not yet installed or runtime verified. The user explicitly declined paid Naluluna packages and wants the existing game avatar.
 - Broader library conversion exposed Unity shader version 201802150. Compatibility was prepared but integration is blocked by free space: the guard refused new conversion below 2300 MiB. About 631 MiB was available at the last check. No source, dependencies, backups or user data were deleted.
+
+## Custom-media and Desktop follow-up
+
+User reported all five custom tests return, including requirement-free Color; vanilla $100 Bills works. Actual MediaLoader/BGLib helper inspection confirmed form-encoded file URLs, matching curl failures with plus signs in local paths. Original LocalMediaBridge encodes each path segment with percent escapes, preserves existing URLs, and is linked only into the observed FileHelpers method after signature/body checks. Tests executed in installed game Mono pass for spaces, literal plus/hash/percent, Unicode roundtrip and remote URL passthrough, alongside existing compatibility fixtures. Installed under transaction 20261124T201937894623Z with built-in avatar renderer. Runtime success remains pending.
+
+Two validated Vivify derivatives were cloned to Application Support cache/maps and allowlist paths regenerated, removing this loader's dependency on Desktop access. No macOS privacy settings were bypassed. Original map assets were retained.
+
+NativeAvatarRenderer compiles against installed 1.40.8 assemblies with zero warnings/errors; no runtime or headset appearance verification yet. MysticalSnowWalls remains unsafe to retest; its own shader differs from the final structured-buffer resource. Broader conversion stopped at the disk guard; approximately 533 MiB free observed. Only verified generated MSL cache was archived (about 19 MB recovered), no unrelated data removed.
+
+Post-install codesign --verify --deep --strict completed with exit code 0. The game remained closed. This verifies bundle signing, not gameplay.

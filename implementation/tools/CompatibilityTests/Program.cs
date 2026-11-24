@@ -17,6 +17,12 @@ static class Check {
         return code;
     }
     public static void Main() {
+        string sample="/Users/example/Library/Application Support/Beat Saber/Color + #50%/song.egg";
+        string url=LocalMedia.FileUrl(sample);
+        Require(url=="file:///Users/example/Library/Application%20Support/Beat%20Saber/Color%20%2B%20%2350%25/song.egg");
+        Require(new Uri(url).LocalPath==sample);
+        Require(LocalMedia.FileUrl("https://example.invalid/a+b?q=one+two")=="https://example.invalid/a+b?q=one+two");
+        Require(new Uri(LocalMedia.FileUrl("/tmp/音楽 +.egg")).LocalPath=="/tmp/音楽 +.egg");
         var clamp=typeof(Math).GetMethod("Clamp", new[]{typeof(int),typeof(int),typeof(int)})!;
         foreach (bool existing in new[]{false,true}) {
             var result=NativeCompatibility.TimeRow(TimeRow(existing),clamp).ToList();
@@ -35,7 +41,7 @@ static class Check {
         bool refused=false;
         try { NativeCompatibility.TimeRow(Array.Empty<CodeInstruction>(),clamp).ToList(); } catch(InvalidOperationException) {refused=true;}
         Require(refused);
-        Console.WriteLine("PASS: unmodified/already-clamped rows, actual obstacle local, debris delegate, unsupported-shape refusal");
+        Console.WriteLine("PASS: local-file URI encoding/roundtrip/remote passthrough/unicode, unmodified/already-clamped rows, actual obstacle local, debris delegate, unsupported-shape refusal");
     }
     public static bool Fake() => false;
     public static void SpawnDebris() { }

@@ -5,6 +5,7 @@
     <Reference Include="System"><HintPath>$(GameResources)/Beat Saber_Data/Managed/System.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="System.Core"><HintPath>$(GameResources)/Beat Saber_Data/Managed/System.Core.dll</HintPath><Private>false</Private></Reference>
     <ProjectReference Include="../NativeDiagnostics/NativeDiagnostics.csproj" />
+    <ProjectReference Include="../LocalMediaBridge/LocalMediaBridge.csproj" />
     <Reference Include="0Harmony"><HintPath>$(GameResources)/Libs/0Harmony.dll</HintPath><Private>true</Private></Reference>
   </ItemGroup>
 </Project>

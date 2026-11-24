@@ -86,6 +86,19 @@ if (args[0] == "crc") {
         Replace("Chroma.HarmonyPatches.DebrisSpawnerSkip", "ReplaceNoteConditionTranspiler", "Debris", "_noteSpawnDebris", "_noteDebrisCheck");
         Replace("Chroma.HarmonyPatches.DebrisSpawnerSkip", "ReplaceBombConditionTranspiler", "Debris", "_bombSpawnDebris", "_bombDebrisCheck");
     } else throw new InvalidOperationException("Unsupported compatibility target");
+} else if (args[0] == "file-uri") {
+    using var helper = AssemblyDefinition.ReadAssembly(args[2]);
+    var target = types.Single(t => t.FullName == "FileHelpers").Methods.Single(m => m.Name == "GetEscapedURLForFilePath");
+    if (!target.IsStatic || target.Parameters.Count != 1 || target.Parameters[0].ParameterType.FullName != "System.String" || target.ReturnType.FullName != "System.String")
+        throw new InvalidOperationException("Unexpected local file URL helper signature");
+    if (!target.Body.Instructions.Any(i => i.Operand is MethodReference m && m.Name == "EscapeURL") ||
+        !target.Body.Instructions.Any(i => i.OpCode == OpCodes.Ldstr && (string)i.Operand == "file:///"))
+        throw new InvalidOperationException("Expected the observed form-encoded file URL implementation");
+    target.Body = new Mono.Cecil.Cil.MethodBody(target);
+    var il = target.Body.GetILProcessor();
+    il.Append(il.Create(OpCodes.Ldarg_0));
+    il.Append(il.Create(OpCodes.Call, asm.MainModule.ImportReference(helper.MainModule.Types.Single(t => t.FullName == "Bsmac.LocalMedia").Methods.Single(m => m.Name == "FileUrl"))));
+    il.Append(il.Create(OpCodes.Ret));
 } else throw new ArgumentException("Unknown command");
 string output = args[^1];
 if (Path.GetFullPath(output) == Path.GetFullPath(args[1])) throw new InvalidOperationException("Stage into a separate file");

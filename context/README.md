@@ -16,7 +16,7 @@ This repository tracks the native Beat Saber 1.40.8 / MoltenVR compatibility ass
 
 ## Safety and scope
 
-The user authorized closing and relaunching Beat Saber when staged fixes are ready. **Launch only through MoltenVR; the user confirmed direct-launch commands fail in this setup.** Preserve original maps, Info.dat, CRC checks, and working mods. Never globally bypass integrity or AssetBundleLoadingTools safety checks. Its manifest Platforms values are VR modes, not graphics API IDs. Sign the app only after staged verification. Keep reversible backups with hashes. The user explicitly authorized public repository visibility on 2026-11-24; binary releases and external distribution remain unauthorized. Do not redistribute extracted assets, proprietary translator bytecode, game DLLs, private logs or user identity data.
+The user explicitly controls launching: **do not launch Beat Saber**. Their earlier close/relaunch authorization was superseded. When the user tests, they launch only through MoltenVR; direct-launch commands fail in this setup. Preserve original maps, Info.dat, CRC checks, and working mods. Never globally bypass integrity or AssetBundleLoadingTools safety checks. Its manifest Platforms values are VR modes, not graphics API IDs. Sign the app only after staged verification. Keep reversible backups with hashes. The user explicitly authorized public repository visibility on 2026-11-24; binary releases and external distribution remain unauthorized. Do not redistribute extracted assets, proprietary translator bytecode, game DLLs, private logs or user identity data.
 
 User reports already working: native game, Quest 3 streaming, Steam authentication, BeatLeader, ScoreSaber, ReeSabers v3 and motion blur, CustomNotes all models, CustomSabers, Camera2, PlaylistManager. These are historical user reports, not newly executed verification.
 
@@ -34,3 +34,7 @@ Latest user steering: **Do not launch Beat Saber. The user will run one single s
 ## Where code lives
 
 `implementation/python/bsmac_converter` contains original Python extensions and CLI. `implementation/tools` contains original C#/Swift compatibility and validation tools. `docs` holds durable architecture and evidence; `context` holds restart context. Local generated work is outside tracked source. Follow the queue and verification report for current installation state, which supersedes these starting findings.
+
+## Latest checkpoint
+
+Read the active queue for current state. Requirement-free Color also returns, while vanilla $100 Bills works. MediaLoader uses FileHelpers in BGLib.UnityExtension, which form-encodes local POSIX paths with plus signs. A narrow LocalMediaBridge correction is installed with saved built-in NativeAvatarRenderer under rollback transaction 20261124T201937894623Z. Synthetic URI roundtrip and compatibility tests passed in installed Mono; game was not launched. Both Vivify derivatives now live in Application Support cache/maps rather than Desktop, with validated hashes. Snow wall crash remains unresolved. Disk below 2 GB blocks further shader conversion; do not delete unrelated caches or user assets. Public source repository is authorized; binary distribution is not.
