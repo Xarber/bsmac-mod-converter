@@ -1,0 +1,422 @@
+{
+  "schemaVersion": 1,
+  "coverage": "Applicable source-tooling requirements; not a claim of exhaustive atomization of all 52 sections",
+  "requirements": [
+    {
+      "id": "UADS-DOC-001",
+      "title": "Durable project context",
+      "section": 4,
+      "applicability": "Required",
+      "priority": "required",
+      "verification": "Source checks, tests or documented applicability assessment",
+      "evidence": [
+        "docs/reports/VERIFICATION.md"
+      ],
+      "checks": [
+        "uads-quality"
+      ],
+      "dependencies": [],
+      "exceptionPolicy": "Explicit scoped user authorization required"
+    },
+    {
+      "id": "UADS-GIT-001",
+      "title": "Private repository and development branches",
+      "section": 6,
+      "applicability": "Required",
+      "priority": "required",
+      "verification": "Source checks, tests or documented applicability assessment",
+      "evidence": [
+        "docs/reports/VERIFICATION.md"
+      ],
+      "checks": [
+        "uads-quality"
+      ],
+      "dependencies": [],
+      "exceptionPolicy": "Explicit scoped user authorization required"
+    },
+    {
+      "id": "UADS-GIT-002",
+      "title": "Conventional commits and preserved history",
+      "section": 7,
+      "applicability": "Required",
+      "priority": "required",
+      "verification": "Source checks, tests or documented applicability assessment",
+      "evidence": [
+        "docs/reports/VERIFICATION.md"
+      ],
+      "checks": [
+        "uads-quality"
+      ],
+      "dependencies": [],
+      "exceptionPolicy": "Explicit scoped user authorization required"
+    },
+    {
+      "id": "UADS-QA-001",
+      "title": "Observed verification and test reports",
+      "section": 23,
+      "applicability": "Required",
+      "priority": "required",
+      "verification": "Source checks, tests or documented applicability assessment",
+      "evidence": [
+        "docs/reports/VERIFICATION.md"
+      ],
+      "checks": [
+        "uads-quality"
+      ],
+      "dependencies": [],
+      "exceptionPolicy": "Explicit scoped user authorization required"
+    },
+    {
+      "id": "UADS-QA-002",
+      "title": "Objective source quality gates",
+      "section": 42,
+      "applicability": "Required",
+      "priority": "required",
+      "verification": "Source checks, tests or documented applicability assessment",
+      "evidence": [
+        "docs/reports/VERIFICATION.md"
+      ],
+      "checks": [
+        "uads-quality"
+      ],
+      "dependencies": [],
+      "exceptionPolicy": "Explicit scoped user authorization required"
+    },
+    {
+      "id": "UADS-SEC-001",
+      "title": "Preserve originals and backups",
+      "section": 21,
+      "applicability": "Required",
+      "priority": "required",
+      "verification": "Source checks, tests or documented applicability assessment",
+      "evidence": [
+        "docs/reports/VERIFICATION.md"
+      ],
+      "checks": [
+        "uads-quality"
+      ],
+      "dependencies": [],
+      "exceptionPolicy": "Explicit scoped user authorization required"
+    },
+    {
+      "id": "UADS-SEC-002",
+      "title": "Validate untrusted assets and trust boundaries",
+      "section": 43,
+      "applicability": "Required",
+      "priority": "required",
+      "verification": "Source checks, tests or documented applicability assessment",
+      "evidence": [
+        "docs/reports/VERIFICATION.md"
+      ],
+      "checks": [
+        "uads-quality"
+      ],
+      "dependencies": [],
+      "exceptionPolicy": "Explicit scoped user authorization required"
+    },
+    {
+      "id": "UADS-DATA-001",
+      "title": "Distinguish conversion from runtime evidence",
+      "section": 19,
+      "applicability": "Required",
+      "priority": "required",
+      "verification": "Source checks, tests or documented applicability assessment",
+      "evidence": [
+        "docs/reports/VERIFICATION.md"
+      ],
+      "checks": [
+        "uads-quality"
+      ],
+      "dependencies": [],
+      "exceptionPolicy": "Explicit scoped user authorization required"
+    },
+    {
+      "id": "UADS-DATA-002",
+      "title": "Synthetic fixtures isolated from real assets",
+      "section": 20,
+      "applicability": "Required",
+      "priority": "required",
+      "verification": "Source checks, tests or documented applicability assessment",
+      "evidence": [
+        "docs/reports/VERIFICATION.md"
+      ],
+      "checks": [
+        "uads-quality"
+      ],
+      "dependencies": [],
+      "exceptionPolicy": "Explicit scoped user authorization required"
+    },
+    {
+      "id": "UADS-CI-001",
+      "title": "Executable GitHub Actions quality checks",
+      "section": 49,
+      "applicability": "Required",
+      "priority": "required",
+      "verification": "Source checks, tests or documented applicability assessment",
+      "evidence": [
+        "docs/reports/VERIFICATION.md"
+      ],
+      "checks": [
+        "uads-quality"
+      ],
+      "dependencies": [],
+      "exceptionPolicy": "Explicit scoped user authorization required"
+    },
+    {
+      "id": "UADS-REL-001",
+      "title": "Traceable version and release identity",
+      "section": 44,
+      "applicability": "Conditional",
+      "priority": "conditional",
+      "verification": "Source checks, tests or documented applicability assessment",
+      "evidence": [
+        "docs/reports/VERIFICATION.md"
+      ],
+      "checks": [
+        "uads-quality"
+      ],
+      "dependencies": [],
+      "exceptionPolicy": "Explicit scoped user authorization required"
+    },
+    {
+      "id": "UADS-DIST-001",
+      "title": "Alternative distribution sources",
+      "section": 25,
+      "applicability": "Not Applicable",
+      "priority": "conditional",
+      "verification": "Source checks, tests or documented applicability assessment",
+      "evidence": [
+        "docs/reports/VERIFICATION.md"
+      ],
+      "checks": [
+        "uads-quality"
+      ],
+      "dependencies": [],
+      "exceptionPolicy": "Explicit scoped user authorization required"
+    },
+    {
+      "id": "UADS-OPS-001",
+      "title": "Production service monitoring",
+      "section": 45,
+      "applicability": "Not Applicable",
+      "priority": "conditional",
+      "verification": "Source checks, tests or documented applicability assessment",
+      "evidence": [
+        "docs/reports/VERIFICATION.md"
+      ],
+      "checks": [
+        "uads-quality"
+      ],
+      "dependencies": [],
+      "exceptionPolicy": "Explicit scoped user authorization required"
+    },
+    {
+      "id": "UADS-UI-001",
+      "title": "Application UI accessibility",
+      "section": 18,
+      "applicability": "Not Applicable",
+      "priority": "conditional",
+      "verification": "Source checks, tests or documented applicability assessment",
+      "evidence": [
+        "docs/reports/VERIFICATION.md"
+      ],
+      "checks": [
+        "uads-quality"
+      ],
+      "dependencies": [],
+      "exceptionPolicy": "Explicit scoped user authorization required"
+    },
+    {
+      "id": "UADS-PLAT-001",
+      "title": "Supported platform declaration",
+      "section": 10,
+      "applicability": "Required",
+      "priority": "required",
+      "verification": "Source checks, tests or documented applicability assessment",
+      "evidence": [
+        "docs/reports/VERIFICATION.md"
+      ],
+      "checks": [
+        "uads-quality"
+      ],
+      "dependencies": [],
+      "exceptionPolicy": "Explicit scoped user authorization required"
+    },
+    {
+      "id": "UADS-DEV-001",
+      "title": "In-app developer options",
+      "section": 15,
+      "applicability": "Not Applicable",
+      "priority": "conditional",
+      "verification": "Source checks, tests or documented applicability assessment",
+      "evidence": [
+        "docs/reports/VERIFICATION.md"
+      ],
+      "checks": [
+        "uads-quality"
+      ],
+      "dependencies": [],
+      "exceptionPolicy": "Explicit scoped user authorization required"
+    },
+    {
+      "id": "UADS-DEV-002",
+      "title": "Persistent Ideas collection",
+      "section": 35,
+      "applicability": "Required",
+      "priority": "required",
+      "verification": "Source checks, tests or documented applicability assessment",
+      "evidence": [
+        "docs/reports/VERIFICATION.md"
+      ],
+      "checks": [
+        "uads-quality"
+      ],
+      "dependencies": [],
+      "exceptionPolicy": "Explicit scoped user authorization required"
+    },
+    {
+      "id": "UADS-UI-002",
+      "title": "In-app release history",
+      "section": 16,
+      "applicability": "Not Applicable",
+      "priority": "conditional",
+      "verification": "Source checks, tests or documented applicability assessment",
+      "evidence": [
+        "docs/reports/VERIFICATION.md"
+      ],
+      "checks": [
+        "uads-quality"
+      ],
+      "dependencies": [],
+      "exceptionPolicy": "Explicit scoped user authorization required"
+    },
+    {
+      "id": "UADS-UI-003",
+      "title": "Onboarding and screenshots",
+      "section": 37,
+      "applicability": "Not Applicable",
+      "priority": "conditional",
+      "verification": "Source checks, tests or documented applicability assessment",
+      "evidence": [
+        "docs/reports/VERIFICATION.md"
+      ],
+      "checks": [
+        "uads-quality"
+      ],
+      "dependencies": [],
+      "exceptionPolicy": "Explicit scoped user authorization required"
+    },
+    {
+      "id": "UADS-PLAT-002",
+      "title": "PWA support",
+      "section": 32,
+      "applicability": "Not Applicable",
+      "priority": "conditional",
+      "verification": "Source checks, tests or documented applicability assessment",
+      "evidence": [
+        "docs/reports/VERIFICATION.md"
+      ],
+      "checks": [
+        "uads-quality"
+      ],
+      "dependencies": [],
+      "exceptionPolicy": "Explicit scoped user authorization required"
+    },
+    {
+      "id": "UADS-PLAT-003",
+      "title": "Hosted web presence",
+      "section": 36,
+      "applicability": "Not Applicable",
+      "priority": "conditional",
+      "verification": "Source checks, tests or documented applicability assessment",
+      "evidence": [
+        "docs/reports/VERIFICATION.md"
+      ],
+      "checks": [
+        "uads-quality"
+      ],
+      "dependencies": [],
+      "exceptionPolicy": "Explicit scoped user authorization required"
+    },
+    {
+      "id": "UADS-SEC-003",
+      "title": "Backend environment isolation",
+      "section": 38,
+      "applicability": "Not Applicable",
+      "priority": "conditional",
+      "verification": "Source checks, tests or documented applicability assessment",
+      "evidence": [
+        "docs/reports/VERIFICATION.md"
+      ],
+      "checks": [
+        "uads-quality"
+      ],
+      "dependencies": [],
+      "exceptionPolicy": "Explicit scoped user authorization required"
+    },
+    {
+      "id": "UADS-DOC-002",
+      "title": "Manifest and applicability states",
+      "section": 41,
+      "applicability": "Required",
+      "priority": "required",
+      "verification": "Source checks, tests or documented applicability assessment",
+      "evidence": [
+        "docs/reports/VERIFICATION.md"
+      ],
+      "checks": [
+        "uads-quality"
+      ],
+      "dependencies": [],
+      "exceptionPolicy": "Explicit scoped user authorization required"
+    },
+    {
+      "id": "UADS-DOC-003",
+      "title": "Stable requirement registry",
+      "section": 46,
+      "applicability": "Required",
+      "priority": "required",
+      "verification": "Source checks, tests or documented applicability assessment",
+      "evidence": [
+        "docs/reports/VERIFICATION.md"
+      ],
+      "checks": [
+        "uads-quality"
+      ],
+      "dependencies": [],
+      "exceptionPolicy": "Explicit scoped user authorization required"
+    },
+    {
+      "id": "UADS-CI-002",
+      "title": "Schema and evidence validator",
+      "section": 48,
+      "applicability": "Required",
+      "priority": "required",
+      "verification": "Source checks, tests or documented applicability assessment",
+      "evidence": [
+        "docs/reports/VERIFICATION.md"
+      ],
+      "checks": [
+        "uads-quality"
+      ],
+      "dependencies": [],
+      "exceptionPolicy": "Explicit scoped user authorization required"
+    },
+    {
+      "id": "UADS-DOC-004",
+      "title": "Persistent assignment queue",
+      "section": 52,
+      "applicability": "Required",
+      "priority": "required",
+      "verification": "Source checks, tests or documented applicability assessment",
+      "evidence": [
+        "docs/reports/VERIFICATION.md"
+      ],
+      "checks": [
+        "uads-quality"
+      ],
+      "dependencies": [],
+      "exceptionPolicy": "Explicit scoped user authorization required"
+    }
+  ]
+}

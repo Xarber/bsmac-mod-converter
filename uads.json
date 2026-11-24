@@ -1,0 +1,279 @@
+{
+  "uadsVersion": "unversioned-2026-11-24",
+  "manifestVersion": 1,
+  "project": {
+    "name": "bsmac-mod-converter",
+    "repository": "Xarber/bsmac-mod-converter",
+    "profiles": [
+      "cli-tool",
+      "library"
+    ],
+    "framework": "Python 3.12, C# netstandard2.1, Swift Metal",
+    "platforms": [
+      "macos-arm64"
+    ],
+    "hosting": "none-local-tool"
+  },
+  "features": {
+    "conversion": "implemented",
+    "cache": "implemented",
+    "rollback": "implemented",
+    "watch": "implemented",
+    "nativeGameplay": "pending"
+  },
+  "distribution": {
+    "visibility": "private",
+    "published": false
+  },
+  "quality": {
+    "workflow": ".github/workflows/uads-quality.yml",
+    "functionalVerification": "docs/reports/VERIFICATION.md"
+  },
+  "requirements": [
+    {
+      "id": "UADS-DOC-001",
+      "applicability": "Required",
+      "state": "Pending",
+      "reason": "See scoped verification report; functional evidence is tracked separately.",
+      "evidence": [
+        "docs/reports/VERIFICATION.md"
+      ]
+    },
+    {
+      "id": "UADS-GIT-001",
+      "applicability": "Required",
+      "state": "Pending",
+      "reason": "See scoped verification report; functional evidence is tracked separately.",
+      "evidence": [
+        "docs/reports/VERIFICATION.md"
+      ]
+    },
+    {
+      "id": "UADS-GIT-002",
+      "applicability": "Required",
+      "state": "Pending",
+      "reason": "See scoped verification report; functional evidence is tracked separately.",
+      "evidence": [
+        "docs/reports/VERIFICATION.md"
+      ]
+    },
+    {
+      "id": "UADS-QA-001",
+      "applicability": "Required",
+      "state": "Pending",
+      "reason": "See scoped verification report; functional evidence is tracked separately.",
+      "evidence": [
+        "docs/reports/VERIFICATION.md"
+      ]
+    },
+    {
+      "id": "UADS-QA-002",
+      "applicability": "Required",
+      "state": "Pending",
+      "reason": "See scoped verification report; functional evidence is tracked separately.",
+      "evidence": [
+        "docs/reports/VERIFICATION.md"
+      ]
+    },
+    {
+      "id": "UADS-SEC-001",
+      "applicability": "Required",
+      "state": "Pending",
+      "reason": "See scoped verification report; functional evidence is tracked separately.",
+      "evidence": [
+        "docs/reports/VERIFICATION.md"
+      ]
+    },
+    {
+      "id": "UADS-SEC-002",
+      "applicability": "Required",
+      "state": "Pending",
+      "reason": "See scoped verification report; functional evidence is tracked separately.",
+      "evidence": [
+        "docs/reports/VERIFICATION.md"
+      ]
+    },
+    {
+      "id": "UADS-DATA-001",
+      "applicability": "Required",
+      "state": "Pending",
+      "reason": "See scoped verification report; functional evidence is tracked separately.",
+      "evidence": [
+        "docs/reports/VERIFICATION.md"
+      ]
+    },
+    {
+      "id": "UADS-DATA-002",
+      "applicability": "Required",
+      "state": "Pending",
+      "reason": "See scoped verification report; functional evidence is tracked separately.",
+      "evidence": [
+        "docs/reports/VERIFICATION.md"
+      ]
+    },
+    {
+      "id": "UADS-CI-001",
+      "applicability": "Required",
+      "state": "Pending",
+      "reason": "See scoped verification report; functional evidence is tracked separately.",
+      "evidence": [
+        "docs/reports/VERIFICATION.md"
+      ]
+    },
+    {
+      "id": "UADS-REL-001",
+      "applicability": "Conditional",
+      "state": "Pending",
+      "reason": "See scoped verification report; functional evidence is tracked separately.",
+      "evidence": [
+        "docs/reports/VERIFICATION.md"
+      ]
+    },
+    {
+      "id": "UADS-DIST-001",
+      "applicability": "Not Applicable",
+      "state": "Not Applicable",
+      "reason": "This repository is a local command-line conversion tool and managed compatibility libraries, not a standalone UI application or hosted service.",
+      "evidence": [
+        "docs/reports/VERIFICATION.md"
+      ]
+    },
+    {
+      "id": "UADS-OPS-001",
+      "applicability": "Not Applicable",
+      "state": "Not Applicable",
+      "reason": "This repository is a local command-line conversion tool and managed compatibility libraries, not a standalone UI application or hosted service.",
+      "evidence": [
+        "docs/reports/VERIFICATION.md"
+      ]
+    },
+    {
+      "id": "UADS-UI-001",
+      "applicability": "Not Applicable",
+      "state": "Not Applicable",
+      "reason": "This repository is a local command-line conversion tool and managed compatibility libraries, not a standalone UI application or hosted service.",
+      "evidence": [
+        "docs/reports/VERIFICATION.md"
+      ]
+    },
+    {
+      "id": "UADS-PLAT-001",
+      "applicability": "Required",
+      "state": "Pending",
+      "reason": "See scoped verification report; functional evidence is tracked separately.",
+      "evidence": [
+        "docs/reports/VERIFICATION.md"
+      ]
+    },
+    {
+      "id": "UADS-DEV-001",
+      "applicability": "Not Applicable",
+      "state": "Not Applicable",
+      "reason": "This repository is a local command-line conversion tool and managed compatibility libraries, not a standalone UI application or hosted service.",
+      "evidence": [
+        "docs/reports/VERIFICATION.md"
+      ]
+    },
+    {
+      "id": "UADS-DEV-002",
+      "applicability": "Required",
+      "state": "Pending",
+      "reason": "See scoped verification report; functional evidence is tracked separately.",
+      "evidence": [
+        "docs/reports/VERIFICATION.md"
+      ]
+    },
+    {
+      "id": "UADS-UI-002",
+      "applicability": "Not Applicable",
+      "state": "Not Applicable",
+      "reason": "This repository is a local command-line conversion tool and managed compatibility libraries, not a standalone UI application or hosted service.",
+      "evidence": [
+        "docs/reports/VERIFICATION.md"
+      ]
+    },
+    {
+      "id": "UADS-UI-003",
+      "applicability": "Not Applicable",
+      "state": "Not Applicable",
+      "reason": "This repository is a local command-line conversion tool and managed compatibility libraries, not a standalone UI application or hosted service.",
+      "evidence": [
+        "docs/reports/VERIFICATION.md"
+      ]
+    },
+    {
+      "id": "UADS-PLAT-002",
+      "applicability": "Not Applicable",
+      "state": "Not Applicable",
+      "reason": "This repository is a local command-line conversion tool and managed compatibility libraries, not a standalone UI application or hosted service.",
+      "evidence": [
+        "docs/reports/VERIFICATION.md"
+      ]
+    },
+    {
+      "id": "UADS-PLAT-003",
+      "applicability": "Not Applicable",
+      "state": "Not Applicable",
+      "reason": "This repository is a local command-line conversion tool and managed compatibility libraries, not a standalone UI application or hosted service.",
+      "evidence": [
+        "docs/reports/VERIFICATION.md"
+      ]
+    },
+    {
+      "id": "UADS-SEC-003",
+      "applicability": "Not Applicable",
+      "state": "Not Applicable",
+      "reason": "This repository is a local command-line conversion tool and managed compatibility libraries, not a standalone UI application or hosted service.",
+      "evidence": [
+        "docs/reports/VERIFICATION.md"
+      ]
+    },
+    {
+      "id": "UADS-DOC-002",
+      "applicability": "Required",
+      "state": "Pending",
+      "reason": "See scoped verification report; functional evidence is tracked separately.",
+      "evidence": [
+        "docs/reports/VERIFICATION.md"
+      ]
+    },
+    {
+      "id": "UADS-DOC-003",
+      "applicability": "Required",
+      "state": "Pending",
+      "reason": "See scoped verification report; functional evidence is tracked separately.",
+      "evidence": [
+        "docs/reports/VERIFICATION.md"
+      ]
+    },
+    {
+      "id": "UADS-CI-002",
+      "applicability": "Required",
+      "state": "Pending",
+      "reason": "See scoped verification report; functional evidence is tracked separately.",
+      "evidence": [
+        "docs/reports/VERIFICATION.md"
+      ]
+    },
+    {
+      "id": "UADS-DOC-004",
+      "applicability": "Required",
+      "state": "Pending",
+      "reason": "See scoped verification report; functional evidence is tracked separately.",
+      "evidence": [
+        "docs/reports/VERIFICATION.md"
+      ]
+    }
+  ],
+  "exceptions": [
+    {
+      "id": "AGENTS-preserved",
+      "requirement": "UADS-DOC-001",
+      "approval": "Current user explicitly instructed do not edit AGENTS.md",
+      "approvedAt": "2026-11-24",
+      "reason": "Existing user instructions are provided through the chat; no AGENTS.md is created or changed.",
+      "risks": "Agents must start from README and context instead.",
+      "mitigation": "README links restart instructions and active queue."
+    }
+  ]
+}

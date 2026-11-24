@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": ["uadsVersion", "manifestVersion", "project", "features", "distribution", "quality", "requirements", "exceptions"],
+  "properties": {
+    "uadsVersion": {"type": "string", "minLength": 1},
+    "manifestVersion": {"const": 1},
+    "project": {
+      "type": "object", "required": ["name", "repository", "profiles", "framework", "platforms", "hosting"],
+      "properties": {
+        "name": {"type": "string", "minLength": 1},
+        "repository": {"type": "string", "pattern": "^[^/]+/[^/]+$"},
+        "profiles": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"enum": ["mobile-app", "desktop-app", "web-app", "web-service", "backend-service", "cli-tool", "library", "hybrid"]}},
+        "platforms": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"enum": ["macos-arm64", "macos-x64", "ios", "android", "web", "windows", "linux"]}},
+        "framework": {"type": "string", "minLength": 1}, "hosting": {"type": "string", "minLength": 1}
+      }
+    },
+    "features": {"type": "object"}, "distribution": {"type": "object"}, "quality": {"type": "object"},
+    "requirements": {"type": "array", "minItems": 1, "items": {
+      "type": "object", "required": ["id", "applicability", "state", "reason", "evidence"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^UADS-[A-Z]+-[0-9]{3}$"},
+        "applicability": {"enum": ["Required", "Conditional", "Optional", "Not Applicable", "Approved Exception"]},
+        "state": {"enum": ["Pending", "Passed", "Failed", "Blocked", "Not Applicable", "Waived"]},
+        "reason": {"type": "string", "minLength": 1},
+        "evidence": {"type": "array", "items": {"type": "string", "minLength": 1}}
+      }
+    }},
+    "exceptions": {"type": "array", "items": {
+      "type": "object", "required": ["id", "requirement", "approval", "approvedAt", "reason", "risks", "mitigation"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1}, "requirement": {"type": "string"}, "approval": {"type": "string", "minLength": 1},
+        "approvedAt": {"type": "string", "format": "date"}, "expiresAt": {"type": "string", "format": "date"},
+        "reason": {"type": "string", "minLength": 1}, "risks": {"type": "string", "minLength": 1}, "mitigation": {"type": "string", "minLength": 1}
+      }
+    }}
+  }
+}

@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bsmac-mod-converter"
+version = "0.1.0"
+description = "Validated local Metal compatibility tooling for user-owned Beat Saber assets"
+requires-python = ">=3.12"
+license = "AGPL-3.0-only"
+dependencies = ["UnityPy==1.25.4", "lz4==4.4.5", "jsonschema>=4.23,<5"]
+
+[project.scripts]
+bsmac-mod-converter = "bsmac_converter.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["implementation/python"]

@@ -1,0 +1,7 @@
+{
+  "schemaVersion": 1,
+  "minimumFreeMiB": 2200,
+  "startConversionFreeMiB": 2300,
+  "watchMinimumIntervalSeconds": 5,
+  "notes": "GPU translation/compilation latency depends on asset complexity; no unmeasured latency guarantee."
+}
