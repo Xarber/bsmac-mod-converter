@@ -22,7 +22,7 @@
     "nativeGameplay": "pending"
   },
   "distribution": {
-    "visibility": "private",
+    "visibility": "public",
     "published": false
   },
   "quality": {

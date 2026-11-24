@@ -60,6 +60,32 @@ if (args[0] == "crc") {
         il.InsertBefore(first, il.Create(OpCodes.Call, trace));
         il.InsertBefore(first, il.Create(OpCodes.Starg, parameter));
     }
+} else if (args[0] == "compat") {
+    using var helper = AssemblyDefinition.ReadAssembly(args[2]);
+    var api = helper.MainModule.Types.Single(t => t.FullName == "Bsmac.NativeCompatibility");
+    void Replace(string typeName, string methodName, string replacement, params string[] fields) {
+        var type = types.Single(t => t.FullName == typeName);
+        var method = type.Methods.Single(m => m.Name == methodName);
+        if (!method.HasBody || method.Parameters.Count != 1) throw new InvalidOperationException("Unexpected transpiler signature");
+        var body = new Mono.Cecil.Cil.MethodBody(method);
+        method.Body = body;
+        var il = body.GetILProcessor();
+        il.Append(il.Create(OpCodes.Ldarg, method.Parameters[0]));
+        foreach (string fieldName in fields) {
+            var field = type.Fields.Single(f => f.Name == fieldName);
+            if (!field.IsStatic) il.Append(il.Create(OpCodes.Ldarg_0));
+            il.Append(il.Create(field.IsStatic ? OpCodes.Ldsfld : OpCodes.Ldfld, field));
+        }
+        il.Append(il.Create(OpCodes.Call, asm.MainModule.ImportReference(api.Methods.Single(m => m.Name == replacement))));
+        il.Append(il.Create(OpCodes.Ret));
+    }
+    if (asm.Name.Name == "NoodleExtensions") {
+        Replace("NoodleExtensions.HarmonyPatches.ObjectProcessing.ProcessNotesNoodleDataInTimeRow", "ProcessColorNotesInTimeRowTranspiler", "TimeRow", "_clampMethod");
+        Replace("NoodleExtensions.Managers.FakePatchesManager", "BoundsNullCheckTranspiler", "Bounds", "_obstacleFakeCheck");
+    } else if (asm.Name.Name == "Chroma") {
+        Replace("Chroma.HarmonyPatches.DebrisSpawnerSkip", "ReplaceNoteConditionTranspiler", "Debris", "_noteSpawnDebris", "_noteDebrisCheck");
+        Replace("Chroma.HarmonyPatches.DebrisSpawnerSkip", "ReplaceBombConditionTranspiler", "Debris", "_bombSpawnDebris", "_bombDebrisCheck");
+    } else throw new InvalidOperationException("Unsupported compatibility target");
 } else throw new ArgumentException("Unknown command");
 string output = args[^1];
 if (Path.GetFullPath(output) == Path.GetFullPath(args[1])) throw new InvalidOperationException("Stage into a separate file");

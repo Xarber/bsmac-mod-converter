@@ -18,8 +18,8 @@ namespace Bsmac {
                         Directory.CreateDirectory(Path.GetDirectoryName(path));
                         File.AppendAllText(path, "\n=== " + DateTime.UtcNow.ToString("O") + " " + name + " ===\n" +
                             string.Join("\n", code.Select((i, n) => n + ": " + i)) + "\n");
-                        UnityEngine.Debug.Log("[BsmacNativeDiagnostics] Recorded " + name + ": " + code.Count + " instructions");
-                    } catch (Exception error) { UnityEngine.Debug.LogWarning("[BsmacNativeDiagnostics] " + error.GetType().Name); }
+                        Console.WriteLine("[BsmacNativeDiagnostics] Recorded " + name + ": " + code.Count + " instructions");
+                    } catch (Exception error) { Console.WriteLine("[BsmacNativeDiagnostics] " + error.GetType().Name); }
                 }
             }
             return code;

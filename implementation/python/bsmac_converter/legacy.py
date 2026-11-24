@@ -26,7 +26,7 @@ def entries_2018(raw):
     return result
 
 def parse_legacy(sp):
-    assert sp.ver == 201708220
+    assert sp.ver in (201708220, 201802150)
 
     source_map, channels, tail = ushader.bind_channels(
         sp.tail
@@ -165,7 +165,7 @@ def resource_slots(msl, kind):
 def convert_entry(entry, msl):
     sp = ushader.SubProgram(entry)
 
-    assert sp.ver == 201708220
+    assert sp.ver in (201708220, 201802150)
 
     vs = sp.type in ushader.D3D_VS
 
@@ -313,7 +313,7 @@ def keyword_end(data, pos):
 def parse_program(entry):
     version = struct.unpack_from("<I", entry)[0]
 
-    if version == 201708220:
+    if version in (201708220, 201802150):
         return ushader.SubProgram(entry), b""
 
     if version == 201806140:
@@ -447,7 +447,7 @@ def translate_entry(entry):
 
     raw = struct.pack("<i", sp.ver) + tail
 
-    if sp.ver == 201708220:
+    if sp.ver in (201708220, 201802150):
         params = parse_legacy(sp)
 
         msl = translate_legacy(sp, params)

@@ -16,11 +16,13 @@ This repository tracks the native Beat Saber 1.40.8 / MoltenVR compatibility ass
 
 ## Safety and scope
 
-The user authorized closing and relaunching Beat Saber when staged fixes are ready. **Launch only through MoltenVR; the user confirmed direct-launch commands fail in this setup.** Preserve original maps, Info.dat, CRC checks, and working mods. Never globally bypass integrity or AssetBundleLoadingTools safety checks. Its manifest Platforms values are VR modes, not graphics API IDs. Sign the app only after staged verification. Keep reversible backups with hashes. No public repository/release authorization has been granted. Do not redistribute extracted assets, proprietary translator bytecode, game DLLs, private logs or user identity data.
+The user authorized closing and relaunching Beat Saber when staged fixes are ready. **Launch only through MoltenVR; the user confirmed direct-launch commands fail in this setup.** Preserve original maps, Info.dat, CRC checks, and working mods. Never globally bypass integrity or AssetBundleLoadingTools safety checks. Its manifest Platforms values are VR modes, not graphics API IDs. Sign the app only after staged verification. Keep reversible backups with hashes. The user explicitly authorized public repository visibility on 2026-11-24; binary releases and external distribution remain unauthorized. Do not redistribute extracted assets, proprietary translator bytecode, game DLLs, private logs or user identity data.
 
 User reports already working: native game, Quest 3 streaming, Steam authentication, BeatLeader, ScoreSaber, ReeSabers v3 and motion blur, CustomNotes all models, CustomSabers, Camera2, PlaylistManager. These are historical user reports, not newly executed verification.
 
 ## Confirmed starting findings
+
+Latest user steering: **Do not launch Beat Saber. The user will run one single session themselves.** Do not click MoltenVR Launch or execute a game launch command. Inspect logs and prepare code independently. The prior close/relaunch authorization is superseded for launching.
 
 - Installed Vivify DepthBlit resource has Unity CRC 2484130083; its loading IL contains the matching constant. Original checksum 1746663828.
 - Both map originals match Info.dat CRC. Their Metal derivatives were previously converted (61 shaders, 1642 variants); current index generation revalidated hashes and CRCs.

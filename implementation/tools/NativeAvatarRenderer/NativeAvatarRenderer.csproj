@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><TargetFramework>netstandard2.1</TargetFramework><LangVersion>latest</LangVersion><NoStdLib>true</NoStdLib><DisableImplicitFrameworkReferences>true</DisableImplicitFrameworkReferences></PropertyGroup>
+  <ItemGroup>
+    <Reference Include="mscorlib"><HintPath>$(GameResources)/Beat Saber_Data/Managed/mscorlib.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="System"><HintPath>$(GameResources)/Beat Saber_Data/Managed/System.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="System.Core"><HintPath>$(GameResources)/Beat Saber_Data/Managed/System.Core.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="netstandard"><HintPath>$(GameResources)/Beat Saber_Data/Managed/netstandard.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.CoreModule"><HintPath>$(GameResources)/Beat Saber_Data/Managed/UnityEngine.CoreModule.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.XRModule"><HintPath>$(GameResources)/Beat Saber_Data/Managed/UnityEngine.XRModule.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="IPA.Loader"><HintPath>$(GameResources)/Beat Saber_Data/Managed/IPA.Loader.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="SiraUtil"><HintPath>$(GameResources)/Plugins/SiraUtil.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Zenject"><HintPath>$(GameResources)/Beat Saber_Data/Managed/Zenject.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Zenject-usage"><HintPath>$(GameResources)/Beat Saber_Data/Managed/Zenject-usage.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="HMLib"><HintPath>$(GameResources)/Beat Saber_Data/Managed/HMLib.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="GameplayCore"><HintPath>$(GameResources)/Beat Saber_Data/Managed/GameplayCore.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="BeatSaber.AvatarCore"><HintPath>$(GameResources)/Beat Saber_Data/Managed/BeatSaber.AvatarCore.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="BeatSaber.BeatAvatarAdapter"><HintPath>$(GameResources)/Beat Saber_Data/Managed/BeatSaber.BeatAvatarAdapter.dll</HintPath><Private>false</Private></Reference>
+    <EmbeddedResource Include="manifest.json" LogicalName="NativeAvatarRenderer.manifest.json" />
+  </ItemGroup>
+</Project>
