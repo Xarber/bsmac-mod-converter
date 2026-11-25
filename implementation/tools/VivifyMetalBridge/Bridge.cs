@@ -37,6 +37,7 @@ namespace Bsmac {
                         Debug.Log("[VivifyMetalBridge] Validated original SHA/CRC and derivative SHA; loading Metal bundle");
                         var bundle = AssetBundle.LoadFromFile(row[4], convertedCrc);
                         Debug.Log(bundle == null ? "[VivifyMetalBridge] Metal bundle failed CRC/load validation" : "[VivifyMetalBridge] Metal bundle loaded");
+                        RenderDiagnostics.Observe(original, row[4], bundle);
                         return bundle;
                     }
                 }
