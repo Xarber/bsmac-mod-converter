@@ -90,3 +90,7 @@ The renderer observer was compiled without warnings and installed under receipt 
 Read-only auditing of the currently registered experimental copies found no Metal program references for the two Vilar shaders in 42-flux, Bytesized/Grass in Lifelike, Roystan/Grass in Yoi Okashi to Warui Okashi, and AshleyScarlet/ParticleScreen/Visualizer in Through The Screen. This identifies candidates and does not establish which objects actually appeared magenta.
 
 Final handoff check found 11 local BSOR recordings and 11 cached downloads in the corrected BeatLeader directories. Playback appearance was not observed. The live automatic worker is enabled, the app signature verifies and the map index still has 12 registrations. All 29 local Python tests passed, and GitHub source checks passed at ba8c28e and 0e5cca6.
+
+## Installer replication checks
+
+The ported installer resolved and verified 44 official BeatMods dependency archives for the pinned 1.40.8 profile. This was a cache-only check. The installation command was not run on the existing modded game. AssemblyTool built without warnings, and the Qosmetics hook staged and reopened against the backed-up upstream CustomNotes DLL. The ReeSabers ports were run on the local original: 31 shaders, 4,932 translated variants and 12 compute kernels reported with zero conversion failures. Metal then successfully built all three patched blur compute pipelines and verified their reflected layouts against the original. Thirty Python tests passed. Full clean-instance installation and gameplay remain unverified.

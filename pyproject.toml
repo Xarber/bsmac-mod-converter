@@ -12,6 +12,7 @@ dependencies = ["UnityPy==1.25.4", "lz4==4.4.5", "jsonschema>=4.23,<5"]
 
 [project.scripts]
 bsmac-mod-converter = "bsmac_converter.cli:main"
+bsmac-mod-installer = "bsmac_converter.mod_installer:main"
 
 [tool.setuptools.packages.find]
 where = ["implementation/python"]

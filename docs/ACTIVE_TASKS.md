@@ -57,3 +57,6 @@ T19 (2026-11-25): GitHub and BeatLeader replays. Publish project source and docs
 | T23 | Complete modern program index handling | Implemented | The experimental 42-flux rerun translated 624 jobs and compiled all emitted sources. Two shader families retain 28 unsupported geometry programs. Candidate stays unregistered pending focused runtime diagnostics and a visual test. |
 
 T18 follow-up: later user-started logs show the SiraUtil FPFC controller invoking XR enable and disable repeatedly. The current installation already has an active toggle path. User confirmation of both directions and Camera2 behavior is pending. No SiraUtil replacement was applied here.
+
+## Installer and replication
+The original BeatMods cache workaround is ported to the repo as `bsmac-mod-installer`. See the setup guide and installed inventory. Local patch installation is hash-checked with rollback. Continue toward complete clean-instance replication by checking historical patch sites and authorizations against their actual upstream inputs, then testing the complete setup on a clean instance.

@@ -2,6 +2,7 @@
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using System.Text;
+using System.Security.Cryptography;
 
 if (args.Length < 2) throw new ArgumentException("inspect|resource|crc|bridge input [arguments]");
 using var resolver = new DefaultAssemblyResolver();
@@ -29,7 +30,19 @@ if (args[0] == "resource") {
     return;
 }
 if (asm.Name.HasPublicKey) throw new InvalidOperationException("Refusing strong-named assembly modification");
-if (args[0] == "crc") {
+if (args[0] == "replace-resource") {
+    if (args.Length != 7)
+        throw new ArgumentException("replace-resource input name original-sha256 derivative derivative-sha256 output");
+    var resource = asm.MainModule.Resources.OfType<EmbeddedResource>().Single(r => r.Name == args[2]);
+    var replacement = File.ReadAllBytes(args[4]);
+    string Hash(byte[] bytes) => Convert.ToHexString(SHA256.HashData(bytes));
+    if (!Hash(resource.GetResourceData()).Equals(args[3], StringComparison.OrdinalIgnoreCase) ||
+        !Hash(replacement).Equals(args[5], StringComparison.OrdinalIgnoreCase) ||
+        !replacement.AsSpan().StartsWith("UnityFS\0"u8))
+        throw new InvalidOperationException("Resource or UnityFS derivative hash verification failed");
+    asm.MainModule.Resources[asm.MainModule.Resources.IndexOf(resource)] =
+        new EmbeddedResource(resource.Name, resource.Attributes, replacement);
+} else if (args[0] == "crc") {
     uint old = uint.Parse(args[2]), value = uint.Parse(args[3]);
     var matches = types.SelectMany(t => t.Methods).Where(m => m.HasBody)
         .SelectMany(m => m.Body.Instructions).Where(i => i.OpCode == OpCodes.Ldc_I4 && unchecked((uint)(int)i.Operand) == old).ToArray();
@@ -102,6 +115,28 @@ if (args[0] == "crc") {
     int viewIndex = asm.MainModule.Resources.IndexOf(view);
     asm.MainModule.Resources[viewIndex] = new EmbeddedResource(view.Name, view.Attributes,
         Encoding.UTF8.GetBytes(markup.Replace(oldLabel, "Preparing map assets...", StringComparison.Ordinal)));
+} else if (args[0] == "qosmetics-notes") {
+    if (asm.Name.Name != "CustomNotes" || asm.Name.Version != new Version(2, 6, 9, 0))
+        throw new InvalidOperationException("Expected CustomNotes 2.6.9");
+    using var bridge = AssemblyDefinition.ReadAssembly(args[2]);
+    var api = bridge.MainModule.Types.Single(t => t.FullName == "Bsmac.Qosmetics.Bridge");
+    var load = types.Single(t => t.FullName == "CustomNotes.Managers.NoteAssetLoader")
+        .Methods.Single(m => m.Name == "LoadNotePrefab");
+    var loadCall = load.Body.Instructions.Single(i => i.Operand is GenericInstanceMethod m &&
+        m.Name == "LoadAsset" && m.DeclaringType.FullName == "UnityEngine.AssetBundle" &&
+        m.GenericArguments.Single().FullName == "UnityEngine.GameObject");
+    if (load.Parameters.Count != 2 || load.Parameters[1].ParameterType.FullName != "System.String" ||
+        loadCall.Previous.OpCode != OpCodes.Ldstr || (string)loadCall.Previous.Operand != "assets/_customnote.prefab")
+        throw new InvalidOperationException("Unexpected CustomNotes prefab loader");
+    load.Body.GetILProcessor().InsertBefore(loadCall, Instruction.Create(OpCodes.Ldarg, load.Parameters[1]));
+    loadCall.OpCode = OpCodes.Call;
+    loadCall.Operand = asm.MainModule.ImportReference(api.Methods.Single(m => m.Name == "Load"));
+    var unload = types.Single(t => t.FullName == "CustomNotes.Models.CustomNote")
+        .Methods.Single(m => m.Name == "Destroy").Body.Instructions.Single(i =>
+            i.Operand is MethodReference m && m.Name == "Unload" && m.DeclaringType.FullName == "UnityEngine.AssetBundle" &&
+            m.Parameters.Count == 1 && m.Parameters[0].ParameterType.FullName == "System.Boolean");
+    unload.OpCode = OpCodes.Call;
+    unload.Operand = asm.MainModule.ImportReference(api.Methods.Single(m => m.Name == "Unload"));
 } else if (args[0] == "equipment-auto") {
     using var bridge = AssemblyDefinition.ReadAssembly(args[2]);
     var api = bridge.MainModule.Types.Single(t => t.FullName == "Bsmac.EquipmentPreparation");

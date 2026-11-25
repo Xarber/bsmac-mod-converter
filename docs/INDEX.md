@@ -3,6 +3,7 @@
 The project extends a separately installed MoltenVR translator to handle legacy Unity shader formats, structured buffers, validated map derivatives, shader-library repacking and reversible managed-mod installation.
 
 - [Restart handoff](../context/README.md)
+- [Replicate the installation and see the mod inventory](REPLICATE_INSTALLATION.md)
 - [Ordered assignment queue](ACTIVE_TASKS.md)
 - [Architecture and safety boundaries](ARCHITECTURE.md)
 - [Automatic Vivify preparation](features-automatic-vivify.md)
