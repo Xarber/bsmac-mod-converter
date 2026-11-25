@@ -10,6 +10,7 @@ resources=$2
 bridges=$3
 stage=$4
 prepared=${5:-"$resources/Plugins"}
+export BSMAC_GAME_RESOURCES="$resources"
 mkdir -- "$stage"
 mkdir "$stage/Plugins" "$stage/Libs" "$stage/Managed"
 patch() { dotnet "$tool" "$@"; }

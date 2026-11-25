@@ -94,3 +94,8 @@ Final handoff check found 11 local BSOR recordings and 11 cached downloads in th
 ## Installer replication checks
 
 The ported installer resolved and verified 44 official BeatMods dependency archives for the pinned 1.40.8 profile. This was a cache-only check. The installation command was not run on the existing modded game. AssemblyTool built without warnings, and the Qosmetics hook staged and reopened against the backed-up upstream CustomNotes DLL. The ReeSabers ports were run on the local original: 31 shaders, 4,932 translated variants and 12 compute kernels reported with zero conversion failures. Metal then successfully built all three patched blur compute pipelines and verified their reflected layouts against the original. Thirty Python tests passed. Full clean-instance installation and gameplay remain unverified.
+
+
+## Fresh compatibility staging rehearsal
+
+On Apple Silicon, built AssemblyTool and five bridges against an isolated reference fixture. The fixture included original pinned BeatMods DLLs, upstream AudioLink and BeatLeader, and the original BGLib managed DLL. Rebuilt the Vivify, AudioLink, BeatLeader and four CustomWalls embedded bundles and staged the managed hooks. An initial rehearsal stopped at the BeatLeader patch because the intermediate DLL was outside the game dependency folders. The corrected rehearsal resolved dependencies from the supplied game resources and produced the install plan. QosmeticsBridge emitted a System.ValueTuple reference-version warning and built successfully. This verified staging with a populated converter cache. It did not install a new game instance or launch it.

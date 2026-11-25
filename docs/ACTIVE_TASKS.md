@@ -67,5 +67,6 @@ Desktop independence checkpoint: verified 475 archive entries outside Desktop an
 
 | ID | Request | State | Evidence / next action |
 | --- | --- | --- | --- |
-| T24 | Fresh installed MoltenVR instance to patched 1.40.8 with automatic conversion | In Progress | Added pinned AudioLink and BeatLeader acquisition and a single installer for the core patch set. Rehearse using the upstream mod archives and original managed files before any live install. Full clean-instance gameplay, separate packages, and unsupported shader effects remain open. |
+| T24 | Fresh installed MoltenVR instance to patched 1.40.8 with automatic conversion | In Progress | Added pinned AudioLink and BeatLeader acquisition and a single installer for the core patch set. An isolated Apple Silicon rehearsal built the managed bridges and produced the complete core staging plan from upstream DLLs and original managed files. Full clean-instance install and gameplay, the separately authorized ReeSabers package, and unsupported shader effects remain open. |
 | T25 | Preserve useful Desktop conversion work before deletion | Verified | The private copy and SHA-256 inventory match all conversion files; five Desktop Finder metadata files changed. The repository archive guide catalogs the material, local evidence, and maintained reproduction tools. |
+| T26 | Replace Counters+ with NotCounters after repository work | Implemented | The fresh profile pins NotCounters 1.2.0 for 1.40.8. Verify the local replacement independently, preserving Counters+ and its settings for rollback. |

@@ -8,7 +8,8 @@ if (args.Length < 2) throw new ArgumentException("inspect|resource|crc|bridge in
 using var resolver = new DefaultAssemblyResolver();
 string inputDirectory = Path.GetDirectoryName(Path.GetFullPath(args[1]))!;
 resolver.AddSearchDirectory(inputDirectory);
-string resources = Directory.GetParent(inputDirectory)!.FullName;
+string resources = Environment.GetEnvironmentVariable("BSMAC_GAME_RESOURCES")
+    ?? Directory.GetParent(inputDirectory)!.FullName;
 foreach (string directory in new[] { Path.Combine(resources, "Plugins"), Path.Combine(resources, "Libs"), Path.Combine(resources, "Beat Saber_Data", "Managed") })
     if (Directory.Exists(directory)) resolver.AddSearchDirectory(directory);
 using var asm = AssemblyDefinition.ReadAssembly(args[1], new ReaderParameters { InMemory = true, AssemblyResolver = resolver });

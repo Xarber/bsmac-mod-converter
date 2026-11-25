@@ -2,6 +2,8 @@
 
 This repository tracks the native Beat Saber 1.40.8 / MoltenVR compatibility assignment begun 2026-11-24. Read this page, [the queue](../docs/ACTIVE_TASKS.md), and [project documentation](../docs/INDEX.md) before continuing. Inspect actual state before relying on any recorded result. Do not edit AGENTS.md: the user explicitly excluded it.
 
+For a fresh setup, use [the replication guide](../docs/REPLICATE_INSTALLATION.md) and the pinned installer on `testing`.
+
 ## Local environment
 
 - Beat Saber instance: `~/Library/Application Support/bsmac/instances/1.40.8`.
@@ -9,7 +11,7 @@ This repository tracks the native Beat Saber 1.40.8 / MoltenVR compatibility ass
 - Managed assemblies: `Resources/Beat Saber_Data/Managed`; `Resources/Data` is a symlink to it.
 - Custom levels: `Beat Saber.app/Contents/CustomLevels`.
 - Existing converter and separately supplied bytecode backend: `~/Library/Application Support/bsmac/mod-converter`.
-- Existing user assets and conversion diagnostics: `~/Desktop/ConvertedMods`.
+- Historical conversion files: see the [archive guide](../docs/CONVERTEDMODS_ARCHIVE.md). The Desktop folder can be removed.
 - Python environment: `/tmp/bsmac-tools/bin/python` (ephemeral; recreate a small virtualenv if missing).
 - Installed MoltenVR native translator: `/Applications/MoltenVR.app/Contents/Resources/payload/bsmac/prebuilt`.
 - .NET SDK 11.0.100; UnityPy 1.25.4; lz4 4.4.5; native game Unity 2022.3.33f1.

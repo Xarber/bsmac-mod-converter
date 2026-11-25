@@ -1,6 +1,6 @@
 # Replicate the native Beat Saber 1.40.8 setup
 
-The reference system is Apple Silicon with MoltenVR and a legally installed Steam game. The complete observed plugin filename inventory is [INSTALLED_PLUGINS.txt](INSTALLED_PLUGINS.txt). The version-pinned [BeatMods profile](../config/beatmods-1.40.8.json) covers the corresponding catalog mods. The profile is a baseline, since some files in the reference installation have local patches or come directly from upstream.
+The reference system is Apple Silicon with MoltenVR and a legally installed Steam game. The historical plugin filename inventory before the NotCounters switch is [INSTALLED_PLUGINS.txt](INSTALLED_PLUGINS.txt). The version-pinned [BeatMods profile](../config/beatmods-1.40.8.json) covers the corresponding catalog mods. The profile is a baseline, since some files in the reference installation have local patches or come directly from upstream.
 
 ## Fresh installation on Apple Silicon
 
@@ -10,7 +10,7 @@ Create a native 1.40.8 instance with MoltenVR and leave it closed. From a checko
 bash scripts/install-fresh.sh --install "$HOME/bsmac-1.40.8-setup"
 ```
 
-Use a new work directory. This path seeds both catalog files, verifies and installs the pinned BeatMods baseline, fetches and verifies AudioLink, BeatLeader, ScoreSaber and BeatSaberPlus, builds the conversion worker and managed bridges, and stages the known embedded bundle conversions before applying the hash-checked patch plan. It enables automatic Vivify and equipment preparation after the patch transaction succeeds. If any step fails, keep the work directory and its installation receipts. Continue from the failed step using the commands below. The initial baseline install and the later patch transaction are separate operations.
+Use a new work directory. This path seeds both catalog files, verifies and installs the pinned BeatMods baseline, fetches and verifies AudioLink, BeatLeader, ScoreSaber, BeatSaberPlus, NotCounters and JDFixer, builds the conversion worker and managed bridges, and stages the known embedded bundle conversions before applying the hash-checked patch plan. It enables automatic Vivify and equipment preparation after the patch transaction succeeds. If any step fails, keep the work directory and its installation receipts. Continue from the failed step using the commands below. The initial baseline install and the later patch transaction are separate operations.
 
 The BeatLeader input is the pinned PC 0.9.33 release archive labeled 1.40.2–1.40.4, whose shader bundle matches the original used on the reference 1.40.8 instance. Use the matching LeaderboardCore from the pinned baseline. Keep the game closed throughout setup. Launch through MoltenVR after installation and verify a vanilla song, a Mapping/Noodle/Chroma song, and a new Vivify map. Then test loose equipment and replays as needed.
 
@@ -39,6 +39,7 @@ The installer reconciles the MoltenVR cache catalog with BeatMods, retains the k
 | ScoreSaber | [PC 3.4.2 for 1.40.0–1.40.8](https://github.com/ScoreSaber/pc-mod/releases/tag/v3.4.2). The pinned plugin matches the reference DLL byte for byte. |
 | AudioLink | [Aeroluna 1.1.1 for 1.40.8](https://github.com/Aeroluna/BSAudioLink/releases/tag/v1.1.1), with the bundle and CRC patch below. |
 | BeatSaberPlus | [6.4.5 for 1.40.0–1.40.8](https://github.com/hardcpp/BeatSaberPlus/releases/tag/V6.4.5). The reference uses Multiplayer+, ChatPlexSDK and SongChartVisualizer from that same archive. Lobby verification remains open. |
+| NotCounters and JDFixer | The matching [NotCounters 1.2.0 for 1.40.8](https://github.com/NotNic182/NotCounters/releases/tag/BS-1.40.8-v1.2.0) and [JDFixer 7.4.0](https://github.com/zeph-yr/JDFixer/releases/tag/v.7.4.0) plugins are pinned in the installer. Use only one counters plugin. |
 | ReeSabers | Use your authorized upstream package. The reference 0.4.0 build has a local Metal bundle and blur layout fix. |
 | NativeAvatarRenderer | Build the original plugin from `implementation/tools/NativeAvatarRenderer` against the local game resources. |
 
