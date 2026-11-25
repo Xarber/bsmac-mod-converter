@@ -99,3 +99,7 @@ The ported installer resolved and verified 44 official BeatMods dependency archi
 ## Fresh compatibility staging rehearsal
 
 On Apple Silicon, built AssemblyTool and five bridges against an isolated reference fixture. The fixture included original pinned BeatMods DLLs, upstream AudioLink and BeatLeader, and the original BGLib managed DLL. Rebuilt the Vivify, AudioLink, BeatLeader and four CustomWalls embedded bundles and staged the managed hooks. An initial rehearsal stopped at the BeatLeader patch because the intermediate DLL was outside the game dependency folders. The corrected rehearsal resolved dependencies from the supplied game resources and produced the install plan. QosmeticsBridge emitted a System.ValueTuple reference-version warning and built successfully. This verified staging with a populated converter cache. It did not install a new game instance or launch it.
+
+## Camera2 Metal bundle recovery
+
+Extracted the stock Camera2 0.6.118 bundle from its pinned BeatMods archive. The original matches the archived input. Rebuilt and reinserted `Camera2.Shaders.camera2utils` with the Camera2-only staging command. The derivative is byte-identical to the shader resource extracted from the working reference install. All five shader objects carry Metal programs, including the full-screen luminance-key, outline and volumetric blit effects. The loader uses the no-CRC stream overload. No live game change or launch was performed. This reproduces the known bundle patch, while the reported symptom remains to be checked on the affected installation.

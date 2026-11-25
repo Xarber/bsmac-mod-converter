@@ -10,6 +10,7 @@ The project extends a separately installed MoltenVR translator to handle legacy 
 - [Automatic Vivify preparation](features-automatic-vivify.md)
 - [Automatic loose equipment preparation](features-automatic-equipment.md)
 - [Automatic Qosmetics notes](features-qosmetics.md)
+- [Camera2 full-screen magenta recovery](features-camera2.md)
 - [BeatLeader replays](features-beatleader-replays.md)
 - [Testing and evidence](TESTING.md)
 - [Security and licensing](SECURITY.md)

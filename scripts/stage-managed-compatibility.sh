@@ -36,7 +36,7 @@ for library in VivifyMetalBridge QosmeticsBridge NativeDiagnostics; do
 done
 cp "$bridges/LocalMediaBridge.dll" "$stage/Managed/"
 cp "$bridges/NativeAvatarRenderer.dll" "$stage/Plugins/"
-if [[ $# == 5 ]]; then cp "$prepared/AudioLink.dll" "$stage/Plugins/"; fi
+if [[ $# == 5 ]]; then cp "$prepared/AudioLink.dll" "$prepared/Camera2.dll" "$stage/Plugins/"; fi
 
 python3.12 - "$stage" "$resources" <<'PY'
 import hashlib

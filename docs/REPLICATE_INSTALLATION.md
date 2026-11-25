@@ -16,6 +16,8 @@ The BeatLeader input is the pinned PC 0.9.33 release archive labeled 1.40.2–1.
 
 This entry point covers the core patch set. The remaining packages in the inventory may require a separate upstream download, an authorized ReeSabers package, or individual setup as described below. Multiplayer transport and exact visual parity for unsupported shader stages are still open. The [archive guide](CONVERTEDMODS_ARCHIVE.md) records what was recovered from historical conversion work.
 
+If an earlier fresh setup has a full-screen magenta mirror, see the [Camera2-only repair](features-camera2.md).
+
 ## Install the baseline step by step
 
 1. Create the native 1.40.8 instance in MoltenVR. Seed its BeatMods cache from this repository before installing mods. Use a clean instance for replication and close Beat Saber before installation. Keep backups of any existing modded instance.
