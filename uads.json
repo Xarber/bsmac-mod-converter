@@ -19,6 +19,7 @@
     "cache": "implemented",
     "rollback": "implemented",
     "watch": "implemented",
+    "vivifyAutomaticPreparation": "implemented-runtime-pending",
     "nativeGameplay": "pending"
   },
   "distribution": {

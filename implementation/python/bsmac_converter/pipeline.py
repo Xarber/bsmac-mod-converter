@@ -5,6 +5,7 @@ import fcntl
 import importlib.metadata
 import json
 import shutil
+import signal
 import subprocess
 import sys
 import zipfile
@@ -17,7 +18,14 @@ def cache_key(source, backend):
     files = sorted(Path(backend).glob('bsmac/shaders/*.pyc'))
     if not files:
         raise ValueError('Separately installed backend not found')
-    backend_hash = hashlib.sha256(''.join(sha256(p) for p in files).encode()).hexdigest()
+    native = [
+        Path(backend) / 'bsmac/native.py',
+        Path('/Applications/MoltenVR.app/Contents/Resources/payload/bsmac/prebuilt/libdxbc2msl.dylib'),
+    ]
+    compiler = os.environ.get('BSMAC_METAL_COMPILER')
+    if compiler:
+        native.append(Path(compiler))
+    backend_hash = hashlib.sha256(''.join(sha256(p) for p in [*files, *native] if p.is_file()).encode()).hexdigest()
     extensions = hashlib.sha256(''.join(sha256(p) for p in sorted(Path(__file__).parent.glob('*.py'))).encode()).hexdigest()
     return hashlib.sha256(json.dumps([sha256(source), backend_hash, extensions, importlib.metadata.version('UnityPy')]).encode()).hexdigest()
 
@@ -98,8 +106,17 @@ def convert_locked(source, backend, folder, key, source_hash, experimental, time
     if experimental:
         command.append('--experimental')
     with log.open('w') as output:
-        process = subprocess.run(command, stdout=output, stderr=subprocess.STDOUT, timeout=timeout)
-    if process.returncode or not result.is_file():
+        with subprocess.Popen(command, stdout=output, stderr=subprocess.STDOUT, start_new_session=True) as process:
+            try:
+                code = process.wait(timeout)
+            except subprocess.TimeoutExpired:
+                try:
+                    os.killpg(process.pid, signal.SIGKILL)
+                except ProcessLookupError:
+                    pass
+                process.wait()
+                raise RuntimeError('Conversion timed out; inspect ' + str(log)) from None
+    if code or not result.is_file():
         raise RuntimeError('Conversion failed; inspect ' + str(log))
     # Independent reopen after the worker's own validation and native compilation.
     sys.path.insert(0, str(backend))

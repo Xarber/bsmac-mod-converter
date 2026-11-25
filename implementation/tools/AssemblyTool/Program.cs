@@ -44,6 +44,64 @@ if (args[0] == "crc") {
         r.Parameters[0].ParameterType.FullName == "System.String" && r.Parameters[1].ParameterType.FullName == "System.UInt32").ToArray();
     if (matches.Length != 1) throw new InvalidOperationException($"Expected one checked map loader call, found {matches.Length}");
     matches[0].Operand = replacement;
+} else if (args[0] == "vivify-auto") {
+    if (asm.Name.Name != "Vivify" || asm.Name.Version != new Version(1, 0, 5, 0))
+        throw new InvalidOperationException("The automatic preparation patch requires the inspected Vivify 1.0.5 build");
+    using var bridge = AssemblyDefinition.ReadAssembly(args[2]);
+    var api = bridge.MainModule.Types.Single(t => t.FullName == "Bsmac.AutomaticPreparation");
+    MethodReference Hook(string name) => asm.MainModule.ImportReference(api.Methods.Single(m => m.Name == name));
+    var type = types.Single(t => t.FullName == "Vivify.Controllers.AssetBundleDownloadViewController");
+    foreach (string fieldName in new[] {"_assetDownloader", "_downloadFinished", "_doAbort", "_downloadProgress", "_newView", "_lastError", "_downloadWaiter"})
+        if (!type.Fields.Any(f => f.Name == fieldName))
+            throw new InvalidOperationException("Vivify preparation field missing: " + fieldName);
+    var init = type.Methods.Single(m => m.Name == "Init" && m.Parameters.Count == 1);
+    var check = init.Body.Instructions.Single(i => i.OpCode == OpCodes.Call && i.Operand is MethodReference m &&
+        m.DeclaringType.FullName == "System.IO.File" && m.Name == "Exists");
+    var found = check.Next.Next;
+    if (check.Previous.OpCode != OpCodes.Ldloc_2 || init.Body.Variables[2].VariableType.FullName != "System.String" ||
+        check.Next.OpCode != OpCodes.Brfalse_S || found.OpCode != OpCodes.Ldc_I4_0 || found.Next.OpCode != OpCodes.Ret)
+        throw new InvalidOperationException("Unexpected Vivify existing-bundle branch");
+    var initIl = init.Body.GetILProcessor();
+    var foundReturn = found.Next;
+    found.OpCode = OpCodes.Ldarg_0;
+    initIl.InsertBefore(foundReturn, initIl.Create(OpCodes.Ldloc_2));
+    initIl.InsertBefore(foundReturn, initIl.Create(OpCodes.Call, Hook("PrepareExisting")));
+    var consent = init.Body.Instructions.Single(i => i.Operand is MethodReference m && m.Name == "get_AllowDownload");
+    initIl.InsertAfter(consent, initIl.Create(OpCodes.Ldarg_0));
+    initIl.InsertAfter(consent.Next, initIl.Create(OpCodes.Call, Hook("SetDownloadConsentView")));
+    // Added IL can move existing short branch targets out of range.
+    foreach (var op in init.Body.Instructions) {
+        if (op.OpCode == OpCodes.Br_S) op.OpCode = OpCodes.Br;
+        else if (op.OpCode == OpCodes.Brtrue_S) op.OpCode = OpCodes.Brtrue;
+        else if (op.OpCode == OpCodes.Brfalse_S) op.OpCode = OpCodes.Brfalse;
+    }
+    var download = type.Methods.Single(m => m.Name == "DownloadAndSave" && m.Parameters.Count == 2 &&
+        m.ReturnType.FullName == "System.Collections.IEnumerator");
+    var downloadIl = download.Body.GetILProcessor();
+    var end = download.Body.Instructions.Single(i => i.OpCode == OpCodes.Ret);
+    end.OpCode = OpCodes.Ldarg_0;
+    downloadIl.Append(downloadIl.Create(OpCodes.Ldarg_1));
+    downloadIl.Append(downloadIl.Create(OpCodes.Ldarg_2));
+    downloadIl.Append(downloadIl.Create(OpCodes.Call, Hook("PrepareAfterDownload")));
+    downloadIl.Append(downloadIl.Create(OpCodes.Ret));
+    var show = type.Methods.Single(m => m.Name == "OnShow" && m.Parameters.Count == 0);
+    var start = show.Body.Instructions.Single(i => i.Operand is MethodReference m &&
+        m.DeclaringType.FullName == "UnityEngine.MonoBehaviour" && m.Name == "StartCoroutine");
+    var pop = start.Next;
+    if (!(start.Previous.Operand is MethodReference wait && wait.Name == "WaitForDownload") || pop.OpCode != OpCodes.Pop)
+        throw new InvalidOperationException("Unexpected Vivify download waiter shape");
+    pop.OpCode = OpCodes.Ldarg_0;
+    var showIl = show.Body.GetILProcessor();
+    showIl.InsertAfter(pop, showIl.Create(OpCodes.Call, Hook("RememberWaiter")));
+    // This view covers both the original download and the local conversion.
+    var view = asm.MainModule.Resources.OfType<EmbeddedResource>().Single(r => r.Name == "Vivify.Resources.AssetBundleDownloading.bsml");
+    string markup = Encoding.UTF8.GetString(view.GetResourceData());
+    const string oldLabel = "Downloading map assets...";
+    if (markup.Split(oldLabel, StringSplitOptions.None).Length != 2)
+        throw new InvalidOperationException("Unexpected Vivify preparation view label");
+    int viewIndex = asm.MainModule.Resources.IndexOf(view);
+    asm.MainModule.Resources[viewIndex] = new EmbeddedResource(view.Name, view.Attributes,
+        Encoding.UTF8.GetBytes(markup.Replace(oldLabel, "Preparing map assets...", StringComparison.Ordinal)));
 } else if (args[0] == "trace") {
     using var bridge = AssemblyDefinition.ReadAssembly(args[2]);
     var trace = asm.MainModule.ImportReference(bridge.MainModule.Types.Single(t => t.FullName == "Bsmac.NativeDiagnostics").Methods.Single(m => m.Name == "Trace"));

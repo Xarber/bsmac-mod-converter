@@ -150,3 +150,74 @@ def test_discovery_excludes_dlls_and_parser(tmp_path):
     for name in ['a.vivify','b.dll','c.shaderbundle']: (tmp_path/name).write_bytes(b'')
     assert {p.name for p in discover([tmp_path])}=={'a.vivify','c.shaderbundle'}
     assert parser().parse_args(['scan',str(tmp_path)]).command=='scan'
+
+
+def engine_map(levels, folder, data):
+    original = levels / folder / 'bundleWindows2021.vivify'
+    original.parent.mkdir(parents=True)
+    crc = bundle(original, data)
+    (original.parent / 'Info.dat').write_text(json.dumps({'_assetBundle': {'_windows2021': crc}}))
+    return original, crc
+
+
+def test_prepare_map_preserves_existing_registration(tmp_path, monkeypatch):
+    from bsmac_converter import engine
+    from bsmac_converter.index import derivative_row, publish_rows
+    levels = tmp_path / 'CustomLevels'
+    original, crc = engine_map(levels, 'Song + title', b'original')
+    derivative = tmp_path / 'maps' / 'existing'
+    derivative.parent.mkdir()
+    bundle(derivative, b'metal output')
+    index = tmp_path / 'MetalMapIndex.tsv'
+    publish_rows(index, [derivative_row((sha256(original), crc), derivative)])
+    previous = index.read_bytes()
+    monkeypatch.setattr(engine, 'convert', lambda *args, **kwargs: pytest.fail('attempted to replace existing derivative'))
+    result = engine.prepare_map(original, tmp_path, tmp_path / 'pipeline', index, levels, crc=crc)
+    assert result == {'status': 'registered', 'derivative': str(derivative.resolve())}
+    assert index.read_bytes() == previous
+    with pytest.raises(ValueError, match='download checksum'):
+        engine.prepare_map(original, tmp_path, tmp_path / 'pipeline', index, levels, crc=crc ^ 1)
+    derivative.write_bytes(b'changed')
+    with pytest.raises(AssertionError):
+        engine.prepare_map(original, tmp_path, tmp_path / 'pipeline', index, levels, crc=crc)
+    assert index.read_bytes() == previous
+
+
+def test_prepare_map_selectively_publishes_new_valid_output(tmp_path, monkeypatch):
+    from bsmac_converter import engine
+    from bsmac_converter.index import read_index
+    levels = tmp_path / 'CustomLevels'
+    original, crc = engine_map(levels, 'checked', b'source bytes')
+    derivative = tmp_path / 'metal'
+    new_crc = bundle(derivative, b'compiled derivative')
+    index = tmp_path / 'MetalMapIndex.tsv'
+    monkeypatch.setattr(engine, 'needs_conversion', lambda path: True)
+    monkeypatch.setattr(engine, 'cache_key', lambda *args: 'a' * 64)
+    monkeypatch.setattr(engine, 'convert', lambda *args, **kwargs: derivative)
+    result = engine.prepare_map(original, tmp_path, tmp_path / 'pipeline', index, levels)
+    row = read_index(index)[sha256(original), crc]
+    assert row[2] == new_crc and row[3] == sha256(derivative)
+    assert result == {'status': 'converted', 'derivative': str(derivative.resolve())}
+    outside, _ = engine_map(tmp_path, 'outside', b'foreign bytes')
+    with pytest.raises(ValueError, match='CustomLevels'):
+        engine.prepare_map(outside, tmp_path, tmp_path / 'pipeline', index, levels)
+
+
+def test_prepare_map_does_not_publish_when_source_changes(tmp_path, monkeypatch):
+    from bsmac_converter import engine
+    levels = tmp_path / 'CustomLevels'
+    original, _ = engine_map(levels, 'changed', b'before')
+    derivative = tmp_path / 'metal'
+    bundle(derivative, b'compiled')
+    monkeypatch.setattr(engine, 'needs_conversion', lambda path: True)
+    monkeypatch.setattr(engine, 'cache_key', lambda *args: 'b' * 64)
+
+    def change_source(*args, **kwargs):
+        bundle(original, b'after')
+        return derivative
+
+    monkeypatch.setattr(engine, 'convert', change_source)
+    index = tmp_path / 'MetalMapIndex.tsv'
+    with pytest.raises(ValueError, match='changed while preparing'):
+        engine.prepare_map(original, tmp_path, tmp_path / 'pipeline', index, levels)
+    assert not index.exists()

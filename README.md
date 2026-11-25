@@ -20,6 +20,8 @@ bsmac-mod-converter rollback /path/to/receipt.json
 
 Conversions are content-addressed, validated, staged separately and never silently substituted for successful installation. The watch command runs only while its process is running. No background service is implied by installing the CLI. Map allowlists require original SHA-256/CRC and derivative SHA-256/CRC; the narrow Vivify bridge preserves the original loader when no validated derivative exists.
 
+Compatible Vivify bundles can be prepared automatically before Play when the local worker and narrow versioned patch are installed. See [setup, controls and verification limits](docs/features-automatic-vivify.md).
+
 ## Verification
 
 ```sh
