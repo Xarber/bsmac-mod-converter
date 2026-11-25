@@ -10,6 +10,7 @@ The reference system is Apple Silicon with MoltenVR and a legally installed Stea
 ```sh
 python3.12 -m venv .venv
 .venv/bin/python -m pip install -e .
+.venv/bin/bsmac-mod-installer seed-versions
 .venv/bin/bsmac-mod-installer beatmods --profile config/beatmods-1.40.8.json
 .venv/bin/bsmac-mod-installer beatmods --profile config/beatmods-1.40.8.json --install
 ```
@@ -48,3 +49,5 @@ This guide reproduces the baseline and describes the local patch build steps. A 
 For a separately downloaded upstream ZIP, `bsmac-mod-installer install-zip ARCHIVE SHA256 MODULE.dll [MODULE.dll ...]` installs only the explicitly named new `Plugins/` entries with a rollback receipt. Verify the archive hash against a trusted source. Stage patched DLLs and use `apply-local` when the archive includes a mod that needs conversion or when replacing an existing file.
 
 For a prepared baseline with upstream plugin DLLs and converted embedded bundles already in place, `scripts/stage-managed-compatibility.sh ASSEMBLY_TOOL_DLL RESOURCES BRIDGES NEW_STAGE` stages the managed hooks in the correct order and produces the verified-input installation plan. Put the built bridge DLLs together in `BRIDGES`. Review `NEW_STAGE/plan.json` before passing it to `apply-local`. The staging script requires clean hook sites. It deliberately does not patch the original game or install into it.
+
+If MoltenVR's BeatMods game-version lookup returns 404, run `bsmac-mod-installer seed-versions` before opening the Mods UI in step 1. It creates or refreshes `cache/beatmods/versions.json` and ensures 1.40.8 is listed while retaining other cached versions. The installer repeats this immediately before calling the engine. The game-version list and the separate 1.40.8 mod catalog are different files. Seeding the version list alone does not build the mod catalog.

@@ -11,6 +11,7 @@ from pathlib import Path, PurePosixPath
 from urllib.parse import quote, urljoin, urlsplit
 
 from .index import sha256
+from .pipeline import atomic_json
 from .transaction import install, rollback
 
 VERSION = '1.40.8'
@@ -111,6 +112,19 @@ def require_closed():
         raise RuntimeError('Close Beat Saber before installing mods')
 
 
+def seed_versions(cache):
+    """Keep the supported version discoverable when MoltenVR's lookup returns 404."""
+    cache.mkdir(parents=True, exist_ok=True)
+    path = cache / 'versions.json'
+    versions = json.loads(path.read_text()) if path.exists() else []
+    if not isinstance(versions, list) or any(not isinstance(v, str) for v in versions):
+        raise ValueError('Unexpected MoltenVR version cache format')
+    if VERSION not in versions:
+        atomic_json(path, [VERSION, *versions])
+    path.touch()
+    return path
+
+
 def sign(app):
     subprocess.run(['codesign', '--force', '--deep', '--sign', '-', str(app)], check=True)
     subprocess.run(['codesign', '--verify', '--deep', '--strict', str(app)], check=True)
@@ -178,6 +192,7 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--root', type=Path, default=ROOT)
     commands = parser.add_subparsers(dest='command', required=True)
+    commands.add_parser('seed-versions')
     mods = commands.add_parser('beatmods')
     mods.add_argument('names', nargs='*')
     mods.add_argument('--profile', type=Path)
@@ -190,6 +205,9 @@ def main(argv=None):
     upstream.add_argument('sha256')
     upstream.add_argument('modules', nargs='+')
     args = parser.parse_args(argv)
+    if args.command == 'seed-versions':
+        print(seed_versions(args.root / 'cache/beatmods'))
+        return
     if args.command == 'apply-local':
         apply_local(args.root, args.plan)
         return
@@ -218,6 +236,7 @@ def main(argv=None):
         print(f'Verified {name} {version}', flush=True)
     if args.install:
         require_closed()
+        seed_versions(cache)
         catalog.touch()
         subprocess.run([str(ENGINE), '-v', 'mods', 'install', VERSION, *names], check=True)
 
