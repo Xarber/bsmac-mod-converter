@@ -2,7 +2,21 @@
 
 The reference system is Apple Silicon with MoltenVR and a legally installed Steam game. The complete observed plugin filename inventory is [INSTALLED_PLUGINS.txt](INSTALLED_PLUGINS.txt). The version-pinned [BeatMods profile](../config/beatmods-1.40.8.json) covers the corresponding catalog mods. The profile is a baseline, since some files in the reference installation have local patches or come directly from upstream.
 
-## Install the baseline
+## Fresh installation on Apple Silicon
+
+Create a native 1.40.8 instance with MoltenVR and leave it closed. From a checkout of the `testing` branch, with Python 3.12, .NET SDK 11, and working Swift/Metal developer tools already available, run:
+
+```sh
+bash scripts/install-fresh.sh --install "$HOME/bsmac-1.40.8-setup"
+```
+
+Use a new work directory. This path seeds both catalog files, verifies and installs the pinned BeatMods baseline, fetches and verifies AudioLink, BeatLeader, ScoreSaber and BeatSaberPlus, builds the conversion worker and managed bridges, and stages the known embedded bundle conversions before applying the hash-checked patch plan. It enables automatic Vivify and equipment preparation after the patch transaction succeeds. If any step fails, keep the work directory and its installation receipts. Continue from the failed step using the commands below. The initial baseline install and the later patch transaction are separate operations.
+
+The BeatLeader input is the pinned PC 0.9.33 release archive labeled 1.40.2–1.40.4, whose shader bundle matches the original used on the reference 1.40.8 instance. Use the matching LeaderboardCore from the pinned baseline. Keep the game closed throughout setup. Launch through MoltenVR after installation and verify a vanilla song, a Mapping/Noodle/Chroma song, and a new Vivify map. Then test loose equipment and replays as needed.
+
+This entry point covers the core patch set. The remaining packages in the inventory may require a separate upstream download, an authorized ReeSabers package, or individual setup as described below. Multiplayer transport and exact visual parity for unsupported shader stages are still open. The [archive guide](CONVERTEDMODS_ARCHIVE.md) records what was recovered from historical conversion work.
+
+## Install the baseline step by step
 
 1. Create the native 1.40.8 instance in MoltenVR. Seed its BeatMods cache from this repository before installing mods. Use a clean instance for replication and close Beat Saber before installation. Keep backups of any existing modded instance.
 2. From the repository, run the following with Python 3.12. The first installer run verifies and caches the archives. The second invokes the installed MoltenVR engine with the same selections and lets it install BSIPA, the mods, and their dependencies.
@@ -21,8 +35,8 @@ The installer reconciles the MoltenVR cache catalog with BeatMods, retains the k
 
 | Component | Reference installation |
 | --- | --- |
-| BeatLeader | PC 0.9.33 with the local replay-path correction. Use the working installed artifact as a reference before replacing it. |
-| ScoreSaber | PC 3.4.2 compatible build. Verify its current package with [upstream](https://github.com/ScoreSaber/pc-mod/releases). |
+| BeatLeader | [PC 0.9.33](https://github.com/BeatLeader/beatleader-mod/releases/tag/v0.9.33). The fresh installer rebuilds its Metal bundle and replay-path correction. |
+| ScoreSaber | [PC 3.4.2 for 1.40.0–1.40.8](https://github.com/ScoreSaber/pc-mod/releases/tag/v3.4.2). The pinned plugin matches the reference DLL byte for byte. |
 | AudioLink | [Aeroluna 1.1.1 for 1.40.8](https://github.com/Aeroluna/BSAudioLink/releases/tag/v1.1.1), with the bundle and CRC patch below. |
 | BeatSaberPlus | [6.4.5 for 1.40.0–1.40.8](https://github.com/hardcpp/BeatSaberPlus/releases/tag/V6.4.5). The reference uses Multiplayer+, ChatPlexSDK and SongChartVisualizer from that same archive. Lobby verification remains open. |
 | ReeSabers | Use your authorized upstream package. The reference 0.4.0 build has a local Metal bundle and blur layout fix. |
@@ -39,10 +53,10 @@ Build `AssemblyTool` with the installed .NET SDK. For managed bridges, pass the 
 - **Equipment:** use `equipment-auto` on the three supported mod assemblies and install VivifyMetalBridge. See [equipment](features-automatic-equipment.md) and [Qosmetics](features-qosmetics.md). For CustomNotes, also run `qosmetics-notes INPUT QOSMETICS_BRIDGE OUTPUT` and install QosmeticsBridge in Libs.
 - **Replay:** run `beatleader-replay-paths` on BeatLeader 0.9.33 and enable its existing replay-caching setting.
 - **Embedded Unity bundles:** use `AssemblyTool resource INPUT RESOURCE OUTPUT` and `bsmac-mod-converter convert INPUT`. Run `bsmac-mod-converter crc` and hash both files. Use `AssemblyTool replace-resource INPUT RESOURCE ORIGINAL_SHA256 DERIVATIVE DERIVATIVE_SHA256 STAGED_DLL`, then update the specific loader CRC where required. The historical AudioLink, DepthBlit and CustomWalls evidence is in [the verification report](reports/VERIFICATION.md).
-- **ReeSabers:** with the local MoltenVR backend on your Python module path, run `buffer-convert.py ORIGINAL STAGE --build`, then `blur-layout-fix.py ORIGINAL STAGE DERIVATIVE` in `implementation/tools/reesabers`. The blur build checks the three compute kernels with Metal. Reinsert the checked derivative with the same embedded-resource flow. These are format-specific tools.
+- **ReeSabers:** extract `ReeSabers.Resources.AssetBundles.asset_bundle_u2021` from an authorized ReeSabers 0.4.0 upstream DLL. With the local MoltenVR backend on your Python module path, run `buffer-convert.py ORIGINAL STAGE --build`, then `blur-layout-fix.py ORIGINAL STAGE DERIVATIVE` in `implementation/tools/reesabers`. The blur build checks the three compute kernels with Metal. Reinsert the checked derivative with the same embedded-resource flow. These are format-specific tools.
 - **Maps and shader libraries:** use `prepare-map`, `rescan-maps`, or `convert` as appropriate. Use the installed automatic worker for on-demand operation. Original and derivative checksums must pass. Geometry-dependent and experimental effects may still be incomplete.
 
-To install staged files, create a local JSON array with entries containing `source` (relative to the plan), `target` (relative to the app's Resources), `sha256`, and `previousSha256` (null for a new file). Run `bsmac-mod-installer apply-local PLAN.json`. It checks installed and staged hashes, creates a rollback receipt, signs the app, and verifies the signature. Then install the worker via `scripts/install-automatic-worker.sh`, enable it per the Vivify guide, and launch yourself through MoltenVR for verification.
+To install staged files, create a local JSON array with entries containing `source` (relative to the plan), `target` (relative to the app's Resources), `sha256`, and `previousSha256` (null for a new file). For the core patch set, `scripts/stage-fresh-compatibility.py RESOURCES NEW_STAGE` generates this plan from unpatched inputs and the installed worker. Run `bsmac-mod-installer apply-local PLAN.json`. It checks installed and staged hashes, creates a rollback receipt, signs the app, and verifies the signature. Then install the worker via `scripts/install-automatic-worker.sh`, enable it per the Vivify guide, and launch yourself through MoltenVR for verification.
 
 This guide reproduces the baseline and describes the local patch build steps. A full clean-room replay of all historical patches, including native FPFC and the separately sourced compatibility libraries, has not been verified. Game binaries, upstream mod ZIPs, maps, private configs, paid assets, and the proprietary MoltenVR translator are supplied locally rather than published with the repo.
 

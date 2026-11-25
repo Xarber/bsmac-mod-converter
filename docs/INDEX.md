@@ -4,6 +4,7 @@ The project extends a separately installed MoltenVR translator to handle legacy 
 
 - [Restart handoff](../context/README.md)
 - [Replicate the installation and see the mod inventory](REPLICATE_INSTALLATION.md)
+- [ConvertedMods archive and rebuild equivalents](CONVERTEDMODS_ARCHIVE.md)
 - [Ordered assignment queue](ACTIVE_TASKS.md)
 - [Architecture and safety boundaries](ARCHITECTURE.md)
 - [Automatic Vivify preparation](features-automatic-vivify.md)

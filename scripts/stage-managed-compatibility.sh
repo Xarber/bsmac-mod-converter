@@ -1,14 +1,15 @@
 #!/bin/bash
 # SPDX-License-Identifier: AGPL-3.0-only
 set -euo pipefail
-if [[ $# != 4 ]]; then
-    printf 'Usage: %s ASSEMBLY_TOOL_DLL GAME_RESOURCES BUILT_BRIDGES NEW_STAGE_DIRECTORY\n' "$0" >&2
+if [[ $# != 4 && $# != 5 ]]; then
+    printf 'Usage: %s ASSEMBLY_TOOL_DLL GAME_RESOURCES BUILT_BRIDGES NEW_STAGE_DIRECTORY [PREPARED_PLUGINS]\n' "$0" >&2
     exit 2
 fi
 tool=$1
 resources=$2
 bridges=$3
 stage=$4
+prepared=${5:-"$resources/Plugins"}
 mkdir -- "$stage"
 mkdir "$stage/Plugins" "$stage/Libs" "$stage/Managed"
 patch() { dotnet "$tool" "$@"; }
@@ -19,19 +20,22 @@ patch file-uri "$resources/Beat Saber_Data/Managed/BGLib.UnityExtension.dll" "$b
 for mod in NoodleExtensions Chroma; do
     patch compat "$resources/Plugins/$mod.dll" "$bridges/NativeDiagnostics.dll" "$stage/Plugins/$mod.dll"
 done
-patch bridge "$resources/Plugins/Vivify.dll" "$bridges/VivifyMetalBridge.dll" "$stage/Vivify-redirected.dll"
+patch bridge "$prepared/Vivify.dll" "$bridges/VivifyMetalBridge.dll" "$stage/Vivify-redirected.dll"
 patch vivify-auto "$stage/Vivify-redirected.dll" "$bridges/VivifyMetalBridge.dll" "$stage/Plugins/Vivify.dll"
 patch equipment-auto "$resources/Plugins/CustomNotes.dll" "$bridges/VivifyMetalBridge.dll" "$stage/CustomNotes-loose.dll"
 patch qosmetics-notes "$stage/CustomNotes-loose.dll" "$bridges/QosmeticsBridge.dll" "$stage/Plugins/CustomNotes.dll"
 for mod in CustomWalls CustomSabersLite; do
-    patch equipment-auto "$resources/Plugins/$mod.dll" "$bridges/VivifyMetalBridge.dll" "$stage/Plugins/$mod.dll"
+    input="$resources/Plugins/$mod.dll"
+    if [[ -f "$prepared/$mod.dll" ]]; then input="$prepared/$mod.dll"; fi
+    patch equipment-auto "$input" "$bridges/VivifyMetalBridge.dll" "$stage/Plugins/$mod.dll"
 done
-patch beatleader-replay-paths "$resources/Plugins/BeatLeader.dll" "$stage/Plugins/BeatLeader.dll"
+patch beatleader-replay-paths "$prepared/BeatLeader.dll" "$stage/Plugins/BeatLeader.dll"
 for library in VivifyMetalBridge QosmeticsBridge NativeDiagnostics; do
     cp "$bridges/$library.dll" "$stage/Libs/"
 done
 cp "$bridges/LocalMediaBridge.dll" "$stage/Managed/"
 cp "$bridges/NativeAvatarRenderer.dll" "$stage/Plugins/"
+if [[ $# == 5 ]]; then cp "$prepared/AudioLink.dll" "$stage/Plugins/"; fi
 
 python3.12 - "$stage" "$resources" <<'PY'
 import hashlib

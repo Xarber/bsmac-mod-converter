@@ -62,3 +62,10 @@ T18 follow-up: later user-started logs show the SiraUtil FPFC controller invokin
 The original BeatMods cache workaround is ported to the repo as `bsmac-mod-installer`. See the setup guide and installed inventory. Local patch installation is hash-checked with rollback. Continue toward complete clean-instance replication by checking historical patch sites and authorizations against their actual upstream inputs, then testing the complete setup on a clean instance.
 
 Desktop independence checkpoint: verified 475 archive entries outside Desktop and all 12 live map registrations inside the app. Clean catalog and backend bootstrap tested. Historical exact experimental geometry build recipes and end-to-end clean install remain open.
+
+### Fresh installation follow-up
+
+| ID | Request | State | Evidence / next action |
+| --- | --- | --- | --- |
+| T24 | Fresh installed MoltenVR instance to patched 1.40.8 with automatic conversion | In Progress | Added pinned AudioLink and BeatLeader acquisition and a single installer for the core patch set. Rehearse using the upstream mod archives and original managed files before any live install. Full clean-instance gameplay, separate packages, and unsupported shader effects remain open. |
+| T25 | Preserve useful Desktop conversion work before deletion | Verified | The private copy and SHA-256 inventory match all conversion files; five Desktop Finder metadata files changed. The repository archive guide catalogs the material, local evidence, and maintained reproduction tools. |

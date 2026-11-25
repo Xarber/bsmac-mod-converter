@@ -1,0 +1,13 @@
+# ConvertedMods archive
+
+The fresh installation uses the repository, an installed MoltenVR and Beat Saber, and upstream packages. Neither the Desktop copy nor the preserved archive is an input. The reference Mac keeps a verified private copy under `~/Library/Application Support/bsmac/mod-converter/archive/ConvertedMods` and a sibling SHA-256 inventory. The archive has 475 files, including Finder metadata. A later byte-for-byte comparison found that only five Desktop `.DS_Store` files had changed.
+
+| Material | What it preserves | Where to reproduce or investigate it |
+| --- | --- | --- |
+| Vivify map bundles, loader notes, download and CRC logs | Original-versus-Metal evidence, loader routing, and shader cases such as 42 Flux, Breezer, and Through The Screen | [Vivify automatic preparation](features-automatic-vivify.md), the `prepare-map` and `audit-shaders` commands, and [verification results](reports/VERIFICATION.md). Geometry experiments remain evidence, and individual historical outputs may differ. |
+| CustomWalls, CustomNotes, Plasma, and sabers | Original and patched equipment, material-slot observations, and previous crash or rendering evidence | [Automatic equipment preparation](features-automatic-equipment.md), [Qosmetics notes](features-qosmetics.md), and the fresh staging script for the four built-in walls. |
+| ReeSabers and compute experiments | Intermediate Metal programs, blur reflection and buffer-layout checks, plus the older translation and audit scripts | [Maintained ReeSabers tools](../implementation/tools/reesabers/) and the [setup guide](REPLICATE_INSTALLATION.md). The general converter, shader audit and regression tests supersede the early probes for regular builds. |
+| Shader libraries and legacy shader batches | Original and converted libraries, generated shader dumps, structured-buffer examples, and failed shader-stage experiments | The `convert` and `audit-shaders` CLI commands and [the verification report](reports/VERIFICATION.md). |
+| PatchedPlugins, loader listings, and Steam authentication diagnostics | Historical binaries, extracted code and troubleshooting snapshots | [AssemblyTool](../implementation/tools/AssemblyTool/) contains the maintained patch procedures. [Verification results](reports/VERIFICATION.md) record relevant behavior and unresolved checks. |
+
+Keep the private archive for investigations that require an exact old binary, embedded shader, or diagnostic log. Those files may contain game or mod assets, decompiled code, or local data. The public branch provides the maintained implementations, instructions, and shareable findings.
