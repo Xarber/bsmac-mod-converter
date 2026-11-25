@@ -102,6 +102,51 @@ if (args[0] == "crc") {
     int viewIndex = asm.MainModule.Resources.IndexOf(view);
     asm.MainModule.Resources[viewIndex] = new EmbeddedResource(view.Name, view.Attributes,
         Encoding.UTF8.GetBytes(markup.Replace(oldLabel, "Preparing map assets...", StringComparison.Ordinal)));
+} else if (args[0] == "equipment-auto") {
+    using var bridge = AssemblyDefinition.ReadAssembly(args[2]);
+    var api = bridge.MainModule.Types.Single(t => t.FullName == "Bsmac.EquipmentPreparation");
+    MethodReference Hook(string name) => asm.MainModule.ImportReference(api.Methods.Single(m => m.Name == name));
+    string owner, name, targetType, targetName, helper;
+    Version version;
+    switch (asm.Name.Name) {
+        case "CustomNotes":
+            version = new Version(2, 6, 9, 0);
+            owner = "CustomNotes.Models.CustomNote"; name = "Load";
+            targetType = "UnityEngine.AssetBundle"; targetName = "LoadFromFile"; helper = "LoadNote";
+            break;
+        case "CustomWalls":
+            version = new Version(1, 6, 4, 0);
+            owner = "CustomWalls.Data.CustomMaterial/<CreateAsync>d__24"; name = "MoveNext";
+            targetType = "AssetBundleLoadingTools.Utilities.AssetBundleExtensions";
+            targetName = "LoadFromFileAsync"; helper = "LoadAsync";
+            break;
+        case "CustomSabersLite":
+            version = new Version(1, 0, 3, 0);
+            owner = "CustomSabersLite.Utilities.Common.BundleLoading/<LoadBundle>d__0"; name = "MoveNext";
+            targetType = "AssetBundleLoadingTools.Utilities.AssetBundleExtensions";
+            targetName = "LoadFromFileAsync"; helper = "LoadAsync";
+            break;
+        default: throw new InvalidOperationException("Unsupported equipment assembly");
+    }
+    if (asm.Name.Version != version)
+        throw new InvalidOperationException("The equipment loader version differs from the inspected assembly");
+    var method = types.Single(t => t.FullName == owner).Methods.Single(m => m.Name == name && m.HasBody);
+    var site = method.Body.Instructions.Single(i => i.OpCode == OpCodes.Call && i.Operand is MethodReference m &&
+        m.DeclaringType.FullName == targetType && m.Name == targetName && m.Parameters.Count == 1 &&
+        m.Parameters[0].ParameterType.FullName == "System.String");
+    var replacement = Hook(helper);
+    if (((MethodReference)site.Operand).ReturnType.FullName != replacement.ReturnType.FullName)
+        throw new InvalidOperationException("The equipment loader return type differs");
+    site.Operand = replacement;
+    if (asm.Name.Name == "CustomNotes") {
+        var loader = types.Single(t => t.FullName == "CustomNotes.Managers.NoteAssetLoader");
+        var getDirectory = loader.Methods.Single(m => m.Name == "get_NotesDirectory" && m.IsStatic);
+        var init = loader.Methods.Single(m => m.Name == "Initialize" && m.HasBody);
+        var il = init.Body.GetILProcessor();
+        var first = init.Body.Instructions[0];
+        il.InsertBefore(first, il.Create(OpCodes.Call, getDirectory));
+        il.InsertBefore(first, il.Create(OpCodes.Call, Hook("WatchNotes")));
+    }
 } else if (args[0] == "trace") {
     using var bridge = AssemblyDefinition.ReadAssembly(args[2]);
     var trace = asm.MainModule.ImportReference(bridge.MainModule.Types.Single(t => t.FullName == "Bsmac.NativeDiagnostics").Methods.Single(m => m.Name == "Trace"));

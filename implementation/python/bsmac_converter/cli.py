@@ -28,6 +28,11 @@ def parser():
     c = sub.add_parser('prune-diagnostics'); c.add_argument('--older-than-days', type=int, default=14)
     c = sub.add_parser('automatic')
     c.add_argument('mode', choices=('status', 'enable', 'disable'))
+    c = sub.add_parser('prepare-equipment')
+    c.add_argument('asset', nargs='?', type=Path)
+    c.add_argument('--request-stdin', action='store_true')
+    for command in (c, sub.add_parser('rescan-equipment')):
+        command.add_argument('--resources', type=Path, default=default_maps.parent / 'Resources')
     return p
 
 def discover(roots):
@@ -78,6 +83,8 @@ def main(argv=None):
         os.environ.setdefault('BSMAC_METAL_COMPILER', str(installed_compiler))
     if args.command in ('prepare-map', 'rescan-maps', 'prune-diagnostics'):
         return engine_command(args)
+    if args.command in ('prepare-equipment', 'rescan-equipment'):
+        return equipment_command(args)
     if args.command == 'automatic':
         return automatic_settings(args)
     if args.command == 'crc':
@@ -151,6 +158,42 @@ def automatic_settings(args):
         marker.unlink(missing_ok=True)
     print(json.dumps({'automaticPreparation': 'enabled' if marker.is_file() else 'disabled'}))
     return 0
+
+
+def equipment_command(args):
+    from .engine import EQUIPMENT_EXTENSIONS, prepare_equipment
+    index = Path(os.environ.get('BSMAC_EQUIPMENT_INDEX') or args.cache.parent / 'EquipmentIndex.tsv')
+    if args.command == 'rescan-equipment':
+        failed = False
+        for name, extensions in EQUIPMENT_EXTENSIONS.items():
+            for source in sorted((args.resources / name).rglob('*')):
+                if not source.is_file() or source.suffix.lower() not in extensions:
+                    continue
+                try:
+                    result = prepare_equipment(source, args.backend, args.cache, index, args.resources)
+                    print(json.dumps({'asset': str(source), 'derivative': result[4] if result else None}))
+                except Exception as error:
+                    failed = True
+                    print(json.dumps({'asset': str(source), 'error': str(error)}), file=sys.stderr)
+        return int(failed)
+    try:
+        source = args.asset
+        if args.request_stdin:
+            if source is not None:
+                raise ValueError('Choose a path or a request on stdin')
+            request = sys.stdin.read(16385)
+            if len(request) > 16384 or len(request.splitlines()) != 1:
+                raise ValueError('Invalid equipment preparation request')
+            source = Path(request.rstrip('\n'))
+        if source is None:
+            raise ValueError('Supply a loose equipment file')
+        row = prepare_equipment(source, args.backend, args.cache, index, args.resources)
+        if row is not None:
+            print('\t'.join(map(str, row)))
+        return 0
+    except Exception as error:
+        print(str(error).replace('\n', ' ')[:1000], file=sys.stderr, flush=True)
+        return 1
 
 
 if __name__ == '__main__':

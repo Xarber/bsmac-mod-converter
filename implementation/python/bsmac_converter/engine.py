@@ -6,11 +6,17 @@ import time
 from contextlib import contextmanager
 from pathlib import Path
 
-from .index import derivative_row, publish_rows, read_index, validate_original
+from .crc import bundle_crc
+from .index import derivative_row, publish_rows, read_index, sha256, validate_original
 from .pipeline import atomic_json, cache_key, convert
 
 MAP_BUNDLE = 'bundleWindows2021.vivify'
 RETRY_SECONDS = 300
+EQUIPMENT_EXTENSIONS = {
+    'CustomNotes': {'.bloq', '.note'},
+    'CustomWalls': {'.pixie', '.wall'},
+    'CustomSabers': {'.saber'},
+}
 
 
 @contextmanager
@@ -76,30 +82,34 @@ def prepare_map(source, backend, cache, index, maps, *, crc=None):
                 raise ValueError('The original bundle changed during validation')
             return {'status': 'original'}
 
-        key = cache_key(source, backend)
-        retry = cache / key / 'retry.json'
-        if retry.exists():
-            try:
-                failure = json.loads(retry.read_text())
-                if time.time() < failure['retryAfter']:
-                    raise RuntimeError(failure['message'])
-            except (ValueError, KeyError, TypeError):
-                pass
-        try:
-            derivative = convert(source, backend, cache, timeout=540)
-        except RuntimeError as error:
-            # Unsupported shaders can be expensive to rediscover on every Play.
-            # Scope the cooldown to the current bytes and converter fingerprint.
-            atomic_json(retry, {'retryAfter': time.time() + RETRY_SECONDS, 'message': str(error)})
-            raise
+        derivative = convert_with_cooldown(source, backend, cache)
         if file_state(source) != stamp or validate_original(source) != original:
             raise ValueError('The original bundle or its metadata changed while preparing the derivative')
         row = derivative_row(original, derivative)
         registered = {r[:2]: r for r in publish_rows(index, [row])}[original]
         if derivative_row(original, registered[4]) != registered:
             raise ValueError('The selected derivative changed during registration')
-        retry.unlink(missing_ok=True)
         return {'status': 'converted', 'derivative': registered[4]}
+
+
+def convert_with_cooldown(source, backend, cache):
+    retry = cache / cache_key(source, backend) / 'retry.json'
+    if retry.exists():
+        try:
+            failure = json.loads(retry.read_text())
+            if time.time() < failure['retryAfter']:
+                raise RuntimeError(failure['message'])
+        except (ValueError, KeyError, TypeError):
+            pass
+    try:
+        converted = convert(source, backend, cache, timeout=540)
+    except RuntimeError as error:
+        # Scope expensive translation failures to current bytes and tools.
+        retry.parent.mkdir(parents=True, exist_ok=True)
+        atomic_json(retry, {'retryAfter': time.time() + RETRY_SECONDS, 'message': str(error)})
+        raise
+    retry.unlink(missing_ok=True)
+    return converted
 
 
 def prune_diagnostics(cache, older_than_days):
@@ -129,3 +139,33 @@ def prune_diagnostics(cache, older_than_days):
                 shutil.rmtree(source)
                 removed += 1
     return removed
+
+
+def equipment_source(source, resources):
+    source, resources = Path(source).resolve(), Path(resources).resolve()
+    for folder, extensions in EQUIPMENT_EXTENSIONS.items():
+        root = resources / folder
+        if source.is_relative_to(root) and source.suffix.lower() in extensions:
+            return source
+    raise ValueError('Unsupported loose equipment path')
+
+
+def prepare_equipment(source, backend, cache, index, resources):
+    source = equipment_source(source, resources)
+    backend, cache, index = (Path(p).resolve() for p in (backend, cache, index))
+    with engine_lock(cache):
+        stamp = settled(source)
+        with source.open('rb') as stream:
+            if stream.read(8) != b'UnityFS\0':
+                raise ValueError('Loose equipment must be a UnityFS bundle')
+        if not needs_conversion(source):
+            return None
+        original = sha256(source), bundle_crc(source)
+        if not original[1]:
+            raise ValueError('Invalid equipment bundle CRC')
+        derivative = convert_with_cooldown(source, backend, cache)
+        if file_state(source) != stamp or (sha256(source), bundle_crc(source)) != original:
+            raise ValueError('The equipment file changed while preparing it')
+        row = derivative_row(original, derivative)
+        publish_rows(index, [row], replace=True)
+        return row

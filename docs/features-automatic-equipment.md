@@ -1,0 +1,11 @@
+# Automatic conversion for loose equipment
+
+The native worker supports loose UnityFS notes (`.bloq`, `.note`), walls (`.pixie`, `.wall`) and sabers (`.saber`) in the corresponding Beat Saber equipment folders. The installed adapters target CustomNotes 2.6.9, CustomWalls 1.6.4 and CustomSabersLite 1.0.3. The worker passes through equipment that the backend identifies as already compatible, including the existing Plasma Notes. It never changes the original file or selected equipment settings.
+
+- The notes loader stays synchronous. It uses a checked cached derivative if one is ready and otherwise queues preparation while keeping the original load path. Asset file events also queue preparation while the game is open. Use the existing CustomNotes reload control after a newly converted note finishes; the adapter does not destroy current note objects asynchronously.
+- The loose wall and saber loaders already return tasks. They can wait for preparation without waiting on Unity's main thread. They use their original loader if the bundle is already compatible or preparation fails. They also preserve the original path when called without a synchronization context.
+- Each derivative must pass the same strict native Metal build and asset checks as a map. The equipment index is separate from the Vivify index. The game checks the original SHA-256 and derivative SHA-256 before using the converted bundle and passes its derivative CRC to Unity.
+
+Embedded and stream-based asset loads retain the mods' existing paths. The saved built-in avatar renderer obtains its model from the game and has no loose asset loader. External avatar format support and automatic wrapping of packaged Qosmetics assets are separate work.
+
+The same `automatic status`, `automatic disable` and `automatic enable` controls apply to both equipment and Vivify. `rescan-equipment` is a manual fallback. Failed or incomplete output is never auto-registered. Read errors in the game's output and the worker log under the content-addressed pipeline cache. Backup receipt `20261125T062031452982Z` restores the three local equipment plugin assemblies and shared bridge. See [Vivify worker operation](features-automatic-vivify.md) for setup and cache maintenance.

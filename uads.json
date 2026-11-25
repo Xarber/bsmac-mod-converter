@@ -20,6 +20,7 @@
     "rollback": "implemented",
     "watch": "implemented",
     "vivifyAutomaticPreparation": "implemented-runtime-pending",
+    "looseEquipmentAutomaticPreparation": "implemented-runtime-pending",
     "nativeGameplay": "pending"
   },
   "distribution": {

@@ -221,3 +221,30 @@ def test_prepare_map_does_not_publish_when_source_changes(tmp_path, monkeypatch)
     with pytest.raises(ValueError, match='changed while preparing'):
         engine.prepare_map(original, tmp_path, tmp_path / 'pipeline', index, levels)
     assert not index.exists()
+
+
+def test_equipment_checks_root_extension_and_publishes_separately(tmp_path, monkeypatch):
+    from bsmac_converter import engine
+    resources = tmp_path / 'Resources'
+    notes = resources / 'CustomNotes'
+    notes.mkdir(parents=True)
+    source = notes / 'Original Note.bloq'
+    bundle(source, b'windows bundle')
+    derivative = tmp_path / 'metal.bundle'
+    metal_crc = bundle(derivative, b'metal bundle')
+    equipment_index = tmp_path / 'EquipmentIndex.tsv'
+    map_index = tmp_path / 'MetalMapIndex.tsv'
+    map_index.write_text('separate map index')
+    monkeypatch.setattr(engine, 'needs_conversion', lambda path: False)
+    assert engine.prepare_equipment(source, tmp_path, tmp_path / 'pipeline', equipment_index, resources) is None
+    assert not equipment_index.exists()
+    monkeypatch.setattr(engine, 'needs_conversion', lambda path: True)
+    monkeypatch.setattr(engine, 'convert_with_cooldown', lambda *args: derivative)
+    old_source = source.read_bytes()
+    row = engine.prepare_equipment(source, tmp_path, tmp_path / 'pipeline', equipment_index, resources)
+    assert row[2] == metal_crc and row[3] == sha256(derivative)
+    assert source.read_bytes() == old_source and map_index.read_text() == 'separate map index'
+    escaped = notes / 'escaped.bloq'
+    escaped.symlink_to(derivative)
+    with pytest.raises(ValueError, match='Unsupported loose equipment path'):
+        engine.prepare_equipment(escaped, tmp_path, tmp_path / 'pipeline', equipment_index, resources)

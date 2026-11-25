@@ -22,8 +22,9 @@ namespace Bsmac {
         static readonly Dictionary<(string, uint), Task<string>> Pending = new();
         static readonly ConditionalWeakTable<object, DownloadView> Views = new();
 
-        static bool Enabled => SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.Metal
-            && File.Exists(EnabledFile) && File.Exists(Python) && File.Exists(Compiler);
+        internal static bool WorkerAvailable => File.Exists(EnabledFile) && File.Exists(Python) && File.Exists(Compiler);
+        internal static bool Enabled => SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.Metal
+            && WorkerAvailable;
 
         // Called at Vivify's existing-bundle branch, after its requirement check.
         public static bool PrepareExisting(object controller, string original) {
@@ -99,10 +100,14 @@ namespace Bsmac {
         }
 
         static string RunWorker(string original, uint crc) {
+            return RunLocalWorker("prepare-map", original, crc.ToString(CultureInfo.InvariantCulture)).Error;
+        }
+
+        internal static (string Output, string Error) RunLocalWorker(string command, string original, string checksum = null) {
             if (original.IndexOfAny(new[] {'\n', '\r'}) >= 0)
-                return "The bundle path contains a line break.";
+                return (null, "The bundle path contains a line break.");
             try {
-                var start = new ProcessStartInfo(Python, "-I -m bsmac_converter.cli prepare-map --request-stdin") {
+                var start = new ProcessStartInfo(Python, "-I -m bsmac_converter.cli " + command + " --request-stdin") {
                     UseShellExecute = false,
                     CreateNoWindow = true,
                     RedirectStandardInput = true,
@@ -112,24 +117,25 @@ namespace Bsmac {
                 };
                 start.EnvironmentVariables["BSMAC_METAL_COMPILER"] = Compiler;
                 using (var process = Process.Start(start)) {
-                    if (process == null) return "The local conversion worker could not start.";
+                    if (process == null) return (null, "The local conversion worker could not start.");
                     var stdout = process.StandardOutput.ReadToEndAsync();
                     var stderr = process.StandardError.ReadToEndAsync();
                     using (var input = process.StandardInput) {
                         input.WriteLine(original);
-                        input.WriteLine(crc.ToString(CultureInfo.InvariantCulture));
+                        if (checksum != null) input.WriteLine(checksum);
                     }
                     if (!process.WaitForExit(590000)) {
                         process.Kill();
-                        return "Conversion exceeded its time limit. Review the converter log before retrying.";
+                        return (null, "Conversion exceeded its time limit. Review the converter log before retrying.");
                     }
-                    Task.WaitAll(new Task[] {stdout, stderr}, 2000);
-                    if (process.ExitCode == 0) return null;
-                    return stderr.Status == TaskStatus.RanToCompletion && !string.IsNullOrWhiteSpace(stderr.Result)
-                        ? stderr.Result.Trim() : "The local conversion worker stopped. Check the converter log.";
+                    if (!Task.WaitAll(new Task[] {stdout, stderr}, 2000))
+                        return (null, "The conversion worker did not close its output.");
+                    if (process.ExitCode == 0) return (stdout.Result.Trim(), null);
+                    return (null, !string.IsNullOrWhiteSpace(stderr.Result)
+                        ? stderr.Result.Trim() : "The local conversion worker stopped. Check the converter log.");
                 }
             } catch (Exception error) {
-                return "Worker error: " + error.Message;
+                return (null, "Worker error: " + error.Message);
             }
         }
 
