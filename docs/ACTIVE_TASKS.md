@@ -46,3 +46,14 @@ The user overrode the weekly usage checkpoint for this chat. Continue observing 
 T18 (queued after automatic conversion): enable SiraUtil FPFC with G on the native MoltenVR path. Existing SiraUtil 3.2.1 already loads and its JSON already maps G. Inspect the launch-argument gate, XR lifecycle and Camera2 compatibility before changing binaries. No changes applied to SiraUtil yet.
 
 T19 (2026-11-25): GitHub and BeatLeader replays. Publish project source and docs to `testing`, keeping game assets, configurations and replays local. The installed version includes in-game replay playback/download. The standalone downloader is locally installed and passed a real public download. The local macOS replay path patch and cache setting were installed with backup receipt 20261125T063018371000Z. Deep strict signature verification passed. In-game replay playback and local persistence still need a user-started session.
+
+## Second handoff — November 25
+
+| ID | Request | State | Evidence / next action |
+| --- | --- | --- | --- |
+| T20 | Preserve working Plasma colors and generalize Qosmetics | Implemented | Snapshot hashes match the previously working bridge. Original patch source consolidated in `implementation/tools/QosmeticsBridge`. `.cyoob` discovery, checked PC extraction and runtime note adaptation installed, receipt 20261125T151418478483Z. Plasma and True Acc Bloq V2 passed conversion rehearsals. True Acc is present for user-owned runtime verification. Android-only, debris, packaged walls/sabers and external avatars remain open. |
+| T21 | Restore Multiplayer+ | Implemented | Local 6.4.2 throws in `Present`. Upstream 6.4.5 removes the early multiplexer call and ships an explicit 1.40.8-compatible archive. Installed the three modules already present as a matched set, receipt 20261125T151452347099Z. Verify menu, lobby, and SongChartVisualizer in game. |
+| T22 | Restore BeatTogether | Blocked | Installed 2.2.1 is the supported PC release. The logs show auth success followed by an Ignorance native load failure. The Windows ENet library exports TLS functions absent from the inspected public SoftwareGuy fork. Need a verified native arm64 implementation of the exact enet TLS ABI before OpenSSL mapping can help. Do not substitute stock ENet or weaken transport security. |
+| T23 | Complete modern program index handling | Implemented | The experimental 42-flux rerun translated 624 jobs and compiled all emitted sources. Two shader families retain 28 unsupported geometry programs. Candidate stays unregistered pending focused runtime diagnostics and a visual test. |
+
+T18 follow-up: later user-started logs show the SiraUtil FPFC controller invoking XR enable and disable repeatedly. The current installation already has an active toggle path. User confirmation of both directions and Camera2 behavior is pending. No SiraUtil replacement was applied here.

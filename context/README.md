@@ -48,3 +48,5 @@ Resume from T13–T17 in the active queue. Current source integrates local conve
 Loose automatic notes, walls and sabers have been installed as well. Verify first use in the headset before calling either automatic path complete. See the equipment feature doc and T14. T18 records the separate SiraUtil FPFC request, which the user prioritized after automatic conversion.
 
 BeatLeader 0.9.33 already includes the PC replay player and in-game downloader. See [replay setup](../docs/features-beatleader-replays.md) and T19 for the standalone downloader and installed local path fix. The user still owns Beat Saber launches.
+
+Second handoff: the working Plasma patch is consolidated and generic checked `.cyoob` preparation is installed. Verify True Acc Bloq V2 and existing Plasma in the user-started game. Multiplayer+ 6.4.5 is installed to address the observed 6.4.2 menu failure. BeatTogether still needs the exact native TLS-enabled ENet transport. The 42-flux experimental candidate resolves all scheduled jobs, with geometry still open. See T20–T23.

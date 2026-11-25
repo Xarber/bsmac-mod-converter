@@ -1,41 +1,14 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 """Adapter for the separately installed Unity 2021 converter."""
 from collections import Counter
+from copy import deepcopy
 from hashlib import sha256
 from itertools import chain
 
 from bsmac.shaders import convert, metalgen, translate, ushader
+from .legacy import append_platform
 from .msl import repair_unsigned_offsets
 from .structured import parse_buffers, remap_records, translate_buffers, verify_records
-
-
-class TranslationPool:
-    """Run backend jobs in the isolated worker and capture compilation inputs."""
-
-    def __init__(self, keys, shader_dir):
-        self.keys = list(keys)
-        self.shader_dir = shader_dir
-        self.sources = []
-        self.failures = {}
-        self.programs = {}
-        self.parameters = {}
-
-    def map(self, function, jobs, chunksize=1):
-        for key, job in zip(self.keys, jobs, strict=True):
-            try:
-                program, params, msl = translate_program(job)
-                previous = self.programs.setdefault(key[0], program)
-                if previous != program:
-                    raise ValueError('One blob needs multiple incompatible Metal programs')
-                path = self.shader_dir / f'{sha256(msl.encode()).hexdigest()}.metal'
-                if not path.exists():
-                    path.write_text(msl)
-                self.sources.append(path)
-                self.parameters[key] = params
-                yield program, params, None
-            except (ValueError, KeyError, AssertionError, RuntimeError, StopIteration) as error:
-                self.failures[key] = str(error)
-                yield None, None, str(error)
 
 
 def translate_program(job):
@@ -81,36 +54,65 @@ def add_shader(shader, shader_dir):
     if not jobs:
         return [], {'translated': 0, 'failed': 0, 'skipped': 0, 'unsupported': 1,
                     'detail': 'No supported jobs for Direct3D shader'}
-    pool = TranslationPool(jobs, shader_dir)
-    ok, failed = convert.add_metal(shader, pool, print)
-    if ok + failed != len(jobs) or failed != len(pool.failures):
-        raise ValueError('Modern backend job accounting changed')
-    if ok:
-        verify_bindings(shader, jobs, pool)
-    return pool.sources, {'translated': ok, 'failed': failed, 'skipped': 0, 'unsupported': 0,
-                          'errors': {str(k): v for k, v in pool.failures.items()}}
+    programs = {}
+    failures = {}
+    sources = set()
+    for key, job in jobs.items():
+        try:
+            program, params, msl = translate_program(job)
+        except (ValueError, KeyError, AssertionError, RuntimeError, StopIteration) as error:
+            failures[key] = str(error)
+            continue
+        programs[key] = program, params
+        path = shader_dir / f'{sha256(msl.encode()).hexdigest()}.metal'
+        if not path.exists():
+            path.write_text(msl)
+        sources.add(path)
+    if programs:
+        add_metal_programs(shader, programs)
+    return sorted(sources), {'translated': len(programs), 'failed': len(failures), 'skipped': 0,
+                             'unsupported': 0, 'errors': {str(k): v for k, v in failures.items()}}
 
 
-def verify_bindings(shader, jobs, pool):
-    metal = ushader.entries(ushader.platform_segments(shader, 14))
+def add_metal_programs(shader, programs):
+    blobs = []
+    indices = {}
+
+    def intern(data):
+        if data not in indices:
+            indices[data] = len(blobs)
+            blobs.append(data)
+        return indices[data]
+
+    expected = []
     seen = set()
     for shader_pass in passes(shader):
         for stage in ('progVertex', 'progFragment'):
-            prog = shader_pass[stage]
-            for entries, parameter_indices in zip(prog['m_PlayerSubPrograms'], prog['m_ParameterBlobIndices'], strict=True):
-                old_indices = (index for entry, index in zip(entries, parameter_indices, strict=True)
-                               if entry['m_GpuProgramType'] in ushader.D3D_VS + ushader.D3D_PS
-                               and (entry['m_BlobIndex'], index) in jobs
-                               and (entry['m_BlobIndex'], index) not in pool.failures)
-                for entry, new_index in zip(entries, parameter_indices, strict=True):
-                    if entry['m_GpuProgramType'] not in (ushader.METAL_VS, ushader.METAL_FS):
+            slots = shader_pass[stage]
+            for entries, parameter_indices in zip(slots['m_PlayerSubPrograms'], slots['m_ParameterBlobIndices'], strict=True):
+                additions = []
+                for entry, index in zip(entries, parameter_indices, strict=True):
+                    kind = entry['m_GpuProgramType']
+                    if kind not in ushader.D3D_VS + ushader.D3D_PS:
                         continue
-                    blob_index = entry['m_BlobIndex']
-                    key = blob_index, next(old_indices)
-                    if metal[blob_index] != pool.programs[blob_index]:
-                        raise ValueError('Metal program index does not match translated bytes')
-                    if metal[new_index] != pool.parameters[key]:
-                        raise ValueError('Modern parameter index does not match validated bytes')
+                    key = entry['m_BlobIndex'], index
+                    if key not in programs:
+                        continue
+                    program, params = programs[key]
+                    new = deepcopy(entry)
+                    new['m_GpuProgramType'] = ushader.METAL_VS if kind in ushader.D3D_VS else ushader.METAL_FS
+                    new['m_BlobIndex'] = intern(program)
+                    param_index = intern(params)
+                    additions.append((new, param_index))
+                    expected.append((new['m_BlobIndex'], param_index, key))
                     seen.add(key)
-    if seen != jobs.keys() - pool.failures.keys():
+                entries.extend(entry for entry, _ in additions)
+                parameter_indices.extend(index for _, index in additions)
+    if seen != programs.keys():
         raise ValueError('Modern Metal references do not match translated jobs')
+    shader['stageCounts'].append(deepcopy(shader['stageCounts'][shader['platforms'].index(4)]))
+    append_platform(shader, ushader.build_segments(blobs), nested=True)
+    reopened = ushader.entries(ushader.platform_segments(shader, 14))
+    for program_index, param_index, key in expected:
+        if (reopened[program_index], reopened[param_index]) != programs[key]:
+            raise ValueError('Metal program or parameters reference unexpected bytes')

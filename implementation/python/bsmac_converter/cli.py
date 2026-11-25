@@ -18,6 +18,7 @@ def parser():
     c = sub.add_parser('index'); c.add_argument('maps', type=Path); c.add_argument('converted', type=Path); c.add_argument('output', type=Path)
     c = sub.add_parser('rollback'); c.add_argument('receipt', type=Path)
     c = sub.add_parser('crc'); c.add_argument('asset', type=Path)
+    c = sub.add_parser('audit-shaders'); c.add_argument('original', type=Path); c.add_argument('derivative', type=Path)
     c = sub.add_parser('prepare-map')
     c.add_argument('asset', nargs='?', type=Path)
     c.add_argument('--request-stdin', action='store_true')
@@ -87,6 +88,9 @@ def main(argv=None):
         return equipment_command(args)
     if args.command == 'automatic':
         return automatic_settings(args)
+    if args.command == 'audit-shaders':
+        from .audit import audit_shaders
+        print(json.dumps(list(audit_shaders(args.original, args.derivative)), indent=2)); return 0
     if args.command == 'crc':
         from .crc import bundle_crc
         print(bundle_crc(args.asset)); return 0
@@ -162,16 +166,23 @@ def automatic_settings(args):
 
 def equipment_command(args):
     from .engine import EQUIPMENT_EXTENSIONS, prepare_equipment
+    from .qosmetics import prepare_cyoob
     index = Path(os.environ.get('BSMAC_EQUIPMENT_INDEX') or args.cache.parent / 'EquipmentIndex.tsv')
+    def prepare(source):
+        if source.suffix.lower() == '.cyoob':
+            return str(prepare_cyoob(source, args.backend, args.cache, args.resources))
+        row = prepare_equipment(source, args.backend, args.cache, index, args.resources)
+        return row[4] if row else None
     if args.command == 'rescan-equipment':
         failed = False
         for name, extensions in EQUIPMENT_EXTENSIONS.items():
+            if name == 'CustomNotes':
+                extensions = extensions | {'.cyoob'}
             for source in sorted((args.resources / name).rglob('*')):
                 if not source.is_file() or source.suffix.lower() not in extensions:
                     continue
                 try:
-                    result = prepare_equipment(source, args.backend, args.cache, index, args.resources)
-                    print(json.dumps({'asset': str(source), 'derivative': result[4] if result else None}))
+                    print(json.dumps({'asset': str(source), 'derivative': prepare(source)}))
                 except Exception as error:
                     failed = True
                     print(json.dumps({'asset': str(source), 'error': str(error)}), file=sys.stderr)
@@ -187,9 +198,9 @@ def equipment_command(args):
             source = Path(request.rstrip('\n'))
         if source is None:
             raise ValueError('Supply a loose equipment file')
-        row = prepare_equipment(source, args.backend, args.cache, index, args.resources)
-        if row is not None:
-            print('\t'.join(map(str, row)))
+        derivative = prepare(source)
+        if derivative is not None:
+            print(derivative)
         return 0
     except Exception as error:
         print(str(error).replace('\n', ' ')[:1000], file=sys.stderr, flush=True)

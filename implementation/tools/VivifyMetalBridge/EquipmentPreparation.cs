@@ -29,6 +29,15 @@ namespace Bsmac {
                 notesWatcher.Renamed += (_, args) => QueueNote(args.FullPath);
                 notesWatcher.Error += (_, args) => Console.WriteLine("[BsmacEquipment] Note watcher failed: " + args.GetException().Message);
                 notesWatcher.EnableRaisingEvents = true;
+                _ = Task.Run(() => {
+                    try {
+                        foreach (string path in Directory.EnumerateFiles(root, "*", SearchOption.AllDirectories))
+                            if (Path.GetExtension(path).Equals(".cyoob", StringComparison.OrdinalIgnoreCase))
+                                QueueNote(path);
+                    } catch (IOException error) {
+                        Console.WriteLine("[BsmacEquipment] Package discovery failed: " + error.Message);
+                    }
+                });
             } catch (Exception error) {
                 notesWatcher?.Dispose();
                 notesWatcher = null;
@@ -37,6 +46,9 @@ namespace Bsmac {
         }
 
         public static AssetBundle LoadNote(string original) {
+            if (Path.GetFileName(Path.GetDirectoryName(original)) == "Qosmetics"
+                && Path.GetFileNameWithoutExtension(original).Length == 64)
+                return LoadPreparedNote(original);
             if (AutomaticPreparation.Enabled) {
                 try {
                     var target = FindVerified(original);
@@ -50,6 +62,25 @@ namespace Bsmac {
                 }
             }
             return AssetBundle.LoadFromFile(original);
+        }
+
+        static AssetBundle LoadPreparedNote(string original) {
+            string path = Path.ChangeExtension(original, ".qos.json");
+            if (!File.Exists(path) || new FileInfo(path).Length > 8192)
+                throw new InvalidDataException("Qosmetics note receipt missing");
+            var receipt = JsonUtility.FromJson<PreparedNote>(File.ReadAllText(path));
+            if (receipt == null || receipt.schema != 1 || receipt.crc <= 0 || receipt.crc > uint.MaxValue
+                || receipt.sourceSha256 != Path.GetFileNameWithoutExtension(original) || receipt.sha256 != Digest(original))
+                throw new InvalidDataException("Qosmetics note receipt failed validation");
+            return AssetBundle.LoadFromFile(original, (uint)receipt.crc);
+        }
+
+        [Serializable]
+        sealed class PreparedNote {
+            public int schema = 0;
+            public long crc = 0;
+            public string sha256 = null;
+            public string sourceSha256 = null;
         }
 
         public static async Task<AssetBundle> LoadAsync(string original) {
@@ -86,7 +117,9 @@ namespace Bsmac {
 
         static void QueueNote(string path) {
             string ext = Path.GetExtension(path);
-            if (!ext.Equals(".bloq", StringComparison.OrdinalIgnoreCase) && !ext.Equals(".note", StringComparison.OrdinalIgnoreCase)) return;
+            if (!ext.Equals(".bloq", StringComparison.OrdinalIgnoreCase) && !ext.Equals(".note", StringComparison.OrdinalIgnoreCase)
+                && !ext.Equals(".cyoob", StringComparison.OrdinalIgnoreCase)) return;
+            if (Path.GetFileName(Path.GetDirectoryName(path)) == "Qosmetics" && ext.Equals(".bloq", StringComparison.OrdinalIgnoreCase)) return;
             try {
                 _ = Request(path);
             } catch (IOException error) {
