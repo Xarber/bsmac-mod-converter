@@ -60,3 +60,5 @@ T18 follow-up: later user-started logs show the SiraUtil FPFC controller invokin
 
 ## Installer and replication
 The original BeatMods cache workaround is ported to the repo as `bsmac-mod-installer`. See the setup guide and installed inventory. Local patch installation is hash-checked with rollback. Continue toward complete clean-instance replication by checking historical patch sites and authorizations against their actual upstream inputs, then testing the complete setup on a clean instance.
+
+Desktop independence checkpoint: verified 475 archive entries outside Desktop and all 12 live map registrations inside the app. Clean catalog and backend bootstrap tested. Historical exact experimental geometry build recipes and end-to-end clean install remain open.

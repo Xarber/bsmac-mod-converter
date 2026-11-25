@@ -1,0 +1,2074 @@
+[
+  {
+    "mod": {
+      "name": "BSIPA",
+      "category": "core"
+    },
+    "latest": {
+      "id": 1158,
+      "modVersion": "4.3.6",
+      "dependencies": [],
+      "zipHash": "22ddb9499bf8b308ea30d2b555172baf"
+    }
+  },
+  {
+    "mod": {
+      "name": "Custom Avatars",
+      "category": "cosmetic"
+    },
+    "latest": {
+      "id": 1374,
+      "modVersion": "5.4.10",
+      "dependencies": [
+        2188,
+        3557,
+        1158,
+        2487,
+        3003,
+        3603,
+        3602
+      ],
+      "zipHash": "efdb620e232d3193fbdff97cbe357804"
+    }
+  },
+  {
+    "mod": {
+      "name": "Custom Platforms",
+      "category": "cosmetic"
+    },
+    "latest": {
+      "id": 1405,
+      "modVersion": "6.2.4",
+      "dependencies": [
+        1158,
+        2487,
+        2188,
+        3557
+      ],
+      "zipHash": "dc93905c661eee7be9803fbf15a56c60"
+    }
+  },
+  {
+    "mod": {
+      "name": "Ini Parser",
+      "category": "library"
+    },
+    "latest": {
+      "id": 1477,
+      "modVersion": "2.5.9",
+      "dependencies": [],
+      "zipHash": "5df74ad1c6b120fecdc615dd55f15b88"
+    }
+  },
+  {
+    "mod": {
+      "name": "BS Utils",
+      "category": "library"
+    },
+    "latest": {
+      "id": 1487,
+      "modVersion": "1.14.2",
+      "dependencies": [
+        1477,
+        1158
+      ],
+      "zipHash": "b8245da532d16147d15daab5fc735c46"
+    }
+  },
+  {
+    "mod": {
+      "name": "MappingExtensions",
+      "category": "gameplay"
+    },
+    "latest": {
+      "id": 1529,
+      "modVersion": "1.7.6",
+      "dependencies": [
+        1158,
+        1860,
+        1487
+      ],
+      "zipHash": "5648166a9a37db91d9de834172c02b07"
+    }
+  },
+  {
+    "mod": {
+      "name": "BeatTogether",
+      "category": "multiplayer"
+    },
+    "latest": {
+      "id": 1558,
+      "modVersion": "2.2.1",
+      "dependencies": [
+        2487,
+        2188,
+        3378,
+        1158
+      ],
+      "zipHash": "320f6f39149dfecdf76c0e59e4456240"
+    }
+  },
+  {
+    "mod": {
+      "name": "PracticePlugin",
+      "category": "practice"
+    },
+    "latest": {
+      "id": 1564,
+      "modVersion": "9.1.0",
+      "dependencies": [
+        1158,
+        1860,
+        2487,
+        2188
+      ],
+      "zipHash": "a64b75e5d39bc0c321a43e9711b75557"
+    }
+  },
+  {
+    "mod": {
+      "name": "HitScoreVisualizer",
+      "category": "ui"
+    },
+    "latest": {
+      "id": 1761,
+      "modVersion": "3.5.3",
+      "dependencies": [
+        1158,
+        2487,
+        2188
+      ],
+      "zipHash": "bf8a357fc756f97951bdb418ab57c3e4"
+    }
+  },
+  {
+    "mod": {
+      "name": "Particle Overdrive",
+      "category": "other"
+    },
+    "latest": {
+      "id": 1828,
+      "modVersion": "1.13.1",
+      "dependencies": [
+        1487,
+        2487,
+        2188,
+        1158
+      ],
+      "zipHash": "26249e52ef24805e6cbc61f0da3fd3e1"
+    }
+  },
+  {
+    "mod": {
+      "name": "SongCore",
+      "category": "core"
+    },
+    "latest": {
+      "id": 1860,
+      "modVersion": "3.15.3",
+      "dependencies": [
+        2188,
+        2487,
+        3552,
+        1158
+      ],
+      "zipHash": "146b940124681179768738b8ab336103"
+    }
+  },
+  {
+    "mod": {
+      "name": "CustomNotes",
+      "category": "cosmetic"
+    },
+    "latest": {
+      "id": 2000,
+      "modVersion": "2.6.9",
+      "dependencies": [
+        1860,
+        2188,
+        1158,
+        3370,
+        2487,
+        3557
+      ],
+      "zipHash": "8edaacbd21b18237d17b88a3c1559330"
+    }
+  },
+  {
+    "mod": {
+      "name": "StepBackWall",
+      "category": "practice"
+    },
+    "latest": {
+      "id": 2059,
+      "modVersion": "1.3.4",
+      "dependencies": [
+        1487,
+        2188,
+        1158
+      ],
+      "zipHash": "5c3cd783e1235a6c0720f7ece060bb9c"
+    }
+  },
+  {
+    "mod": {
+      "name": "Enhancements",
+      "category": "tweaks"
+    },
+    "latest": {
+      "id": 2151,
+      "modVersion": "3.0.18",
+      "dependencies": [
+        2487,
+        2188,
+        1158
+      ],
+      "zipHash": "e1be3c62cac95e98b7e4e91d5b52090d"
+    }
+  },
+  {
+    "mod": {
+      "name": "RandomSongPlayer",
+      "category": "gameplay"
+    },
+    "latest": {
+      "id": 2179,
+      "modVersion": "2.0.3",
+      "dependencies": [
+        1158,
+        1860,
+        2188,
+        2278,
+        2948
+      ],
+      "zipHash": "b788ce8145e80d326039e909e52bf488"
+    }
+  },
+  {
+    "mod": {
+      "name": "BeatSaberMarkupLanguage",
+      "category": "library"
+    },
+    "latest": {
+      "id": 2188,
+      "modVersion": "1.12.5",
+      "dependencies": [
+        1158
+      ],
+      "zipHash": "ce406862c55fdc1b572f99f8e4dbd1eb"
+    }
+  },
+  {
+    "mod": {
+      "name": "BeatSaverVoting",
+      "category": "essential"
+    },
+    "latest": {
+      "id": 2254,
+      "modVersion": "2.4.6",
+      "dependencies": [
+        1487,
+        1860,
+        2188,
+        1158
+      ],
+      "zipHash": "bc002ed1a43e2c6d3a10d0750e5d94b4"
+    }
+  },
+  {
+    "mod": {
+      "name": "BeatSaverSharp",
+      "category": "library"
+    },
+    "latest": {
+      "id": 2278,
+      "modVersion": "3.4.5",
+      "dependencies": [],
+      "zipHash": "be37e13e93d9ac7da4efbdc3f514fa8f"
+    }
+  },
+  {
+    "mod": {
+      "name": "ScoreSaberSharp",
+      "category": "library"
+    },
+    "latest": {
+      "id": 2295,
+      "modVersion": "0.1.0",
+      "dependencies": [],
+      "zipHash": "8713168c598577ee7c73fa3cf0e26f5c"
+    }
+  },
+  {
+    "mod": {
+      "name": "CustomWalls",
+      "category": "cosmetic"
+    },
+    "latest": {
+      "id": 2314,
+      "modVersion": "1.6.4",
+      "dependencies": [
+        1487,
+        2188,
+        3557,
+        1158
+      ],
+      "zipHash": "c0f0bf532f50f0aee9991f23a8031db0"
+    }
+  },
+  {
+    "mod": {
+      "name": "ImageCoverExpander",
+      "category": "ui"
+    },
+    "latest": {
+      "id": 2343,
+      "modVersion": "3.0.2",
+      "dependencies": [
+        2487,
+        1158
+      ],
+      "zipHash": "355e7e3cd9e1384189584df90238bb06"
+    }
+  },
+  {
+    "mod": {
+      "name": "SongChartVisualizer",
+      "category": "ui"
+    },
+    "latest": {
+      "id": 2350,
+      "modVersion": "1.1.11",
+      "dependencies": [
+        2188,
+        2487,
+        1158
+      ],
+      "zipHash": "5d3fc025fe098277667fc0846e1b8fe3"
+    }
+  },
+  {
+    "mod": {
+      "name": "SongPlayHistory",
+      "category": "ui"
+    },
+    "latest": {
+      "id": 2368,
+      "modVersion": "2.2.3",
+      "dependencies": [
+        1158,
+        2188,
+        1487,
+        2487,
+        1860
+      ],
+      "zipHash": "56e4d97d64c1b4a957d3750dab2b12ba"
+    }
+  },
+  {
+    "mod": {
+      "name": "TrickSaber",
+      "category": "gameplay"
+    },
+    "latest": {
+      "id": 2414,
+      "modVersion": "1.1.7",
+      "dependencies": [
+        2487,
+        2188,
+        1158
+      ],
+      "zipHash": "77701697e25d728959e348245c1707ef"
+    }
+  },
+  {
+    "mod": {
+      "name": "Claws",
+      "category": "gameplay"
+    },
+    "latest": {
+      "id": 2418,
+      "modVersion": "1.12.1",
+      "dependencies": [
+        2487,
+        2188,
+        1158
+      ],
+      "zipHash": "563dd7b8db29d749de40ebc95e8b2c66"
+    }
+  },
+  {
+    "mod": {
+      "name": "CustomJSONData",
+      "category": "library"
+    },
+    "latest": {
+      "id": 2443,
+      "modVersion": "2.6.8+1.40.0",
+      "dependencies": [
+        1158
+      ],
+      "zipHash": "fed31638bbb678580ef760ec83cfd486"
+    }
+  },
+  {
+    "mod": {
+      "name": "SiraUtil",
+      "category": "library"
+    },
+    "latest": {
+      "id": 2487,
+      "modVersion": "3.2.1",
+      "dependencies": [
+        1158
+      ],
+      "zipHash": "5b90d82d3a9c095747c0ec8cde199d4c"
+    }
+  },
+  {
+    "mod": {
+      "name": "Chroma",
+      "category": "lighting"
+    },
+    "latest": {
+      "id": 2541,
+      "modVersion": "2.9.20+1.40.3",
+      "dependencies": [
+        3666,
+        2188,
+        1158,
+        2443,
+        3200,
+        2487
+      ],
+      "zipHash": "740e84fbcacf14d6cb738562bcc641ec"
+    }
+  },
+  {
+    "mod": {
+      "name": "DataPuller",
+      "category": "streamtools"
+    },
+    "latest": {
+      "id": 2593,
+      "modVersion": "2.1.15",
+      "dependencies": [
+        1860,
+        2487,
+        1158,
+        2751,
+        2278,
+        2948
+      ],
+      "zipHash": "2c21f0cefc25bb589a618bb96e5bab4d"
+    }
+  },
+  {
+    "mod": {
+      "name": "AutoPauseStealth",
+      "category": "tweaks"
+    },
+    "latest": {
+      "id": 2631,
+      "modVersion": "0.1.20",
+      "dependencies": [
+        2188,
+        1158
+      ],
+      "zipHash": "28e39518b59b8ea1315ed2b10302b666"
+    }
+  },
+  {
+    "mod": {
+      "name": "Technicolor",
+      "category": "lighting"
+    },
+    "latest": {
+      "id": 2691,
+      "modVersion": "1.1.2+1.34.2",
+      "dependencies": [
+        1158,
+        2188,
+        2541,
+        2487,
+        3666
+      ],
+      "zipHash": "b7ca1fd90388f871fabd09432258e1ad"
+    }
+  },
+  {
+    "mod": {
+      "name": "SiraLocalizer",
+      "category": "essential"
+    },
+    "latest": {
+      "id": 2709,
+      "modVersion": "2.0.3",
+      "dependencies": [
+        3551,
+        2487,
+        3552,
+        1158
+      ],
+      "zipHash": "713cad03e710ab0b3e36bdcdabc186e5"
+    }
+  },
+  {
+    "mod": {
+      "name": "websocket-sharp",
+      "category": "library"
+    },
+    "latest": {
+      "id": 2751,
+      "modVersion": "1.0.4",
+      "dependencies": [],
+      "zipHash": "18968f984afdbc619727793739ef9caa"
+    }
+  },
+  {
+    "mod": {
+      "name": "DiscordCore",
+      "category": "library"
+    },
+    "latest": {
+      "id": 2761,
+      "modVersion": "3.0.6",
+      "dependencies": [
+        2188,
+        1158
+      ],
+      "zipHash": "1dec6ade1b3e2fe08b8751c2682e19e8"
+    }
+  },
+  {
+    "mod": {
+      "name": "PlaylistManager",
+      "category": "essential"
+    },
+    "latest": {
+      "id": 2819,
+      "modVersion": "1.7.3",
+      "dependencies": [
+        1860,
+        2487,
+        2852,
+        3551,
+        1158,
+        2278,
+        3552,
+        2188
+      ],
+      "zipHash": "777baaf710606b7a194ba26c794cc755"
+    }
+  },
+  {
+    "mod": {
+      "name": "BeatSaberPlaylistsLib",
+      "category": "library"
+    },
+    "latest": {
+      "id": 2852,
+      "modVersion": "1.7.2",
+      "dependencies": [
+        1860,
+        3332,
+        3552,
+        1158
+      ],
+      "zipHash": "a3418b75ed7294a3856f3eca12bbd672"
+    }
+  },
+  {
+    "mod": {
+      "name": "DiTails",
+      "category": "ui"
+    },
+    "latest": {
+      "id": 2891,
+      "modVersion": "1.1.2",
+      "dependencies": [
+        1860,
+        1158,
+        2278,
+        2188,
+        2487
+      ],
+      "zipHash": "db80e25561686316b4e3b27aa7eff5c0"
+    }
+  },
+  {
+    "mod": {
+      "name": "Camera2",
+      "category": "essential"
+    },
+    "latest": {
+      "id": 2908,
+      "modVersion": "0.6.118",
+      "dependencies": [
+        2188,
+        1158
+      ],
+      "zipHash": "536c43edf37e4d6ee4e6fd38c2e36e87"
+    }
+  },
+  {
+    "mod": {
+      "name": "SongDetailsCache",
+      "category": "library"
+    },
+    "latest": {
+      "id": 2948,
+      "modVersion": "1.4.0",
+      "dependencies": [
+        3003
+      ],
+      "zipHash": "e1167b64cd3eff7e3651ec2dbbe50d81"
+    }
+  },
+  {
+    "mod": {
+      "name": "NoodleExtensions",
+      "category": "gameplay"
+    },
+    "latest": {
+      "id": 2973,
+      "modVersion": "1.7.18+1.40.3",
+      "dependencies": [
+        3666,
+        1158,
+        2443,
+        2487
+      ],
+      "zipHash": "100df346d07fd0e820460e0eaf32bf9f"
+    }
+  },
+  {
+    "mod": {
+      "name": "protobuf-net",
+      "category": "library"
+    },
+    "latest": {
+      "id": 3003,
+      "modVersion": "3.0.102",
+      "dependencies": [],
+      "zipHash": "1f55ae4b80b747b5f03fa18337ead864"
+    }
+  },
+  {
+    "mod": {
+      "name": "FFmpeg",
+      "category": "library"
+    },
+    "latest": {
+      "id": 3008,
+      "modVersion": "4.3.3",
+      "dependencies": [],
+      "zipHash": "65b5f23bce0e8e6ea1b7942a2f970edf"
+    }
+  },
+  {
+    "mod": {
+      "name": "ImageFactory",
+      "category": "cosmetic"
+    },
+    "latest": {
+      "id": 3025,
+      "modVersion": "1.2.6",
+      "dependencies": [
+        2188,
+        2487,
+        1158
+      ],
+      "zipHash": "07e2ef52334c37f82658db19498e8ac2"
+    }
+  },
+  {
+    "mod": {
+      "name": "Tweaks55",
+      "category": "tweaks"
+    },
+    "latest": {
+      "id": 3070,
+      "modVersion": "0.3.17",
+      "dependencies": [
+        1158
+      ],
+      "zipHash": "eab2427ded0449c5f39445bde8dcd9f2"
+    }
+  },
+  {
+    "mod": {
+      "name": "UITweaks",
+      "category": "ui"
+    },
+    "latest": {
+      "id": 3108,
+      "modVersion": "4.0.4",
+      "dependencies": [
+        1158,
+        2487,
+        2188
+      ],
+      "zipHash": "fc796031738948d1bfd867ddd091e5fc"
+    }
+  },
+  {
+    "mod": {
+      "name": "CustomBanners",
+      "category": "cosmetic"
+    },
+    "latest": {
+      "id": 3134,
+      "modVersion": "0.2.0",
+      "dependencies": [
+        2188,
+        2487,
+        1158
+      ],
+      "zipHash": "ec9dc04bd9a15e2b72b605ac07eaa200"
+    }
+  },
+  {
+    "mod": {
+      "name": "I Forgor",
+      "category": "practice"
+    },
+    "latest": {
+      "id": 3143,
+      "modVersion": "1.4.1",
+      "dependencies": [
+        2487,
+        1158
+      ],
+      "zipHash": "3a6c131071f432a3ea58c12392c82349"
+    }
+  },
+  {
+    "mod": {
+      "name": "BetterSongSearch",
+      "category": "tweaks"
+    },
+    "latest": {
+      "id": 3154,
+      "modVersion": "0.8.1",
+      "dependencies": [
+        2948,
+        1860,
+        1158,
+        3552,
+        2188,
+        1487
+      ],
+      "zipHash": "edb61862ace9b2b0f595a34c0a96f60f"
+    }
+  },
+  {
+    "mod": {
+      "name": "BetterSongList",
+      "category": "ui"
+    },
+    "latest": {
+      "id": 3177,
+      "modVersion": "0.4.2",
+      "dependencies": [
+        1860,
+        2188,
+        2948,
+        1158
+      ],
+      "zipHash": "827d315b4e65bcaba816aa2dfd76c10f"
+    }
+  },
+  {
+    "mod": {
+      "name": "TakeMeToResults",
+      "category": "ui"
+    },
+    "latest": {
+      "id": 3194,
+      "modVersion": "1.1.1",
+      "dependencies": [
+        2487,
+        2188,
+        1158
+      ],
+      "zipHash": "976afe61aad7d3df27e5226e1d52d85d"
+    }
+  },
+  {
+    "mod": {
+      "name": "LookupID",
+      "category": "library"
+    },
+    "latest": {
+      "id": 3200,
+      "modVersion": "1.0.1",
+      "dependencies": [],
+      "zipHash": "5f5655b91193602c0311b8b6d1b4c71c"
+    }
+  },
+  {
+    "mod": {
+      "name": "yt-dlp",
+      "category": "library"
+    },
+    "latest": {
+      "id": 3202,
+      "modVersion": "2024.10.7",
+      "dependencies": [],
+      "zipHash": "1af2114d5d966bbad8de89db8abe9a7a"
+    }
+  },
+  {
+    "mod": {
+      "name": "EasyOffset",
+      "category": "tweaks"
+    },
+    "latest": {
+      "id": 3217,
+      "modVersion": "2.1.15",
+      "dependencies": [
+        2188,
+        2487,
+        1158
+      ],
+      "zipHash": "1da6ac3bc5a7f4f390165dbae2809527"
+    }
+  },
+  {
+    "mod": {
+      "name": "bHaptics",
+      "category": "library"
+    },
+    "latest": {
+      "id": 3249,
+      "modVersion": "1.4.18",
+      "dependencies": [],
+      "zipHash": "9f7016cde276d3fec2e872a811d47721"
+    }
+  },
+  {
+    "mod": {
+      "name": "LeaderboardCore",
+      "category": "library"
+    },
+    "latest": {
+      "id": 3252,
+      "modVersion": "1.7.0",
+      "dependencies": [
+        2188,
+        2487,
+        1158
+      ],
+      "zipHash": "e9303bea2923995c94574c76901fd8b5"
+    }
+  },
+  {
+    "mod": {
+      "name": "bHapticsMusical",
+      "category": "other"
+    },
+    "latest": {
+      "id": 3262,
+      "modVersion": "1.1.4",
+      "dependencies": [
+        3249,
+        1158
+      ],
+      "zipHash": "d19ba40660bde4572ee11be7b97c9d16"
+    }
+  },
+  {
+    "mod": {
+      "name": "bHapticsFunctional",
+      "category": "other"
+    },
+    "latest": {
+      "id": 3267,
+      "modVersion": "1.1.6",
+      "dependencies": [
+        3249,
+        1158
+      ],
+      "zipHash": "de7dcf589413e445faf97eae235b2c42"
+    }
+  },
+  {
+    "mod": {
+      "name": "SliceDetails",
+      "category": "practice"
+    },
+    "latest": {
+      "id": 3289,
+      "modVersion": "1.3.6",
+      "dependencies": [
+        2487,
+        2188,
+        1158
+      ],
+      "zipHash": "75fba6ed732adcae0708b64257d886b6"
+    }
+  },
+  {
+    "mod": {
+      "name": "SoundReplacer",
+      "category": "tweaks"
+    },
+    "latest": {
+      "id": 3294,
+      "modVersion": "2.0.1",
+      "dependencies": [
+        2487,
+        2188,
+        1158
+      ],
+      "zipHash": "7d7a869996e10249d1f85f95e060319b"
+    }
+  },
+  {
+    "mod": {
+      "name": "Small Menu",
+      "category": "ui"
+    },
+    "latest": {
+      "id": 3307,
+      "modVersion": "1.2.1",
+      "dependencies": [
+        2188,
+        2487,
+        1158
+      ],
+      "zipHash": "472deb922a426ddbc55084d8bce0a2d3"
+    }
+  },
+  {
+    "mod": {
+      "name": "BeatSaverUpdater",
+      "category": "essential"
+    },
+    "latest": {
+      "id": 3311,
+      "modVersion": "1.2.11",
+      "dependencies": [
+        1158,
+        2188,
+        1860,
+        2487,
+        2278
+      ],
+      "zipHash": "d9ea8dd0cbaac66cbb02fa59a548e42b"
+    }
+  },
+  {
+    "mod": {
+      "name": "MenuSaberColors",
+      "category": "cosmetic"
+    },
+    "latest": {
+      "id": 3324,
+      "modVersion": "1.0.12",
+      "dependencies": [
+        2487,
+        1158
+      ],
+      "zipHash": "7877afe67610b3f02c9b3fc6241f5b46"
+    }
+  },
+  {
+    "mod": {
+      "name": "ImageSharp",
+      "category": "library"
+    },
+    "latest": {
+      "id": 3332,
+      "modVersion": "2.0.0",
+      "dependencies": [],
+      "zipHash": "b642fec88b0f84a0643ebd401d08da35"
+    }
+  },
+  {
+    "mod": {
+      "name": "AudioLink",
+      "category": "cosmetic"
+    },
+    "latest": {
+      "id": 3352,
+      "modVersion": "1.0.6+1.37.0",
+      "dependencies": [
+        1158
+      ],
+      "zipHash": "5163f0e1182fe4b9685e5cb38d3cb2af"
+    }
+  },
+  {
+    "mod": {
+      "name": "MenuPillars",
+      "category": "cosmetic"
+    },
+    "latest": {
+      "id": 3357,
+      "modVersion": "0.1.7",
+      "dependencies": [
+        2188,
+        2487,
+        1158
+      ],
+      "zipHash": "8d676ccda5c4932ec99bbca059f57c3f"
+    }
+  },
+  {
+    "mod": {
+      "name": "HighlightBombs",
+      "category": "cosmetic"
+    },
+    "latest": {
+      "id": 3364,
+      "modVersion": "1.0.3",
+      "dependencies": [
+        1158,
+        2487
+      ],
+      "zipHash": "4bedaa80ce5dda8414fea7d914fb94ad"
+    }
+  },
+  {
+    "mod": {
+      "name": "AdBlocker",
+      "category": "cosmetic"
+    },
+    "latest": {
+      "id": 3367,
+      "modVersion": "1.0.5",
+      "dependencies": [
+        1158
+      ],
+      "zipHash": "cd397e93b1a03f163534483462edf768"
+    }
+  },
+  {
+    "mod": {
+      "name": "CameraUtils",
+      "category": "library"
+    },
+    "latest": {
+      "id": 3370,
+      "modVersion": "1.0.7",
+      "dependencies": [
+        1158
+      ],
+      "zipHash": "471d40a9a5c951f4e7f5520096f00bdb"
+    }
+  },
+  {
+    "mod": {
+      "name": "CatCore",
+      "category": "library"
+    },
+    "latest": {
+      "id": 3375,
+      "modVersion": "1.1.0",
+      "dependencies": [],
+      "zipHash": "2f3ea27ba320ac57596ba7816b67861f"
+    }
+  },
+  {
+    "mod": {
+      "name": "MultiplayerCore",
+      "category": "multiplayer"
+    },
+    "latest": {
+      "id": 3378,
+      "modVersion": "1.6.1",
+      "dependencies": [
+        1158,
+        1860,
+        2278,
+        2487,
+        2188,
+        3552,
+        3551
+      ],
+      "zipHash": "3a9b5aaa32c0c6a808861d26804c409a"
+    }
+  },
+  {
+    "mod": {
+      "name": "BeatLeader",
+      "category": "other"
+    },
+    "latest": {
+      "id": 3390,
+      "modVersion": "0.9.33-1.40.2",
+      "dependencies": [
+        2188,
+        3252,
+        1158,
+        3552,
+        2487,
+        1487,
+        3551,
+        1860
+      ],
+      "zipHash": "26244ec8e341e9c96f59a67c39875cbe"
+    }
+  },
+  {
+    "mod": {
+      "name": "HitsoundTweaks",
+      "category": "tweaks"
+    },
+    "latest": {
+      "id": 3432,
+      "modVersion": "1.1.8",
+      "dependencies": [
+        1158,
+        2487,
+        2188
+      ],
+      "zipHash": "7cf5f7972e851e887fd69d0eef924deb"
+    }
+  },
+  {
+    "mod": {
+      "name": "BetterSort.LastPlayed",
+      "category": "ui"
+    },
+    "latest": {
+      "id": 3441,
+      "modVersion": "3.2.3",
+      "dependencies": [
+        1158,
+        1487,
+        2487,
+        3177
+      ],
+      "zipHash": "bff15554e0e9735cc8aaf7a67a6bbbc5"
+    }
+  },
+  {
+    "mod": {
+      "name": "Overly Sensitive Spectrograms",
+      "category": "cosmetic"
+    },
+    "latest": {
+      "id": 3449,
+      "modVersion": "1.1.6",
+      "dependencies": [
+        2487,
+        2188,
+        1158
+      ],
+      "zipHash": "7a00b5e17c6077a2ac43066571839d04"
+    }
+  },
+  {
+    "mod": {
+      "name": "PentaSaber",
+      "category": "gameplay"
+    },
+    "latest": {
+      "id": 3454,
+      "modVersion": "1.0.109",
+      "dependencies": [
+        1487,
+        2487,
+        2188,
+        1158
+      ],
+      "zipHash": "6743961d2b3bec9e2b982418eb5e3f45"
+    }
+  },
+  {
+    "mod": {
+      "name": "GottaGoFast",
+      "category": "tweaks"
+    },
+    "latest": {
+      "id": 3461,
+      "modVersion": "0.2.4",
+      "dependencies": [
+        1158
+      ],
+      "zipHash": "cc46b5978f95cb0b25c2f47d4a4d2796"
+    }
+  },
+  {
+    "mod": {
+      "name": "WhyIsThereNoLeaderboard",
+      "category": "essential"
+    },
+    "latest": {
+      "id": 3466,
+      "modVersion": "1.0.3",
+      "dependencies": [
+        2487,
+        2188,
+        1158
+      ],
+      "zipHash": "9447ccfdf0badb1c06bbed1e8911e19d"
+    }
+  },
+  {
+    "mod": {
+      "name": "ScoreSaber",
+      "category": "other"
+    },
+    "latest": {
+      "id": 3478,
+      "modVersion": "3.3.17",
+      "dependencies": [
+        2188,
+        2487,
+        1860,
+        1158
+      ],
+      "zipHash": "06d8fc9416614aae337893c280bc114c"
+    }
+  },
+  {
+    "mod": {
+      "name": "SongRankedBadge",
+      "category": "ui"
+    },
+    "latest": {
+      "id": 3497,
+      "modVersion": "1.0.6",
+      "dependencies": [
+        1860,
+        2188,
+        2948,
+        1158
+      ],
+      "zipHash": "c6944b8a4b00b0c0bb1d44f273b3bb18"
+    }
+  },
+  {
+    "mod": {
+      "name": "CustomPillows",
+      "category": "cosmetic"
+    },
+    "latest": {
+      "id": 3506,
+      "modVersion": "0.0.10",
+      "dependencies": [
+        2487,
+        2188,
+        3557,
+        1158
+      ],
+      "zipHash": "f333355bbec54baa3267bded26e00333"
+    }
+  },
+  {
+    "mod": {
+      "name": "BetterPause",
+      "category": "cosmetic"
+    },
+    "latest": {
+      "id": 3509,
+      "modVersion": "1.1.2",
+      "dependencies": [
+        2188,
+        2487,
+        1158
+      ],
+      "zipHash": "507ba0a8a09a9f8aa1c8760903546a9a"
+    }
+  },
+  {
+    "mod": {
+      "name": "LocalLeaderboard",
+      "category": "other"
+    },
+    "latest": {
+      "id": 3517,
+      "modVersion": "0.0.12+1.40.0",
+      "dependencies": [
+        1158,
+        3252,
+        2188,
+        2487
+      ],
+      "zipHash": "c76dd02b070081e90bf3af7d740b324a"
+    }
+  },
+  {
+    "mod": {
+      "name": "bsrpc",
+      "category": "tweaks"
+    },
+    "latest": {
+      "id": 3542,
+      "modVersion": "1.2.1",
+      "dependencies": [
+        2593,
+        2188,
+        2761,
+        1158
+      ],
+      "zipHash": "c94e3336c3efe6602d84dc6753b22196"
+    }
+  },
+  {
+    "mod": {
+      "name": "System.IO.Compression.FileSystem",
+      "category": "library"
+    },
+    "latest": {
+      "id": 3551,
+      "modVersion": "4.7.3056",
+      "dependencies": [
+        3552
+      ],
+      "zipHash": "e19f6fd395d54de7bfcbbbe3084dea28"
+    }
+  },
+  {
+    "mod": {
+      "name": "System.IO.Compression",
+      "category": "library"
+    },
+    "latest": {
+      "id": 3552,
+      "modVersion": "4.6.57",
+      "dependencies": [],
+      "zipHash": "a4e9e26f61967e56168e08eecb01ab88"
+    }
+  },
+  {
+    "mod": {
+      "name": "AssetBundleLoadingTools",
+      "category": "library"
+    },
+    "latest": {
+      "id": 3557,
+      "modVersion": "1.1.10",
+      "dependencies": [
+        2188,
+        1158,
+        3552,
+        3551,
+        2487
+      ],
+      "zipHash": "9420b5ad75c00df8a17ba7170d241344"
+    }
+  },
+  {
+    "mod": {
+      "name": "CustomSabersLite",
+      "category": "cosmetic"
+    },
+    "latest": {
+      "id": 3567,
+      "modVersion": "1.0.3",
+      "dependencies": [
+        1158,
+        2487,
+        2188,
+        3557
+      ],
+      "zipHash": "16d02b5a4e1feeb8ab9b92c984b77639"
+    }
+  },
+  {
+    "mod": {
+      "name": "OpenVR API",
+      "category": "library"
+    },
+    "latest": {
+      "id": 3587,
+      "modVersion": "2.2.3",
+      "dependencies": [],
+      "zipHash": "eed7f56ce34df64da4cedafe674561b1"
+    }
+  },
+  {
+    "mod": {
+      "name": "XR Hands",
+      "category": "library"
+    },
+    "latest": {
+      "id": 3588,
+      "modVersion": "1.1.0",
+      "dependencies": [],
+      "zipHash": "44e5a446ba77ef7ce9271a720415bb42"
+    }
+  },
+  {
+    "mod": {
+      "name": "OpenXR Tracker Profiles",
+      "category": "library"
+    },
+    "latest": {
+      "id": 3591,
+      "modVersion": "1.0.0",
+      "dependencies": [
+        3595,
+        1158
+      ],
+      "zipHash": "afba4707f4b2dbbbc8f5542ec6c6c8c8"
+    }
+  },
+  {
+    "mod": {
+      "name": "OpenXR Hands",
+      "category": "library"
+    },
+    "latest": {
+      "id": 3592,
+      "modVersion": "1.0.1",
+      "dependencies": [
+        3595,
+        3588,
+        1158
+      ],
+      "zipHash": "aa65612c373b0e9ac39f574cf164877d"
+    }
+  },
+  {
+    "mod": {
+      "name": "OpenXR Feature Manager",
+      "category": "library"
+    },
+    "latest": {
+      "id": 3595,
+      "modVersion": "1.0.1",
+      "dependencies": [
+        1158
+      ],
+      "zipHash": "c9f128c949b4ac1e43f393e1f3ddd8fa"
+    }
+  },
+  {
+    "mod": {
+      "name": "MessagePack",
+      "category": "library"
+    },
+    "latest": {
+      "id": 3596,
+      "modVersion": "2.5.140",
+      "dependencies": [],
+      "zipHash": "c872a5b8b16768d18387cc931407dd75"
+    }
+  },
+  {
+    "mod": {
+      "name": "KeepMyOverridesPls",
+      "category": "tweaks"
+    },
+    "latest": {
+      "id": 3597,
+      "modVersion": "1.1.3",
+      "dependencies": [
+        1158,
+        2487
+      ],
+      "zipHash": "a8ff248df35de54765b4a0d6db036493"
+    }
+  },
+  {
+    "mod": {
+      "name": "Final IK",
+      "category": "library"
+    },
+    "latest": {
+      "id": 3602,
+      "modVersion": "1.9.0",
+      "dependencies": [],
+      "zipHash": "0dc804c710ba91da074c70fbe5785a84"
+    }
+  },
+  {
+    "mod": {
+      "name": "Dynamic Bone",
+      "category": "library"
+    },
+    "latest": {
+      "id": 3603,
+      "modVersion": "1.2.0",
+      "dependencies": [],
+      "zipHash": "4be47b089272a8008880ace535f92bec"
+    }
+  },
+  {
+    "mod": {
+      "name": "Custom Backgrounds",
+      "category": "cosmetic"
+    },
+    "latest": {
+      "id": 3606,
+      "modVersion": "1.2.2",
+      "dependencies": [
+        2188,
+        2487,
+        1158
+      ],
+      "zipHash": "8cc20d3186a6490c0f0707873130b15e"
+    }
+  },
+  {
+    "mod": {
+      "name": "CustomSaberColors",
+      "category": "cosmetic"
+    },
+    "latest": {
+      "id": 3609,
+      "modVersion": "0.2.6",
+      "dependencies": [
+        2487,
+        2188,
+        1158
+      ],
+      "zipHash": "4c3cca815c0ce765a004d1e2f2584d36"
+    }
+  },
+  {
+    "mod": {
+      "name": "NoteCutGuide",
+      "category": "other"
+    },
+    "latest": {
+      "id": 3612,
+      "modVersion": "0.2.7",
+      "dependencies": [
+        2188,
+        1487,
+        3370,
+        1158
+      ],
+      "zipHash": "329a2d5ee996c726188f2c03228ec298"
+    }
+  },
+  {
+    "mod": {
+      "name": "HSVLayer",
+      "category": "text"
+    },
+    "latest": {
+      "id": 3615,
+      "modVersion": "1.0.2",
+      "dependencies": [
+        2188,
+        3370,
+        1158
+      ],
+      "zipHash": "37ca75bf96f872643042fff6493aaa28"
+    }
+  },
+  {
+    "mod": {
+      "name": "BeatmapScanner",
+      "category": "ui"
+    },
+    "latest": {
+      "id": 3618,
+      "modVersion": "1.5.19",
+      "dependencies": [
+        2188,
+        2948,
+        2487,
+        1860,
+        1158
+      ],
+      "zipHash": "de83cfd17fef6580f2ef9a9bc7301000"
+    }
+  },
+  {
+    "mod": {
+      "name": "SimpleClock",
+      "category": "ui"
+    },
+    "latest": {
+      "id": 3640,
+      "modVersion": "1.0.1",
+      "dependencies": [
+        2188,
+        2487,
+        1158
+      ],
+      "zipHash": "dc44870a017c387816cc306c89e0780a"
+    }
+  },
+  {
+    "mod": {
+      "name": "TimeSyncStutterFix",
+      "category": "tweaks"
+    },
+    "latest": {
+      "id": 3642,
+      "modVersion": "1.0.0",
+      "dependencies": [
+        1158
+      ],
+      "zipHash": "a01b033e9bdba9a3ee851b3565eddf01"
+    }
+  },
+  {
+    "mod": {
+      "name": "ModelMenu",
+      "category": "tweaks"
+    },
+    "latest": {
+      "id": 3644,
+      "modVersion": "0.3.2",
+      "dependencies": [
+        2487,
+        2188,
+        1158
+      ],
+      "zipHash": "54f5368c3b480e1d1248f7f1d66c3bbe"
+    }
+  },
+  {
+    "mod": {
+      "name": "Height",
+      "category": "tweaks"
+    },
+    "latest": {
+      "id": 3646,
+      "modVersion": "0.0.5",
+      "dependencies": [
+        2188,
+        1487,
+        1158
+      ],
+      "zipHash": "c2f7c22ca851b8888ecfca705a4d3014"
+    }
+  },
+  {
+    "mod": {
+      "name": "FPSCounter",
+      "category": "ui"
+    },
+    "latest": {
+      "id": 3649,
+      "modVersion": "3.1.3",
+      "dependencies": [
+        2188,
+        2487,
+        1158
+      ],
+      "zipHash": "a43d440b2134d4fee623a8fd4f584c38"
+    }
+  },
+  {
+    "mod": {
+      "name": "IntroSkip",
+      "category": "practice"
+    },
+    "latest": {
+      "id": 3652,
+      "modVersion": "4.0.6",
+      "dependencies": [
+        2188,
+        2487,
+        1158
+      ],
+      "zipHash": "596e2b18fbaa984f18888d7650c7e2ec"
+    }
+  },
+  {
+    "mod": {
+      "name": "BetterSongList PlayCount Sort",
+      "category": "ui"
+    },
+    "latest": {
+      "id": 3653,
+      "modVersion": "1.0.0",
+      "dependencies": [
+        3177,
+        1158
+      ],
+      "zipHash": "8945e33f0e45929b904ddb2701137ade"
+    }
+  },
+  {
+    "mod": {
+      "name": "MultiplayerMirror",
+      "category": "multiplayer"
+    },
+    "latest": {
+      "id": 3654,
+      "modVersion": "1.3.0",
+      "dependencies": [
+        2487,
+        2188,
+        1158
+      ],
+      "zipHash": "b23d288cb3dd7482216c20a4c5d46514"
+    }
+  },
+  {
+    "mod": {
+      "name": "Heck",
+      "category": "library"
+    },
+    "latest": {
+      "id": 3666,
+      "modVersion": "1.7.14+1.40.3",
+      "dependencies": [
+        2188,
+        1158,
+        2443,
+        2487
+      ],
+      "zipHash": "5977d5b8a4db74b438e552da18532b7f"
+    }
+  },
+  {
+    "mod": {
+      "name": "FailButton",
+      "category": "practice"
+    },
+    "latest": {
+      "id": 3676,
+      "modVersion": "0.0.4",
+      "dependencies": [
+        1158
+      ],
+      "zipHash": "b641fadaa45fee9c41a362943b8beb00"
+    }
+  },
+  {
+    "mod": {
+      "name": "BeatSaviorUI",
+      "category": "practice"
+    },
+    "latest": {
+      "id": 3678,
+      "modVersion": "1.0.3",
+      "dependencies": [
+        1158,
+        2188,
+        2487
+      ],
+      "zipHash": "1566b5e1e50d4e8fd14b2defc864b660"
+    }
+  },
+  {
+    "mod": {
+      "name": "Scribble",
+      "category": "cosmetic"
+    },
+    "latest": {
+      "id": 3684,
+      "modVersion": "0.2.5",
+      "dependencies": [
+        2188,
+        2487,
+        1158
+      ],
+      "zipHash": "276e1810cb97fdf38145681d9f88b2db"
+    }
+  },
+  {
+    "mod": {
+      "name": "BSAssetLib",
+      "category": "library"
+    },
+    "latest": {
+      "id": 3687,
+      "modVersion": "1.0.2",
+      "dependencies": [
+        2487,
+        1158
+      ],
+      "zipHash": "274b207ecffd1f91555f84e7597e7a84"
+    }
+  },
+  {
+    "mod": {
+      "name": "PitchBlack",
+      "category": "lighting"
+    },
+    "latest": {
+      "id": 3689,
+      "modVersion": "0.0.3",
+      "dependencies": [
+        2188,
+        1158
+      ],
+      "zipHash": "65656bf33b2a0b356c381132387ea7ea"
+    }
+  },
+  {
+    "mod": {
+      "name": "MultiplayerInfo",
+      "category": "multiplayer"
+    },
+    "latest": {
+      "id": 3690,
+      "modVersion": "2.3.0",
+      "dependencies": [
+        1158,
+        2487,
+        2188,
+        1487
+      ],
+      "zipHash": "f4a92f2cdfac95f50529138cdd068472"
+    }
+  },
+  {
+    "mod": {
+      "name": "ClearMind",
+      "category": "other"
+    },
+    "latest": {
+      "id": 3692,
+      "modVersion": "0.0.4",
+      "dependencies": [
+        1158,
+        2188,
+        1860,
+        3370
+      ],
+      "zipHash": "db429972916ab9804656b6eb0b242328"
+    }
+  },
+  {
+    "mod": {
+      "name": "HapticsTweaker",
+      "category": "tweaks"
+    },
+    "latest": {
+      "id": 3701,
+      "modVersion": "1.1.0",
+      "dependencies": [
+        1158,
+        2487,
+        2188
+      ],
+      "zipHash": "66af9b85b64ce7862f985e080163c25d"
+    }
+  },
+  {
+    "mod": {
+      "name": "ComboSplitter",
+      "category": "practice"
+    },
+    "latest": {
+      "id": 3719,
+      "modVersion": "1.3.1",
+      "dependencies": [
+        1158,
+        2487,
+        2188
+      ],
+      "zipHash": "1a1796bf15887344395d916bd24998fe"
+    }
+  },
+  {
+    "mod": {
+      "name": "MenuSelector",
+      "category": "cosmetic"
+    },
+    "latest": {
+      "id": 3722,
+      "modVersion": "1.0.0",
+      "dependencies": [
+        1158,
+        2188,
+        2487
+      ],
+      "zipHash": "bf0d19076968f64be75a4e0d3280031f"
+    }
+  },
+  {
+    "mod": {
+      "name": "SaberRandomizer",
+      "category": "cosmetic"
+    },
+    "latest": {
+      "id": 3724,
+      "modVersion": "1.0.1",
+      "dependencies": [
+        1158,
+        2188,
+        2487,
+        3557
+      ],
+      "zipHash": "1d8b76f66920b93507433561a312894e"
+    }
+  },
+  {
+    "mod": {
+      "name": "HideTheLogo",
+      "category": "ui"
+    },
+    "latest": {
+      "id": 3727,
+      "modVersion": "1.0.3",
+      "dependencies": [
+        1158,
+        2487
+      ],
+      "zipHash": "7dafbe9b66a7448ea2f969e934f58a89"
+    }
+  },
+  {
+    "mod": {
+      "name": "BetterLegacyLights",
+      "category": "lighting"
+    },
+    "latest": {
+      "id": 3731,
+      "modVersion": "1.1.0",
+      "dependencies": [
+        1158,
+        2487,
+        2188
+      ],
+      "zipHash": "522868101a78d04c9e8f3fb2aed0dda0"
+    }
+  },
+  {
+    "mod": {
+      "name": "HideThePanels",
+      "category": "ui"
+    },
+    "latest": {
+      "id": 3732,
+      "modVersion": "0.0.2+1.40.3",
+      "dependencies": [
+        1158,
+        2188,
+        2487
+      ],
+      "zipHash": "831dc26bcc4b3c8301d88d1c9a8f655d"
+    }
+  },
+  {
+    "mod": {
+      "name": "MenuFloaters",
+      "category": "cosmetic"
+    },
+    "latest": {
+      "id": 3738,
+      "modVersion": "0.0.4+1.40.3",
+      "dependencies": [
+        1158,
+        2188,
+        2487
+      ],
+      "zipHash": "515f69f3384cb1db837210905b6b0c1a"
+    }
+  },
+  {
+    "mod": {
+      "name": "VerboseVolume",
+      "category": "tweaks"
+    },
+    "latest": {
+      "id": 3746,
+      "modVersion": "0.0.0+1.40.3",
+      "dependencies": [
+        1158,
+        2188,
+        2487
+      ],
+      "zipHash": "c4202b039f661b19e9cca12f250e9b54"
+    }
+  },
+  {
+    "mod": {
+      "name": "Vivify",
+      "category": "gameplay"
+    },
+    "latest": {
+      "id": 3761,
+      "modVersion": "1.0.5+1.40.3",
+      "dependencies": [
+        2188,
+        1158,
+        2443,
+        3666,
+        2487,
+        3370,
+        3557
+      ],
+      "zipHash": "1ee5bfec4dbb649141f8ff5d63e2ac61"
+    }
+  },
+  {
+    "mod": {
+      "name": "SliceVisualizer",
+      "category": "ui"
+    },
+    "latest": {
+      "id": 3770,
+      "modVersion": "0.1.6",
+      "dependencies": [
+        2188,
+        2487,
+        1158
+      ],
+      "zipHash": "706452797ee6b8b91fa789eb68cd0bb7"
+    }
+  },
+  {
+    "mod": {
+      "name": "BetterSongList_RandomSort",
+      "category": "ui"
+    },
+    "latest": {
+      "id": 3773,
+      "modVersion": "0.0.1+1.37.1",
+      "dependencies": [
+        1158,
+        3177
+      ],
+      "zipHash": "f56e01d425c8b38f0591a4ebed1ebd5b"
+    }
+  },
+  {
+    "mod": {
+      "name": "WaitHoldUp",
+      "category": "tweaks"
+    },
+    "latest": {
+      "id": 3774,
+      "modVersion": "0.0.1+1.29.1",
+      "dependencies": [
+        1158,
+        2487
+      ],
+      "zipHash": "eb50077a27e3de7a4341233b3cbdebd1"
+    }
+  },
+  {
+    "mod": {
+      "name": "MenuCoverColors",
+      "category": "cosmetic"
+    },
+    "latest": {
+      "id": 3775,
+      "modVersion": "0.0.2+1.40.3",
+      "dependencies": [
+        1158,
+        2188,
+        2487
+      ],
+      "zipHash": "1aace9e096369f67c4a7c3300b1c2337"
+    }
+  },
+  {
+    "mod": {
+      "name": "BeatSaverDownloader",
+      "category": "essential"
+    },
+    "latest": {
+      "id": 1270,
+      "modVersion": "6.0.7",
+      "dependencies": [
+        1487,
+        2188,
+        1158,
+        2295,
+        3551,
+        1860,
+        2278
+      ],
+      "zipHash": "a740c6e68a9b5d1dfda3cc8e81f7cf06"
+    }
+  }
+]

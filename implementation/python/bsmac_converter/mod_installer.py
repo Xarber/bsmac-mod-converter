@@ -193,6 +193,7 @@ def main(argv=None):
     parser.add_argument('--root', type=Path, default=ROOT)
     commands = parser.add_subparsers(dest='command', required=True)
     commands.add_parser('seed-versions')
+    commands.add_parser('seed-catalog').add_argument('snapshot', type=Path)
     mods = commands.add_parser('beatmods')
     mods.add_argument('names', nargs='*')
     mods.add_argument('--profile', type=Path)
@@ -205,8 +206,18 @@ def main(argv=None):
     upstream.add_argument('sha256')
     upstream.add_argument('modules', nargs='+')
     args = parser.parse_args(argv)
-    if args.command == 'seed-versions':
-        print(seed_versions(args.root / 'cache/beatmods'))
+    if args.command in ('seed-versions', 'seed-catalog'):
+        cache = args.root / 'cache/beatmods'
+        print(seed_versions(cache))
+        if args.command == 'seed-catalog':
+            catalog = cache / f'{VERSION}.json'
+            if not catalog.exists():
+                rows = json.loads(args.snapshot.read_text())
+                if not isinstance(rows, list) or not rows:
+                    raise ValueError('Empty or invalid catalog snapshot')
+                atomic_json(catalog, rows)
+            catalog.touch()
+            print(catalog)
         return
     if args.command == 'apply-local':
         apply_local(args.root, args.plan)

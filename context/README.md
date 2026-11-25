@@ -52,3 +52,5 @@ BeatLeader 0.9.33 already includes the PC replay player and in-game downloader. 
 Second handoff: the working Plasma patch is consolidated and generic checked `.cyoob` preparation is installed. Verify True Acc Bloq V2 and existing Plasma in the user-started game. Multiplayer+ 6.4.5 is installed to address the observed 6.4.2 menu failure. BeatTogether still needs the exact native TLS-enabled ENet transport. The 42-flux experimental candidate resolves all scheduled jobs, with geometry still open. See T20–T23.
 
 Use [the replication guide](../docs/REPLICATE_INSTALLATION.md) for the BeatMods installer, observed mod inventory, and local patch workflow. Keep upstream and game assets out of Git.
+
+The Desktop ConvertedMods tree has a hash-verified private archive in Application Support. The live map index points to checked copies in the game’s MetalAssets directory. The replication guide documents clean catalog and MoltenVR backend bootstrap.

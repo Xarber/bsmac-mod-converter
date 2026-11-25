@@ -4,13 +4,13 @@ The reference system is Apple Silicon with MoltenVR and a legally installed Stea
 
 ## Install the baseline
 
-1. Create the native 1.40.8 instance in MoltenVR and use its mods UI to populate the catalog. Use a clean instance for replication and close Beat Saber before installation. Keep backups of any existing modded instance.
+1. Create the native 1.40.8 instance in MoltenVR. Seed its BeatMods cache from this repository before installing mods. Use a clean instance for replication and close Beat Saber before installation. Keep backups of any existing modded instance.
 2. From the repository, run the following with Python 3.12. The first installer run verifies and caches the archives. The second invokes the installed MoltenVR engine with the same selections and lets it install BSIPA, the mods, and their dependencies.
 
 ```sh
 python3.12 -m venv .venv
 .venv/bin/python -m pip install -e .
-.venv/bin/bsmac-mod-installer seed-versions
+.venv/bin/bsmac-mod-installer seed-catalog config/molten-catalog-1.40.8.json
 .venv/bin/bsmac-mod-installer beatmods --profile config/beatmods-1.40.8.json
 .venv/bin/bsmac-mod-installer beatmods --profile config/beatmods-1.40.8.json --install
 ```
@@ -51,3 +51,23 @@ For a separately downloaded upstream ZIP, `bsmac-mod-installer install-zip ARCHI
 For a prepared baseline with upstream plugin DLLs and converted embedded bundles already in place, `scripts/stage-managed-compatibility.sh ASSEMBLY_TOOL_DLL RESOURCES BRIDGES NEW_STAGE` stages the managed hooks in the correct order and produces the verified-input installation plan. Put the built bridge DLLs together in `BRIDGES`. Review `NEW_STAGE/plan.json` before passing it to `apply-local`. The staging script requires clean hook sites. It deliberately does not patch the original game or install into it.
 
 If MoltenVR's BeatMods game-version lookup returns 404, run `bsmac-mod-installer seed-versions` before opening the Mods UI in step 1. It creates or refreshes `cache/beatmods/versions.json` and ensures 1.40.8 is listed while retaining other cached versions. The installer repeats this immediately before calling the engine. The game-version list and the separate 1.40.8 mod catalog are different files. Seeding the version list alone does not build the mod catalog.
+
+## Bootstrap the converter on a clean Mac
+
+Run `scripts/install-automatic-worker.sh` after installing MoltenVR. If the separately installed converter package is absent, this script uses pinned PyInstaller tooling to extract only the required Python 3.12 shader modules from your installed MoltenVR engine. The native translator stays in MoltenVR.app. The script imports the staged Python modules before publishing the backend and never ships extracted modules in Git. Engines with a different packaging layout or Python version need a compatible extraction tool. The installer does not require the Desktop archive.
+
+`seed-catalog` provides both cache files required to get past the old version lookup. The checked-in catalog is a minimal snapshot of 132 public release records, without binaries or user data. Existing catalog files are retained. The download step still fetches approved releases and checks their member hashes.
+
+## Keep installed assets in the game
+
+Use `python scripts/store-registered-bundles.py APP INDEX` with the game closed. It copies the currently registered derivatives to `Contents/Resources/MetalAssets`, checks their CRC and SHA-256, signs and verifies the app, backs up the index, then redirects its entries to the copies. Supply the live `MetalMapIndex.tsv` from the converter cache. You may run it again after more conversions are registered. The worker, converter backend, working cache, and index live in Application Support. Those tools are distinct from the installed game assets, and MoltenVR itself is still required.
+
+| Material formerly kept on Desktop | Reproduction or storage |
+| --- | --- |
+| Extracted stock and converted bundles, patched DLLs | Use your upstream packages and AssemblyTool's resource extraction, conversion, resource replacement and loader patches above. |
+| ReeSabers scripts and blur reflection | The reproducible scripts and Metal reflection tool are under `implementation/tools/reesabers`. Diagnostic-only variants are archived locally. |
+| Notes, sabers, walls, Plasma and shader libraries | Use `convert`, `prepare-equipment`, or `rescan-equipment` and the checked lookup. Embedded wall replacement uses the resource patch workflow. |
+| Vivify maps and experimental derivatives | Use `prepare-map`, `convert --experimental` and `audit-shaders`. Historical experimental outputs can differ from current builds, and some special-case geometry edits lack an exact recipe. Keep those derivatives in your local archive. |
+| Old shader source dumps, decompiled listings, patch checkpoints and diagnostic logs | The verified private archive at `~/Library/Application Support/bsmac/mod-converter/archive/ConvertedMods` retains them. They are historical evidence and are excluded from Git. |
+
+An inventory with hashes named `ConvertedMods.inventory.json` is alongside the local archive. The desktop directory is not an installation or runtime input.
