@@ -45,7 +45,7 @@ The user overrode the weekly usage checkpoint for this chat. Continue observing 
 
 T18 (queued after automatic conversion): enable SiraUtil FPFC with G on the native MoltenVR path. Existing SiraUtil 3.2.1 already loads and its JSON already maps G. Inspect the launch-argument gate, XR lifecycle and Camera2 compatibility before changing binaries. No changes applied to SiraUtil yet.
 
-T19 (2026-11-25): GitHub and BeatLeader replays. Publish project source and docs to `testing`, keeping game assets, configurations and replays local. The installed version includes in-game replay playback/download. The standalone downloader is locally installed and passed a real public download. The local macOS replay path patch and cache setting were installed with backup receipt 20261125T063018371000Z. Deep strict signature verification passed. In-game replay playback and local persistence still need a user-started session.
+T19 (2026-11-25): GitHub and BeatLeader replays. Publish project source and docs to `testing`, keeping game assets, configurations and replays local. The installed version includes in-game replay playback/download. The standalone downloader is locally installed and passed a real public download. The local macOS replay path patch and cache setting were installed with backup receipt 20261125T063018371000Z. Deep strict signature verification passed. Later inspection found 11 BSOR files in each of Replays and ReplayerCache, establishing persistence in both corrected directories. Visual replay playback still requires user confirmation.
 
 ## Second handoff — November 25
 
