@@ -47,4 +47,4 @@ Resume from T13–T17 in the active queue. Current source integrates local conve
 
 Loose automatic notes, walls and sabers have been installed as well. Verify first use in the headset before calling either automatic path complete. See the equipment feature doc and T14. T18 records the separate SiraUtil FPFC request, which the user prioritized after automatic conversion.
 
-BeatLeader 0.9.33 already includes the PC replay player and in-game downloader. See [replay setup](../docs/features-beatleader-replays.md) and T19 for the standalone downloader and the staged local path fix. The user still owns Beat Saber launches.
+BeatLeader 0.9.33 already includes the PC replay player and in-game downloader. See [replay setup](../docs/features-beatleader-replays.md) and T19 for the standalone downloader and installed local path fix. The user still owns Beat Saber launches.
