@@ -11,7 +11,7 @@ def parser():
     p.add_argument('--backend', type=Path, default=Path.home()/'Library/Application Support/bsmac/mod-converter')
     p.add_argument('--cache', type=Path, default=Path.home()/'Library/Application Support/bsmac/mod-converter/cache/pipeline')
     sub = p.add_subparsers(dest='command', required=True)
-    c = sub.add_parser('convert'); c.add_argument('assets', nargs='+', type=Path)
+    c = sub.add_parser('convert'); c.add_argument('assets', nargs='+', type=Path); c.add_argument('--experimental', action='store_true')
     c = sub.add_parser('scan'); c.add_argument('roots', nargs='+', type=Path)
     c = sub.add_parser('watch'); c.add_argument('roots', nargs='+', type=Path); c.add_argument('--interval', type=float, default=30)
     c = sub.add_parser('index'); c.add_argument('maps', type=Path); c.add_argument('converted', type=Path); c.add_argument('output', type=Path)
@@ -28,7 +28,8 @@ def discover(roots):
 
 def convert_asset(source, args):
     from .pipeline import convert, repack_shader_library
-    from .index import sha256
+    from .index import derivative_row, publish_rows, sha256, validate_original
+    experimental = getattr(args, 'experimental', False)
     if source.suffix.lower() == '.shaderbundle':
         key = sha256(source)
         extracted = args.cache/'libraries'/key/'shaders.asset'
@@ -37,20 +38,15 @@ def convert_asset(source, args):
             if archive.namelist().count('shaders.asset') != 1 or archive.testzip():
                 raise ValueError('Invalid shader library')
             extracted.write_bytes(archive.read('shaders.asset'))
-        result = convert(extracted, args.backend, args.cache)
+        result = convert(extracted, args.backend, args.cache, experimental=experimental)
         return repack_shader_library(source, result, extracted.parent/source.name)
-    result = convert(source, args.backend, args.cache)
-    if source.name == 'bundleWindows2021.vivify':
-        import shutil
-        from .index import build_index
-        destination = args.cache/'map-derivatives'/(sha256(source)[:16]+'.vivify')
-        destination.parent.mkdir(parents=True, exist_ok=True)
-        temp = destination.with_suffix('.tmp')
-        shutil.copyfile(result, temp)
-        temp.replace(destination)
-        # Revalidate metadata and both CRCs before publishing an allowlist entry.
-        # Rebuild from the map root, preserving all currently available records.
-        build_index(source.parent.parent, destination.parent, args.cache.parent/'MetalMapIndex.tsv')
+    is_map = source.name == 'bundleWindows2021.vivify'
+    original = validate_original(source) if is_map else None
+    result = convert(source, args.backend, args.cache, experimental=experimental)
+    if is_map and not experimental:
+        if validate_original(source) != original:
+            raise ValueError('Map changed while preparing derivative')
+        publish_rows(args.cache.parent/'MetalMapIndex.tsv', [derivative_row(original, result)])
     return result
 
 def scan(args):

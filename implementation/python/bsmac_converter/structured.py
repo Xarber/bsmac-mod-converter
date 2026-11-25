@@ -64,14 +64,52 @@ def translate_entry(entry):
     if not buffers:
         return original_translate(entry)
 
-    if sp.ver != 201708220:
-        raise ValueError(
-            "Structured-buffer support currently limited "
-            "to verified Unity 2018 format"
-        )
+    if sp.ver == 201708220:
+        params = parse_legacy(sp)
+    elif sp.ver == 201806140:
+        params = parse_buffers(raw)[0]
+    else:
+        raise ValueError(f"Unsupported structured-buffer format: {sp.ver}")
 
-    params = parse_legacy(sp)
+    msl, remapped = translate_buffers(sp, params, buffers)
+    if sp.ver == 201806140:
+        raw = remap_records(raw, buffers, remapped)
+        built, mapping, msl = legacy.convert_2019(sp, local, msl, raw)
+        check, checked_local = parse_program(built)
+        _, _, check_tail = ushader.bind_channels(check.tail)
+        verify_records(struct.pack("<i", check.ver) + check_tail, buffers, remapped)
+        if checked_local != local:
+            raise ValueError("Unity 2019 local keywords changed")
+        mapping["buffers"] = remapped
+        return built, mapping, msl
 
+    built, mapping = convert_entry(entry, msl)
+    restored = ushader.SubProgram(built)
+    _, _, restored_tail = ushader.bind_channels(restored.tail)
+    updated = remap_records(struct.pack("<i", restored.ver) + restored_tail, buffers, remapped)
+    prefix_length = len(restored.tail) - len(restored_tail)
+    restored.tail = restored.tail[:prefix_length] + updated[4:]
+    built = restored.build()
+    check = ushader.SubProgram(built)
+    _, _, check_tail = ushader.bind_channels(check.tail)
+    verify_records(struct.pack("<i", check.ver) + check_tail, buffers, remapped)
+    mapping["buffers"] = remapped
+    return built, mapping, msl
+
+
+def remap_records(raw, buffers, remapped):
+    for name, (old, flags) in buffers.items():
+        raw = replace_record(raw, name, (2, old, flags), (2, remapped[old], flags))
+    return raw
+
+
+def verify_records(raw, buffers, remapped):
+    _, verified = parse_buffers(raw)
+    if verified != {name: (remapped[old], flags) for name, (old, flags) in buffers.items()}:
+        raise ValueError("Structured-buffer resource records failed validation")
+
+
+def translate_buffers(sp, params, buffers, common=None, names=()):
     dxbc = sp.dxbc()
     declarations = rdef.shdr_buffers(dxbc)
 
@@ -86,10 +124,11 @@ def translate_entry(entry):
 
         print("Structured buffer:", name, "stride:", stride)
 
-    cbs, binds = T.merged_cbuffers(params, {}, [])
+    common = {} if common is None else common
+    cbs, binds = T.merged_cbuffers(params, common, names)
 
     textures, samplers = T.resource_names(
-        dxbc, {}, [], params
+        dxbc, common, names, params
     )
 
     rebuilt = rdef.with_rdef(
@@ -104,6 +143,7 @@ def translate_entry(entry):
         ),
         cbs
     )
+    msl = legacy.repair_unsigned_offsets(msl)
 
     pattern = re.compile(
         r"\[\[\s*buffer\s*\(\s*(\d+)\s*\)\s*\]\]"
@@ -157,48 +197,7 @@ def translate_entry(entry):
         msl, params, sp.type in ushader.D3D_VS
     )
 
-    built, mapping = convert_entry(entry, msl)
-
-    # Rewrite the actual legacy kind-2 resource record.
-    restored = ushader.SubProgram(built)
-
-    _, _, restored_tail = ushader.bind_channels(restored.tail)
-
-    updated = struct.pack("<i", restored.ver) + restored_tail
-
-    for name, (old, flags) in buffers.items():
-        updated = replace_record(
-            updated,
-            name,
-            (2, old, flags),
-            (2, remapped[old], flags)
-        )
-
-    prefix_length = len(restored.tail) - len(restored_tail)
-
-    restored.tail = (
-        restored.tail[:prefix_length] + updated[4:]
-    )
-
-    built = restored.build()
-
-    check = ushader.SubProgram(built)
-    _, _, check_tail = ushader.bind_channels(check.tail)
-
-    _, verified = parse_buffers(
-        struct.pack("<i", check.ver) + check_tail
-    )
-
-    assert verified == {
-        name: (remapped[old], flags)
-        for name, (old, flags) in buffers.items()
-    }
-
-    mapping["buffers"] = remapped
-
-    print("Structured-buffer validation PASSED")
-
-    return built, mapping, msl
+    return msl, remapped
 
 def add_programs(d, mappings):
     original_add_programs(d, mappings)

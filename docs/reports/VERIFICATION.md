@@ -47,3 +47,11 @@ NativeAvatarRenderer compiles against installed 1.40.8 assemblies with zero warn
 Post-install codesign --verify --deep --strict completed with exit code 0. The game remained closed. This verifies bundle signing, not gameplay.
 
 Latest local checks: 17 Python tests passed with explicit implementation/python module path; schema/registry/evidence validator passed. An initial test invocation omitted that module path and failed collection (ModuleNotFoundError); corrected invocation passed. Commit 61df0ab was pushed and remote testing SHA verified. An overlapping earlier push caused one ref-lock rejection; sequential retry succeeded without force or history rewriting.
+
+## November 25 conversion checkpoint
+
+On the Apple M4 Mac, all 11 live original and derivative pairs matched their metadata CRC, registered derivative CRC and SHA-256. Breezer matched 1614546449 and 1762283956. No live row was changed. The UnityFS raw LZMA decoder uses the declared size because these blocks can omit an end marker. A trial reading one extra byte failed on Breezer and was corrected before the full successful check.
+
+After applying Unity 2019 kind-2 support, the original Ego Death converted with 11 shaders and 226 variants passing native Metal compilation. The new 42-flux experimental candidate passed native Metal compilation of its emitted sources. It included 620 translated jobs, 4 failed jobs and 28 unsupported geometry programs across two shader families. `Particles/Standard Unlit` accounted for 56 successful jobs with no failures. Four other jobs were refused because the local backend reuses the same blob indices for distinct generated Metal code. The candidate was not registered. No visual parity or runtime pipeline creation was established.
+
+The inspected Vivify downloader writes the original before marking the download finished. It currently returns immediately for an existing bundle. Those two locations are the relevant entry points for T14. No live game patch was installed and no game session was started for this batch.

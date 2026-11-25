@@ -24,3 +24,19 @@ User launches exactly one session through MoltenVR. First test Color (cover/prev
 ## History
 
 Initial source commit d50e0f8; compatibility/context commit 2ff7f6b; local-media fix commit 61df0ab. Initial GitHub quality run 45472973930 passed after public visibility; later revisions require their own checks. No binary release or branch promotion authorized/performed. Unsigned commits used because configured hardware signing key was unavailable.
+
+## Resumed assignment — 2026-11-25
+
+The user's separate session supersedes the earlier avatar and custom-note open status. The user reports working built-in avatar in Camera2, original Plasma Notes, custom maps including Noodle/Mapping Extensions and Chroma, custom walls, and Vivify redirection. Individual wall and AudioLink visual results still need specific evidence. The verified live index contains 11 map pairs. Some effects remain magenta per user report.
+
+| ID | Request | State | Evidence / next action |
+| --- | --- | --- | --- |
+| T13 | Consolidate CRC, legacy/modern shader conversion and index changes | In Progress | Bounded UnityFS LZMA, targeted unsigned constructor repair, 2019 and 2021 kind-2 handling, separate experimental receipts and merge-safe publication are checkpointed. Real bundles checked; 42-flux particle programs succeed, but four variant jobs share incompatible Metal code and require per-job blob index allocation. Add durable opt-in real-bundle regressions and retest more legacy assets. |
+| T14 | Integrate automatic asset preparation and cache management | Queued | Start with the actual Vivify `AssetBundleDownloadViewController.Init` existing-bundle branch and `DownloadAndSave` coroutine completion. Keep `Finished` gated on async checked preparation, preserve ToS/cancel/error handling, and use a persistent configured worker. Add event-based asset ingestion and individually verified loader adapters for models. Current CLI is a manual conversion/staging path. |
+| T15 | Identify and repair remaining magenta materials | Queued | Tie Unity runtime shader/pipeline logs and active renderers to the game-loaded derivative. Keep current index intact pending visual comparison. |
+| T16 | Geometry and tessellation parity or documented fallbacks | Queued | Based on 42-flux audit, two families still require geometry. Also inspect Through The Screen and the two grass shaders from the user handoff. Separate translated-program compilation from draw pipeline execution. |
+| T17 | Reconcile prior compatibility, avatar/notes, Kinect and release work | Queued | Verify provenance of locally working avatar and Qosmetics implementations before consolidating original source. Continue prior open compatibility checks after T13–T16. No release promotion. |
+
+### Usage checkpoint
+
+At 06:49 Rome on November 25, the five-hour window had 84% remaining and resets November 25 at 11:42. The weekly window had 6% remaining and resets November 30 at 11:09. No reset credit was available. The reset was more than five days away, so the 35% minimum under UADS §0 applies. New work is paused. Resume by checking usage and running the opt-in integration checks for current T13 sources. Then split modern blob indices by job where code differs and use the inspected Vivify lifecycle to implement T14. The user continues to own game launches.

@@ -5,6 +5,7 @@ from pathlib import Path
 import UnityPy
 from UnityPy.helpers import CompressionHelper
 from bsmac.shaders import ushader, pblob, convert, translate as T, metalgen
+from .msl import repair_unsigned_offsets
 ROOT = Path("cache")
 DEST = ROOT / "Converted"
 
@@ -63,6 +64,7 @@ def translate_legacy(sp, params):
     msl, reflection = T.translate(
         sp, params, {}, []
     )
+    msl = repair_unsigned_offsets(msl)
 
     vs = sp.type in ushader.D3D_VS
 
@@ -546,8 +548,8 @@ def append_platform(d, segments, nested):
         else bytes(blob)
     )
 
-def process(source):
-    output = DEST / source.name
+def process(source, *, experimental=False):
+    output = DEST / "asset.bundle"
 
     if output.exists():
         print("SKIP: Output already exists")
@@ -560,16 +562,23 @@ def process(source):
 
     records = {}
     metal_files = []
+    report = []
 
     for obj in env.objects:
         if shutil.disk_usage(shader_dir).free < 2200 * 1024**2:
             raise OSError("Conversion paused to preserve 2200 MiB free storage")
+        if obj.type.name == "ComputeShader":
+            report.append({"shader": str(obj.path_id), "unsupported": 1,
+                           "detail": "ComputeShader compatibility has not been established"})
+            continue
         if obj.type.name != "Shader":
             continue
 
         d = obj.read_typetree()
 
+        name = d["m_ParsedForm"]["m_Name"]
         if 4 not in d["platforms"] or 14 in d["platforms"]:
+            report.append({"shader": name, "skipped": 1, "detail": "No Direct3D or existing Metal"})
             continue
 
         entries, original, nested = read_platform(d, 4)
@@ -578,6 +587,22 @@ def process(source):
             struct.unpack_from("<I", b)[0]
             for b in entries
         }
+
+        if versions == {202012090}:
+            from .modern import add_shader
+            paths, counts = add_shader(d, shader_dir)
+            report.append({"shader": name, **counts})
+            if paths:
+                metal_files.extend(paths)
+                records[obj.path_id] = (original, read_platform(d, 14)[1])
+                obj.save_typetree(d)
+            continue
+
+        unsupported = sum(struct.unpack_from("<I", entry, 4)[0] not in ushader.D3D_VS + ushader.D3D_PS
+                          for entry in entries)
+        if unsupported:
+            report.append({"shader": name, "unsupported": unsupported, "skipped": len(entries) - unsupported})
+            continue
 
         print(
             d["m_ParsedForm"]["m_Name"],
@@ -615,19 +640,25 @@ def process(source):
         )
 
         obj.save_typetree(d)
+        report.append({"shader": name, "translated": len(entries)})
 
+    import json
+    (ROOT / "program-report.json").write_text(json.dumps(report, indent=2))
+    if not experimental and any(row.get("unsupported") or row.get("failed") for row in report):
+        raise RuntimeError("Conversion is incomplete; inspect program-report.json")
     if not records:
         print("No shaders converted")
         return
 
     # Actual Metal compilation on the M4.
     manifest = shader_dir / "metal-files.txt"
-    manifest.write_text("\n".join(map(str, metal_files)))
-    result = subprocess.run([
-        "swift",
-        str(Path(__file__).resolve().parents[2] / "tools/compile-metal.swift"),
-        "--manifest", str(manifest)
+    manifest.write_text("\n".join(map(str, dict.fromkeys(metal_files))))
+    import os
+    compiler = os.environ.get("BSMAC_METAL_COMPILER")
+    command = ([compiler] if compiler else [
+        "swift", str(Path(__file__).resolve().parents[2] / "tools/compile-metal.swift")
     ])
+    result = subprocess.run([*command, "--manifest", str(manifest)])
 
     if result.returncode:
         raise RuntimeError("Native Metal compilation failed")

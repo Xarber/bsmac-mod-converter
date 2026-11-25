@@ -1,22 +1,49 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 import json
+import lzma
 import struct
 import zlib
 import zipfile
 from pathlib import Path
 import pytest
-from bsmac_converter.crc import bundle_crc
+from bsmac_converter.crc import bundle_crc, decompress
 from bsmac_converter.index import build_index, expected_crcs, sha256
 from bsmac_converter.transaction import install, rollback
 from bsmac_converter.pipeline import cache_key, repack_shader_library
 from bsmac_converter.cli import discover, parser
+from bsmac_converter.msl import repair_unsigned_offsets
 
-def bundle(path, payload):
-    info = bytes(16) + struct.pack('>I', 1) + struct.pack('>IIH', len(payload), len(payload), 0) + struct.pack('>I', 0)
+def bundle(path, payload, *, stored=None, mode=0):
+    stored = payload if stored is None else stored
+    info = bytes(16) + struct.pack('>I', 1) + struct.pack('>IIH', len(payload), len(stored), mode) + struct.pack('>I', 0)
     prefix = b'UnityFS\0' + struct.pack('>I', 6) + b'5.x.x\0' + b'2021.3\0'
-    total = len(prefix) + 20 + len(info) + len(payload)
-    path.write_bytes(prefix + struct.pack('>QIII', total, len(info), len(info), 0x40) + info + payload)
+    total = len(prefix) + 20 + len(info) + len(stored)
+    path.write_bytes(prefix + struct.pack('>QIII', total, len(info), len(info), 0x40) + info + stored)
     return zlib.crc32(payload)
+
+def test_crc_lzma_uses_uncompressed_size_from_unityfs(tmp_path):
+    payload = b'example UnityFS serialized data' * 128
+    dictionary = 2**20
+    filters = [{'id': lzma.FILTER_LZMA1, 'dict_size': dictionary, 'lc': 3, 'lp': 0, 'pb': 2}]
+    encoded = lzma.compress(payload, format=lzma.FORMAT_RAW, filters=filters)
+    props = bytes([93]) + struct.pack('<I', dictionary)
+    source = tmp_path / 'lzma.bundle'
+    expected = bundle(source, payload, stored=props + encoded[:-5], mode=1)
+    assert bundle_crc(source) == expected
+    with pytest.raises(ValueError, match='declared size'):
+        decompress(props + encoded, len(payload) + 1, 1)
+
+@pytest.mark.parametrize('mode', [2, 3])
+def test_crc_lz4_formats(tmp_path, mode):
+    from UnityPy.helpers.CompressionHelper import compress_lz4
+    payload = b'serialized data' * 100
+    path = tmp_path / 'lz4.bundle'
+    expected = bundle(path, payload, stored=compress_lz4(payload), mode=mode)
+    assert bundle_crc(path) == expected
+
+def test_repair_only_known_unsigned_offsets():
+    shader = 'read(u_xlatu13.wy + ivec2(1, 0)); read(signed.xy + ivec2(1, 0)); u_xlatu13.wy + ivec2(-1, 0);'
+    assert repair_unsigned_offsets(shader) == shader.replace('ivec2(1, 0)', 'uint2(1, 0)', 1)
 
 def test_crc_validates_payload_and_total(tmp_path):
     p = tmp_path/'a'
@@ -55,6 +82,23 @@ def test_recursive_metadata():
 
 def test_no_index_without_derivatives(tmp_path):
     with pytest.raises(ValueError,match='No validated'): build_index(tmp_path,tmp_path,tmp_path/'out')
+
+def test_index_rebuild_preserves_other_derivative_directories(tmp_path):
+    maps = tmp_path / 'maps'
+    output = tmp_path / 'index.tsv'
+    for idx in range(2):
+        folder = maps / str(idx)
+        folder.mkdir(parents=True)
+        original = folder / 'bundleWindows2021.vivify'
+        crc = bundle(original, bytes([idx]))
+        (folder / 'Info.dat').write_text(json.dumps({'_assetBundle': {'_windows2021': crc}}))
+        converted = tmp_path / f'converted-{idx}'
+        converted.mkdir()
+        derivative = converted / (sha256(original)[:16] + '.vivify')
+        bundle(derivative, bytes([idx, 255]))
+        assert len(build_index(maps, converted, output)) == idx + 1
+    assert 'converted-0' in output.read_text()
+    assert 'converted-1' in output.read_text()
 
 def test_install_and_verified_rollback(tmp_path):
     source=tmp_path/'staged'; source.write_bytes(b'new')

@@ -38,3 +38,9 @@ Latest user steering: **Do not launch Beat Saber. The user will run one single s
 ## Latest checkpoint
 
 Read the active queue for current state. Requirement-free Color also returns, while vanilla $100 Bills works. MediaLoader uses FileHelpers in BGLib.UnityExtension, which form-encodes local POSIX paths with plus signs. A narrow LocalMediaBridge correction is installed with saved built-in NativeAvatarRenderer under rollback transaction 20261124T201937894623Z. Synthetic URI roundtrip and compatibility tests passed in installed Mono; game was not launched. Both Vivify derivatives now live in Application Support cache/maps rather than Desktop, with validated hashes. Snow wall crash remains unresolved. Disk below 2 GB blocks further shader conversion; do not delete unrelated caches or user assets. Public source repository is authorized; binary distribution is not.
+
+## November 25 continuation
+
+The user reports that custom maps, the saved Camera2 avatar and original Plasma Notes all work after their separate session. Custom wall compatibility is reported in general. Do not reinstall or replace those components without inspecting the working local state. The 11 live original/derivative pairs were independently checked against the current map metadata and index. Existing experimental rows remain registered as they were. Reported magenta effects remain open.
+
+Resume from T13–T17 in the active queue. Current source integrates local conversion improvements and atomic merge-based index publishing. Modern conversion runs in an importable, separate worker process with bounded serial translation. Explicit experimental conversion produces a receipt with failed/skipped/unsupported counts and does not register automatically. A new 42-flux candidate is private and unregistered. The live index and game were untouched. The usage checkpoint took priority over implementing the Vivify asynchronous preparation gate.
