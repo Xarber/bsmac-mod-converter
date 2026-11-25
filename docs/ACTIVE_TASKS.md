@@ -44,3 +44,5 @@ At 06:49 Rome on November 25, the five-hour window had 84% remaining and resets 
 The user overrode the weekly usage checkpoint for this chat. Continue observing the five-hour limit. The automatic Vivify scope advanced as described under T14.
 
 T18 (queued after automatic conversion): enable SiraUtil FPFC with G on the native MoltenVR path. Existing SiraUtil 3.2.1 already loads and its JSON already maps G. Inspect the launch-argument gate, XR lifecycle and Camera2 compatibility before changing binaries. No changes applied to SiraUtil yet.
+
+T19 (2026-11-25): GitHub and BeatLeader replays. Publish project source and docs to `testing`, keeping game assets, configurations and replays local. The installed version includes in-game replay playback/download. The standalone downloader is locally installed and passed a real public download. The local macOS replay path patch is staged and requires the game to be closed before activating in-game caching and installing the assembly.

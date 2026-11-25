@@ -7,6 +7,7 @@ The project extends a separately installed MoltenVR translator to handle legacy 
 - [Architecture and safety boundaries](ARCHITECTURE.md)
 - [Automatic Vivify preparation](features-automatic-vivify.md)
 - [Automatic loose equipment preparation](features-automatic-equipment.md)
+- [BeatLeader replays](features-beatleader-replays.md)
 - [Testing and evidence](TESTING.md)
 - [Security and licensing](SECURITY.md)
 - [Release policy](RELEASES.md)

@@ -147,6 +147,28 @@ if (args[0] == "crc") {
         il.InsertBefore(first, il.Create(OpCodes.Call, getDirectory));
         il.InsertBefore(first, il.Create(OpCodes.Call, Hook("WatchNotes")));
     }
+} else if (args[0] == "beatleader-replay-paths") {
+    if (asm.Name.Name != "BeatLeader" || asm.Name.Version != new Version(0, 9, 33, 0))
+        throw new InvalidOperationException("Expected the inspected BeatLeader 0.9.33 assembly");
+    var cache = types.Single(t => t.FullName == "BeatLeader.Replayer.ReplayerCache")
+        .Methods.Single(m => m.Name == ".cctor");
+    var cacheFolder = cache.Body.Instructions.Single(i => i.OpCode == OpCodes.Ldstr &&
+        (string)i.Operand == "ReplayerCache\\");
+    var userData = cache.Body.Instructions.Select(i => i.Operand).OfType<MethodReference>().Single(m =>
+        m.DeclaringType.FullName == "IPA.Utilities.UnityGame" && m.Name == "get_UserDataPath");
+    var files = types.Single(t => t.FullName == "BeatLeader.Utils.FileManager")
+        .Methods.Single(m => m.Name == ".cctor");
+    var replayFolder = files.Body.Instructions.Single(i => i.OpCode == OpCodes.Ldstr &&
+        (string)i.Operand == "\\UserData\\BeatLeader\\Replays\\");
+    if (replayFolder.Previous.Operand is not MethodReference cwd || cwd.Name != "get_CurrentDirectory" ||
+        cwd.DeclaringType.FullName != "System.Environment" ||
+        replayFolder.Next.Operand is not MethodReference concat || concat.Name != "Concat" ||
+        concat.DeclaringType.FullName != "System.String")
+        throw new InvalidOperationException("Unexpected replay storage initializer");
+    // Replay recording appends its generated filename to the directory string.
+    replayFolder.Previous.Operand = userData;
+    replayFolder.Operand = "/BeatLeader/Replays/";
+    cacheFolder.Operand = "ReplayerCache/";
 } else if (args[0] == "trace") {
     using var bridge = AssemblyDefinition.ReadAssembly(args[2]);
     var trace = asm.MainModule.ImportReference(bridge.MainModule.Types.Single(t => t.FullName == "Bsmac.NativeDiagnostics").Methods.Single(m => m.Name == "Trace"));
