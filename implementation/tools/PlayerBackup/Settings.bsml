@@ -14,6 +14,7 @@
   <bool-setting text="Models" value="models" apply-on-change="true" />
   <horizontal spacing="2" child-control-width="true" child-expand-width="false" child-control-height="true" child-expand-height="false" min-height="6" preferred-height="6">
     <text text="~backup-feedback" font-size="3" flexible-width="1" word-wrapping="false" overflow-mode="Ellipsis" />
+    <button text="Sync cloud backups" on-click="sync-cloud" active="~show-sync-cloud" />
     <button text="Back up now" on-click="backup" active="~show-backup" />
     <button text="Cancel operation" on-click="cancel" active="~show-cancel" />
   </horizontal>

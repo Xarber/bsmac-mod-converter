@@ -40,6 +40,7 @@ namespace PlayerBackup {
             Changed(nameof(ShowSignIn));
             Changed(nameof(ShowAccountCancel));
             Changed(nameof(ShowSignOut));
+            Changed(nameof(ShowSyncCloud));
         }
 
         [Serializable] sealed class StartReply { public string handle = null; public string authorization = null; }
@@ -151,6 +152,7 @@ namespace PlayerBackup {
             public string name = null;
             public string sha256 = null;
         }
+        CloudVersion[] cloudFiles = Array.Empty<CloudVersion>();
         System.Collections.Generic.Dictionary<string, string> cloudNames = new System.Collections.Generic.Dictionary<string, string>();
         [Serializable] sealed class CloudHistory { public CloudVersion[] versions = null; }
 
@@ -187,6 +189,7 @@ namespace PlayerBackup {
                 }, cancellation);
                 if (session != owner) return;
                 cloudNames = names;
+                cloudFiles = rows;
                 cloudVersions = rows.Select(item => item.version).Distinct().ToArray();
                 RefreshHistory();
             }
@@ -309,6 +312,7 @@ namespace PlayerBackup {
             persistentSession = false;
             cloudVersions = Array.Empty<string>();
             cloudNames.Clear();
+            cloudFiles = Array.Empty<CloudVersion>();
             SetAccountStatus("Signed out");
             RefreshHistory();
             if (revoke) {

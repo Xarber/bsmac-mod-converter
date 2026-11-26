@@ -128,7 +128,7 @@ namespace PlayerBackup {
 
         void Draw() {
             DrawDelete();
-            foreach (var property in new[] { nameof(BackupFeedback), nameof(RestoreStatus), nameof(ShowRestoreFooter), nameof(ShowBackup), nameof(ShowCancel), nameof(ShowRestart),
+            foreach (var property in new[] { nameof(BackupFeedback), nameof(ShowSyncCloud), nameof(RestoreStatus), nameof(ShowRestoreFooter), nameof(ShowBackup), nameof(ShowCancel), nameof(ShowRestart),
                 nameof(HistoryPage), nameof(ShowPrevious), nameof(ShowNext), nameof(RowA), nameof(RowB), nameof(RowC),
                 nameof(ShowPages), nameof(CanDownloadA), nameof(CanDownloadB), nameof(CanDownloadC), nameof(HasA), nameof(HasB), nameof(HasC), nameof(CanRestoreA), nameof(CanRestoreB), nameof(CanRestoreC),
                 nameof(CanCancelA), nameof(CanCancelB), nameof(CanCancelC) }) Changed(property);
