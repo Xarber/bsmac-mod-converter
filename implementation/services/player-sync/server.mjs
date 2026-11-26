@@ -11,6 +11,7 @@ const token = () => randomBytes(32).toString('base64url');
 const digest = (value) => createHash('sha256').update(value).digest('hex');
 const transactionLifetime = 5 * 60_000;
 const sessionLifetime = 8 * 60 * 60_000;
+const persistentLifetime = 14 * 24 * 60 * 60_000;
 const maxBackup = 32 * 1024 * 1024;
 
 async function body(request, limit) {
@@ -30,7 +31,7 @@ function reply(response, status, value, headers = {}) {
   response.end(value === undefined ? undefined : Buffer.isBuffer(value) ? value : JSON.stringify(value));
 }
 
-export function service({ configuration, origin, storage, exchange = oidc.authorizationCodeGrant }) {
+export function service({ configuration, origin, storage, exchange = oidc.authorizationCodeGrant, refresh = oidc.refreshTokenGrant }) {
   const callback = new URL('/api/account/callback', origin);
   const pending = new Map();
   const sessions = new Map();
@@ -57,7 +58,7 @@ export function service({ configuration, origin, storage, exchange = oidc.author
         const codeChallenge = await oidc.calculatePKCECodeChallenge(verifier);
         pending.set(handle, { state, nonce, verifier, challenge, callbackUsed: false, until: now + transactionLifetime });
         const authorization = oidc.buildAuthorizationUrl(configuration, {
-          redirect_uri: callback.href, scope: 'openid', state, nonce,
+          redirect_uri: callback.href, scope: 'openid offline_access', prompt: 'consent', state, nonce,
           code_challenge: codeChallenge, code_challenge_method: 'S256',
         });
         return reply(response, 201, { handle, authorization: authorization.href });
@@ -88,6 +89,8 @@ export function service({ configuration, origin, storage, exchange = oidc.author
         const claims = result.claims();
         if (!claims || claims.iss !== issuer.href.replace(/\/$/, '') || typeof claims.sub !== 'string')
           return reply(response, 401, { error: 'Invalid account' });
+        entry.refresh = typeof result.refresh_token === 'string' ? result.refresh_token : null;
+        entry.refreshAfter = now + Math.max(0, (Number(result.expires_in) || 60) - 60) * 1000;
         entry.owner = digest(JSON.stringify([claims.iss, claims.sub]));
         return reply(response, 200, Buffer.from('Sign-in complete. Return to Beat Saber.'), {
           'Content-Type': 'text/plain; charset=utf-8',
@@ -107,8 +110,10 @@ export function service({ configuration, origin, storage, exchange = oidc.author
         if (sessions.size >= 1024) return reply(response, 503, { error: 'Sign-in is busy' });
         pending.delete(handle);
         const session = token();
-        sessions.set(digest(session), { owner: entry.owner, until: now + sessionLifetime });
-        return reply(response, 200, { session, expiresIn: sessionLifetime / 1000 });
+        const lifetime = entry.refresh ? persistentLifetime : sessionLifetime;
+        sessions.set(digest(session), { owner: entry.owner, until: now + lifetime,
+          refresh: entry.refresh, refreshAfter: entry.refreshAfter });
+        return reply(response, 200, { session, expiresIn: lifetime / 1000, persistent: Boolean(entry.refresh) });
       }
 
       const bearer = request.headers.authorization?.match(/^Bearer ([A-Za-z0-9_-]{43})$/)?.[1];
@@ -118,6 +123,21 @@ export function service({ configuration, origin, storage, exchange = oidc.author
       if (method === 'POST' && url.pathname === '/api/account/logout') {
         sessions.delete(sessionKey);
         return reply(response, 204);
+      }
+      if (session.refresh && session.refreshAfter <= now) {
+        const previous = session.refresh;
+        session.renewing ??= Promise.resolve().then(() => refresh(configuration, previous))
+          .then((tokens) => {
+            if (!tokens.refresh_token) throw new Error('Missing rotated credential');
+            session.refresh = tokens.refresh_token;
+            session.refreshAfter = Date.now() + Math.max(1, (Number(tokens.expires_in) || 60) - 60) * 1000;
+          }).finally(() => { session.renewing = null; });
+        try { await session.renewing; }
+        catch {
+          sessions.delete(sessionKey);
+          return reply(response, 401, { error: 'Sign in again' });
+        }
+        if (!sessions.has(sessionKey)) return reply(response, 401, { error: 'Sign in again' });
       }
       const folder = resolve(storage, session.owner);
       if (method === 'GET' && url.pathname === '/api/backups') {

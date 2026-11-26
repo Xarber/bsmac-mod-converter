@@ -43,6 +43,6 @@ Choose **Sign in to X-Center ID** to open the issuer in the browser. Cancel ends
 
 The compact menu keeps account status and sign-in on one row. Backup progress and errors appear beside the backup action, and restore feedback stays with backup history.
 
-The **Automatic backup** dropdown counts main-menu launches. Manual only is the default. A due backup runs after account sign-in and resets the counter when its cloud upload succeeds. **Stay signed in** opts into storing the service session in macOS Keychain. Sessions expire after up to eight hours and require sign-in after a server restart. When a backup is due and sign-in is needed, the menu shows a prompt. No provider tokens or client secret are stored in the plugin.
+The **Automatic backup** dropdown counts main-menu launches. Manual only is the default. A due backup runs after account sign-in and resets the counter when its cloud upload succeeds. Choose **Stay signed in** on the X-Center ID consent page. If the issuer grants renewal, the plugin stores only the product session in macOS Keychain for up to 14 days. Declining keeps the session in memory. Server restarts currently require sign-in again. When a backup is due and sign-in is needed, the menu shows a prompt. No provider tokens or client secret are stored in the plugin.
 
 Cloud-only entries offer **Download**. Downloading saves a local ZIP without modifying the game. The current version then offers **Restore**. Older versions can be listed and downloaded without being applied to the running version.

@@ -43,7 +43,7 @@ namespace PlayerBackup {
         }
 
         [Serializable] sealed class StartReply { public string handle = null; public string authorization = null; }
-        [Serializable] sealed class PickupReply { public string session = null; public int expiresIn = 0; }
+        [Serializable] sealed class PickupReply { public string session = null; public int expiresIn = 0; public bool persistent = false; }
 
         static async Task<HttpResponseMessage> Post(string path, string json, CancellationToken cancellation) {
             using (var request = new HttpRequestMessage(HttpMethod.Post, path)) {
@@ -92,13 +92,15 @@ namespace PlayerBackup {
                         }
                         reply.EnsureSuccessStatusCode();
                         var pickup = JsonUtility.FromJson<PickupReply>(await reply.Content.ReadAsStringAsync());
-                        if (!IsToken(pickup.session) || pickup.expiresIn <= 0 || pickup.expiresIn > 28800)
+                        if (!IsToken(pickup.session) || pickup.expiresIn <= 0 || pickup.expiresIn > (pickup.persistent ? MaxPersistentSeconds : 28800))
                             throw new InvalidOperationException("Invalid session");
                         attempt.Token.ThrowIfCancellationRequested();
                         session = pickup.session;
                         sessionExpiry = DateTime.UtcNow.AddSeconds(pickup.expiresIn);
                         signIn = null;
-                        SaveSession();
+                        persistentSession = pickup.persistent;
+                        if (persistentSession) SaveSession();
+                        else DeleteSession();
                         SetAccountStatus("Signed in to X-Center ID");
                         try { await RefreshCloud(attempt.Token); }
                         catch (HttpRequestException) { SetAccountStatus("Signed in. Could not load cloud history."); }
@@ -234,6 +236,7 @@ namespace PlayerBackup {
             var previous = session;
             session = null;
             sessionExpiry = default;
+            persistentSession = false;
             cloudVersions = Array.Empty<string>();
             SetAccountStatus("Signed out");
             RefreshHistory();

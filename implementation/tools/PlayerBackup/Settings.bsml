@@ -5,7 +5,6 @@
     <button text="Cancel sign-in" on-click="sign-out" active="~show-account-cancel" />
     <button text="Sign out" on-click="sign-out" active="~show-sign-out" />
   </horizontal>
-  <bool-setting text="Stay signed in" value="stay-signed-in" apply-on-change="true" />
   <dropdown-list-setting text="Automatic backup" value="frequency" choices="frequencies" apply-on-change="true" />
   <bool-setting text="Player data" value="player" apply-on-change="true" />
   <bool-setting text="Plugin configs" value="configs" apply-on-change="true" />
@@ -18,7 +17,7 @@
   </horizontal>
   <text text="~backup-status" active="~has-backup-status" font-size="3" />
   <text text="~backup-progress" active="~show-backup-progress" font-size="3" />
-  <text text="~history-page" font-size="4" min-height="4" />
+  <text text="No backups yet" active="~no-backups" font-size="3" />
   <horizontal active="~has-a" child-control-width="true" child-expand-width="false" child-control-height="true" child-expand-height="false" min-height="6" spacing="2">
     <text text="~row-a" font-size="3" flexible-width="1" />
     <button text="Download" on-click="download-row-a" active="~download-a" />
@@ -39,6 +38,7 @@
   </horizontal>
   <horizontal active="~show-pages" spacing="2" child-control-height="true" child-expand-height="false" min-height="6">
     <button text="Previous backups" on-click="previous" active="~show-prev" />
+    <text text="~history-page" font-size="3" />
     <button text="More backups" on-click="next" active="~show-next" />
   </horizontal>
   <text text="~restore-status" active="~has-restore-status" font-size="3" />

@@ -1,35 +1,15 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 using System;
-using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
-using BeatSaberMarkupLanguage.Attributes;
 
 namespace PlayerBackup {
     public sealed partial class Plugin {
         const string Security = "/System/Library/Frameworks/Security.framework/Security";
         const string KeychainService = "it.xcenter.beatsaber.player-sync";
         const string KeychainAccount = "session";
-        static string StayPath => Path.Combine(Root, "player-sync", "stay-signed-in");
-        [UIValue("stay-signed-in")] public bool StaySignedIn {
-            get => File.Exists(StayPath);
-            set {
-                try {
-                    if (value) {
-                        File.WriteAllText(StayPath, "");
-                        SaveSession();
-                    } else {
-                        File.Delete(StayPath);
-                        DeleteSession();
-                    }
-                } catch (IOException) {
-                    SetAccountStatus("Could not save sign-in preference");
-                } catch (UnauthorizedAccessException) {
-                    SetAccountStatus("Could not save sign-in preference");
-                }
-            }
-        }
-
+        bool persistentSession;
+        const int MaxPersistentSeconds = 14 * 24 * 60 * 60;
         [DllImport(Security)]
         static extern int SecKeychainFindGenericPassword(IntPtr keychain, uint serviceLength, string service,
             uint accountLength, string account, out uint length, out IntPtr data, out IntPtr item);
@@ -54,7 +34,7 @@ namespace PlayerBackup {
         }
 
         void SaveSession() {
-            if (!StaySignedIn || !HasSession) return;
+            if (!persistentSession || !HasSession) return;
             DeleteSession();
             byte[] bytes = Encoding.UTF8.GetBytes(session + "\n" + sessionExpiry.Ticks);
             try {
@@ -67,7 +47,7 @@ namespace PlayerBackup {
         }
 
         async System.Threading.Tasks.Task ResumeAccount() {
-            if (!StaySignedIn || !FindSession(out uint length, out var data, out var item)) return;
+            if (!FindSession(out uint length, out var data, out var item)) return;
             try {
                 if (length == 0 || length > 100) return;
                 var bytes = new byte[(int)length];
@@ -75,7 +55,8 @@ namespace PlayerBackup {
                 var fields = Encoding.UTF8.GetString(bytes).Split('\n');
                 Array.Clear(bytes, 0, bytes.Length);
                 if (fields.Length != 2 || !IsToken(fields[0]) || !long.TryParse(fields[1], out long expiry) ||
-                    expiry <= DateTime.UtcNow.Ticks || expiry > DateTime.UtcNow.AddHours(8).Ticks) return;
+                    expiry <= DateTime.UtcNow.Ticks || expiry > DateTime.UtcNow.AddSeconds(MaxPersistentSeconds).Ticks) return;
+                persistentSession = true;
                 session = fields[0];
                 sessionExpiry = new DateTime(expiry, DateTimeKind.Utc);
             } finally { SecKeychainItemFreeContent(IntPtr.Zero, data); CFRelease(item); }

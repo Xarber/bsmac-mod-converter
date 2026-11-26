@@ -47,6 +47,7 @@ namespace PlayerBackup {
         [UIValue("show-backup")] public bool ShowBackup => job == null && restoreVersion == null;
         [UIValue("show-cancel")] public bool ShowCancel => !ShowBackup;
         [UIValue("show-restart")] public bool ShowRestart => restoreCategories != null && job == null;
+        [UIValue("no-backups")] public bool NoBackups => versions.Length == 0;
         [UIValue("history-page")] public string HistoryPage => versions.Length == 0 ? "No backups yet"
             : $"Backups · {page + 1} / {(versions.Length + 2) / 3}";
         [UIValue("show-prev")] public bool ShowPrevious => page > 0 && ShowBackup;
@@ -112,7 +113,7 @@ namespace PlayerBackup {
 
         void Draw() {
             foreach (var property in new[] { nameof(BackupStatus), nameof(RestoreStatus), nameof(HasBackupStatus), nameof(HasRestoreStatus), nameof(ShowBackupProgress), nameof(ShowBackup), nameof(ShowCancel), nameof(ShowRestart),
-                nameof(HistoryPage), nameof(ShowPrevious), nameof(ShowNext), nameof(RowA), nameof(RowB), nameof(RowC),
+                nameof(HistoryPage), nameof(NoBackups), nameof(ShowPrevious), nameof(ShowNext), nameof(RowA), nameof(RowB), nameof(RowC),
                 nameof(ShowPages), nameof(CanDownloadA), nameof(CanDownloadB), nameof(CanDownloadC), nameof(HasA), nameof(HasB), nameof(HasC), nameof(CanRestoreA), nameof(CanRestoreB), nameof(CanRestoreC),
                 nameof(CanCancelA), nameof(CanCancelB), nameof(CanCancelC) }) Changed(property);
         }
@@ -152,7 +153,7 @@ namespace PlayerBackup {
         public void Disable() {
             ++menuGeneration;
             Cancel();
-            EndAccount(!StaySignedIn);
+            EndAccount(!persistentSession);
             settings?.RemoveSettingsMenu(this);
             settings = null;
         }
