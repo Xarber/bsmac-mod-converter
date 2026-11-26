@@ -113,3 +113,7 @@ T46 — Stop requesting Files read. The older recovery code remains for explicit
 T47 — Player Backup waits off the game thread for macOS Keychain access during saved sign-in. Verify delayed approval after a rebuilt game.
 
 T48 — BeatTogether active song start: installed the ScoreSaber 3.4.2 optional pause-controller patch after two matching player-initialization failures. Recheck normal maps as an active player and solo pause behavior. MultiplayerCore status-repository warning remains open independently. Direct endpoint JSON was healthy and the latest compatible MultiplayerCore release does not document a fix.
+
+T49 — User reported an active BeatTogether round completed. The game log recorded Multiplayer LevelFinishEvent. MultiplayerCore status remains tracked separately.
+T50 — Checked PC song tools and keyboard availability. BetterSongList already supplies a random selection. RandomSongPlayer is a separate PC BeatSaver downloader. Tatenshi RecentlyPlayed and Metalit MoreButtons are Quest releases. Solo environments canceled by the user.
+T51 — Built the 1.40.8 multiplayer cosmetics and desktop keyboard plugin. In-game visual and keyboard checks remain pending. See [multiplayer cosmetics](features-multiplayer-cosmetics.md).
