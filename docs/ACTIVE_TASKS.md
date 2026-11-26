@@ -119,3 +119,5 @@ T50 — Checked PC song tools and keyboard availability. BetterSongList already 
 T51 — Built the 1.40.8 multiplayer cosmetics and desktop keyboard plugin. In-game visual and keyboard checks remain pending. See [multiplayer cosmetics](features-multiplayer-cosmetics.md).
 
 T52 — Fixed the BSIPA entry-point namespace mismatch observed in the 16:05 game log. The installer verifies manifest discovery metadata before applying the DLL. Runtime rendering and typing still need a fresh game session.
+
+T53 — Remote notes rendered but the user reported oversized meshes, missing color, and missing rotation or animation. Installed a dedicated remote note visual using CustomNotes sizing and tint with the game's moving note transform and the model's animation hierarchy. Release build, IPA entry point, and installed signature passed. Live visual retest pending.

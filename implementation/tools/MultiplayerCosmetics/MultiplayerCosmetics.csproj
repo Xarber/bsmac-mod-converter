@@ -11,6 +11,8 @@
     <Reference Include="Main"><HintPath>$(GameResources)/Beat Saber_Data/Managed/Main.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="0Harmony"><HintPath>$(GameResources)/Libs/0Harmony.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="UnityEngine.InputLegacyModule"><HintPath>$(GameResources)/Beat Saber_Data/Managed/UnityEngine.InputLegacyModule.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.AnimationModule"><HintPath>$(GameResources)/Beat Saber_Data/Managed/UnityEngine.AnimationModule.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.PhysicsModule"><HintPath>$(GameResources)/Beat Saber_Data/Managed/UnityEngine.PhysicsModule.dll</HintPath><Private>false</Private></Reference>
     <EmbeddedResource Include="manifest.json" LogicalName="MultiplayerCosmetics.manifest.json" />
   </ItemGroup>
 </Project>
