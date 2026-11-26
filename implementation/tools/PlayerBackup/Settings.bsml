@@ -1,0 +1,11 @@
+<vertical spacing="2">
+  <toggle-setting text="Player data" value="player" apply-on-change="true" />
+  <toggle-setting text="Plugin configs" value="configs" apply-on-change="true" />
+  <toggle-setting text="Mod inventory" value="mods" apply-on-change="true" />
+  <toggle-setting text="Map inventory" value="maps" apply-on-change="true" />
+  <toggle-setting text="Model inventory" value="models" apply-on-change="true" />
+  <button text="Back up after exit" on-click="backup" />
+  <button text="Restore data, configs and models after exit" on-click="restore" />
+  <button text="Cancel queued operation" on-click="cancel" />
+  <text text="Only the selected categories apply. A new backup replaces this version’s previous backup." font-size="3" />
+</vertical>

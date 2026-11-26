@@ -1,0 +1,9 @@
+{
+  "id": "BsmacPlayerBackup",
+  "name": "Player Backup",
+  "author": "Xarber",
+  "version": "0.1.0",
+  "gameVersion": "1.40.8",
+  "description": "Queue a versioned backup or a selective restore after exiting Beat Saber.",
+  "dependsOn": {"BSIPA": "^4.2.2", "BeatSaberMarkupLanguage": "^1.12.5"}
+}
