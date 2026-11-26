@@ -9,7 +9,7 @@ export PYTHONPATH="$repo/implementation/python${PYTHONPATH:+:$PYTHONPATH}"
 openssl_prefix="${BSMAC_OPENSSL_PREFIX:-/opt/homebrew/opt/openssl@3}"
 rev=dd97d94787994a67263ac8ecadd19119e1da8c8c
 managed='Beat Saber_Data/Managed'
-target="$managed/Ignorance.dll.config"
+target="$managed/Ignorance.dll"
 case "${1:-}" in ""|--install) ;; *) echo "Usage: $0 [--install]" >&2; exit 2 ;; esac
 test "$#" -le 1
 test "$(uname -m)" = arm64
@@ -30,17 +30,18 @@ src="$stage/enet/Source/Native"
 xcrun clang -arch arm64 -O2 -dynamiclib -DENET_DLL -I "$src" \
   "$src/enet.c" "$repo/implementation/tools/beattogether/plain-enet.c" \
   -o "$stage/libbsmac-beattogether-enet.dylib"
-"$python" - "$stage" "$resources" "$openssl_prefix" "$target" <<'PY'
+dotnet build "$repo/implementation/tools/AssemblyTool" -c Release -o "$stage/tool"
+dotnet "$stage/tool/AssemblyTool.dll" ignorance-native-imports "$resources/$target" \
+  "$resources/Libs/libbsmac-beattogether-enet.dylib" "$openssl_prefix/lib/libcrypto.3.dylib" \
+  "$openssl_prefix/lib/libssl.3.dylib" "$stage/Ignorance.dll"
+"$python" - "$stage" "$resources" "$target" <<'PY'
 import ctypes
 import json
 import sys
 from pathlib import Path
-from xml.etree.ElementTree import Element, ElementTree, SubElement, parse
 from bsmac_converter.index import sha256
 
-stage, resources, openssl, target = map(Path, sys.argv[1:])
-installed = resources / target
-mapping = Element("configuration") if not installed.exists() else parse(installed).getroot()
+stage, resources, target = map(Path, sys.argv[1:])
 library = "libbsmac-beattogether-enet.dylib"
 native = ctypes.CDLL(str(stage / library))
 assert native.enet_linked_version() == 132103
@@ -56,20 +57,8 @@ assert host
 native.enet_host_destroy(host)
 native.enet_deinitialize()
 
-aliases = {
-    "enet": resources / "Libs" / library,
-    "libcrypto-1_1-x64": openssl / "lib/libcrypto.3.dylib",
-    "libssl-1_1-x64": openssl / "lib/libssl.3.dylib",
-}
-for node in mapping.findall("dllmap"):
-    if node.get("dll") in aliases:
-        raise ValueError("Existing Ignorance mapping must be reviewed before replacement")
-for name, path in aliases.items():
-    SubElement(mapping, "dllmap", dll=name, target=str(path))
-cfg = stage / target.name
-ElementTree(mapping).write(cfg, encoding="utf-8", xml_declaration=False)
 plan = []
-for source, relative in [(cfg, target), (stage / library, Path("Libs") / library)]:
+for source, relative in [(stage / target.name, target), (stage / library, Path("Libs") / library)]:
     old = resources / relative
     plan.append(dict(source=source.name, target=str(relative), sha256=sha256(source),
                      previousSha256=sha256(old) if old.is_file() else None))

@@ -31,7 +31,18 @@ if (args[0] == "resource") {
     return;
 }
 if (asm.Name.HasPublicKey) throw new InvalidOperationException("Refusing strong-named assembly modification");
-if (args[0] == "replace-resource") {
+if (args[0] == "ignorance-native-imports") {
+    if (args.Length != 6 || asm.Name.Name != "Ignorance")
+        throw new ArgumentException("ignorance-native-imports input enet crypto ssl output");
+    var names = new[] { "enet", "libcrypto-1_1-x64", "libssl-1_1-x64" };
+    for (int index = 0; index < names.Length; index++) {
+        var module = asm.MainModule.ModuleReferences.Single(reference => reference.Name == names[index]);
+        string library = args[index + 2];
+        if (!Path.IsPathFullyQualified(library) || !library.EndsWith(".dylib", StringComparison.Ordinal))
+            throw new ArgumentException("Expected an absolute macOS library path");
+        module.Name = library;
+    }
+} else if (args[0] == "replace-resource") {
     if (args.Length != 7)
         throw new ArgumentException("replace-resource input name original-sha256 derivative derivative-sha256 output");
     var resource = asm.MainModule.Resources.OfType<EmbeddedResource>().Single(r => r.Name == args[2]);
