@@ -12,32 +12,34 @@
   <bool-setting text="Mods" value="mods" apply-on-change="true" />
   <bool-setting text="Maps" value="maps" apply-on-change="true" />
   <bool-setting text="Models" value="models" apply-on-change="true" />
-  <horizontal spacing="2" child-control-height="true" child-expand-height="false" min-height="6">
+  <horizontal spacing="2" child-control-width="true" child-expand-width="false" child-control-height="true" child-expand-height="false" min-height="6" preferred-height="6">
+    <text text="~backup-feedback" font-size="3" flexible-width="1" word-wrapping="false" overflow-mode="Ellipsis" />
     <button text="Back up now" on-click="backup" active="~show-backup" />
     <button text="Cancel operation" on-click="cancel" active="~show-cancel" />
   </horizontal>
-  <text text="~backup-status" active="~has-backup-status" font-size="3" />
-  <text text="~backup-progress" active="~show-backup-progress" font-size="3" />
   <text text="No backups yet" active="~no-backups" font-size="3" />
   <horizontal active="~has-a" child-control-width="true" child-expand-width="false" child-control-height="true" child-expand-height="false" min-height="6" spacing="2">
-    <text text="~row-a" font-size="3" flexible-width="1" />
+    <text text="~row-a" font-size="3" flexible-width="1" word-wrapping="false" overflow-mode="Ellipsis" />
     <button text="Download" on-click="download-row-a" active="~download-a" />
     <button text="Delete" on-click="delete-row-a" active="~delete-a" />
     <button text="Restore" on-click="restore-row-a" active="~restore-a" />
+    <button text="Confirm" on-click="confirm-delete-action" active="~confirm-a" />
     <button text="Cancel" on-click="cancel" active="~cancel-a" />
   </horizontal>
   <horizontal active="~has-b" child-control-width="true" child-expand-width="false" child-control-height="true" child-expand-height="false" min-height="6" spacing="2">
-    <text text="~row-b" font-size="3" flexible-width="1" />
+    <text text="~row-b" font-size="3" flexible-width="1" word-wrapping="false" overflow-mode="Ellipsis" />
     <button text="Download" on-click="download-row-b" active="~download-b" />
     <button text="Delete" on-click="delete-row-b" active="~delete-b" />
     <button text="Restore" on-click="restore-row-b" active="~restore-b" />
+    <button text="Confirm" on-click="confirm-delete-action" active="~confirm-b" />
     <button text="Cancel" on-click="cancel" active="~cancel-b" />
   </horizontal>
   <horizontal active="~has-c" child-control-width="true" child-expand-width="false" child-control-height="true" child-expand-height="false" min-height="6" spacing="2">
-    <text text="~row-c" font-size="3" flexible-width="1" />
+    <text text="~row-c" font-size="3" flexible-width="1" word-wrapping="false" overflow-mode="Ellipsis" />
     <button text="Download" on-click="download-row-c" active="~download-c" />
     <button text="Delete" on-click="delete-row-c" active="~delete-c" />
     <button text="Restore" on-click="restore-row-c" active="~restore-c" />
+    <button text="Confirm" on-click="confirm-delete-action" active="~confirm-c" />
     <button text="Cancel" on-click="cancel" active="~cancel-c" />
   </horizontal>
   <horizontal active="~show-pages" spacing="2" child-control-height="true" child-expand-height="false" min-height="6">
@@ -45,7 +47,8 @@
     <text text="~history-page" font-size="3" />
     <button text="More backups" on-click="next" active="~show-next" />
   </horizontal>
-  <text text="~restore-status" active="~has-restore-status" font-size="3" />
-  <button text="Confirm deletion" active="~confirm-delete" on-click="confirm-delete-action" />
-  <button text="Quit and apply restore" on-click="quit-restore" active="~show-restart" />
+  <horizontal spacing="2" child-control-width="true" child-expand-width="false" child-control-height="true" child-expand-height="false" min-height="6" preferred-height="6">
+    <text text="~restore-status" font-size="3" flexible-width="1" word-wrapping="false" overflow-mode="Ellipsis" />
+    <button text="Quit and apply restore" on-click="quit-restore" active="~show-restart" />
+  </horizontal>
 </scrollable-settings-container>

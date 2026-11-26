@@ -13,13 +13,19 @@ namespace PlayerBackup {
         [UIValue("delete-a")] public bool CanDeleteA => CanDelete(0);
         [UIValue("delete-b")] public bool CanDeleteB => CanDelete(1);
         [UIValue("delete-c")] public bool CanDeleteC => CanDelete(2);
-        [UIValue("confirm-delete")] public bool ShowConfirmDelete => deleteTarget != null && job == null;
+        [UIValue("confirm-a")] public bool ConfirmA => CanConfirm(0);
+        [UIValue("confirm-b")] public bool ConfirmB => CanConfirm(1);
+        [UIValue("confirm-c")] public bool ConfirmC => CanConfirm(2);
+        bool ShowConfirmDelete => deleteTarget != null && job == null;
+        bool CanConfirm(int row) => ShowConfirmDelete && At(row) == deleteTarget;
         bool CanDelete(int row) => ShowBackup && At(row) != null;
         void DrawDelete() {
             Changed(nameof(CanDeleteA));
             Changed(nameof(CanDeleteB));
             Changed(nameof(CanDeleteC));
-            Changed(nameof(ShowConfirmDelete));
+            Changed(nameof(ConfirmA));
+            Changed(nameof(ConfirmB));
+            Changed(nameof(ConfirmC));
         }
 
         [UIAction("delete-row-a")] public void ChooseDeleteA() => ChooseDelete(0);
@@ -29,7 +35,7 @@ namespace PlayerBackup {
         void ChooseDelete(int row) {
             if (!CanDelete(row)) return;
             deleteTarget = At(row);
-            RestoreStatus = $"Delete {Row(row)}? This removes the local file and any copy on your signed-in account.";
+            RestoreStatus = "";
             Draw();
         }
 
@@ -64,7 +70,7 @@ namespace PlayerBackup {
                 RestoreStatus = "Backup deleted";
             } catch (Exception error) {
                 log.Warn("Backup deletion interrupted: " + error.GetType().Name);
-                RestoreStatus = "Deletion interrupted. Check the backup list before retrying.";
+                RestoreStatus = "Delete failed. Check the list.";
             } finally {
                 deleteTarget = null;
                 job = null;

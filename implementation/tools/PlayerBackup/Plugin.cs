@@ -33,16 +33,16 @@ namespace PlayerBackup {
         public event PropertyChangedEventHandler PropertyChanged;
         void Changed(string property) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(property));
 
-        [UIValue("backup-status")] public string BackupStatus { get; private set; } = "";
+        string BackupStatus { get; set; } = "";
         [UIValue("restore-status")] public string RestoreStatus { get; private set; } = "";
-        [UIValue("has-backup-status")] public bool HasBackupStatus => BackupStatus.Length > 0;
-        [UIValue("has-restore-status")] public bool HasRestoreStatus => RestoreStatus.Length > 0;
-        [UIValue("show-backup-progress")] public bool ShowBackupProgress => job != null && restoreVersion == null;
-        [UIValue("backup-progress")] public string BackupProgress { get; private set; } = "";
+        [UIValue("backup-feedback")] public string BackupFeedback =>
+            job != null && restoreVersion == null && deleteTarget == null && BackupStatus == "Saving backup…"
+                ? BackupProgress : BackupStatus;
+        string BackupProgress = "";
         void ShowProgress(int percent) {
             int blocks = Math.Max(0, Math.Min(10, percent / 10));
             BackupProgress = new string('■', blocks) + new string('□', 10 - blocks) + $"  {percent}%";
-            Changed(nameof(BackupProgress));
+            Changed(nameof(BackupFeedback));
         }
         [UIValue("show-backup")] public bool ShowBackup => job == null && restoreVersion == null && deleteTarget == null;
         [UIValue("show-cancel")] public bool ShowCancel => !ShowBackup;
@@ -66,7 +66,7 @@ namespace PlayerBackup {
         [UIValue("cancel-c")] public bool CanCancelC => CanCancel(2);
 
         string At(int row) => versions.ElementAtOrDefault(page * 3 + row);
-        bool CanCancel(int row) => restoreVersion != null && At(row) == restoreVersion;
+        bool CanCancel(int row) => (restoreVersion != null && At(row) == restoreVersion) || CanConfirm(row);
         bool CanRestore(int row) => ShowBackup && At(row) != null && SnapshotVersion(At(row)) == CurrentVersion() && File.Exists(LocalBackup(At(row)));
         bool CanDownload(int row) => ShowBackup && HasSession && At(row) != null && cloudVersions.Contains(At(row)) &&
             !File.Exists(LocalBackup(At(row)));
@@ -104,6 +104,8 @@ namespace PlayerBackup {
         string Row(int row) {
             var version = At(row);
             if (version == null) return "";
+            if (version == deleteTarget)
+                return job != null ? "Deleting…" : HasSession ? "Delete local & cloud?" : "Delete local backup?";
             var file = new FileInfo(LocalBackup(version));
             string where = file.Exists
                 ? file.LastWriteTime.ToString("yyyy-MM-dd HH:mm") + (cloudVersions.Contains(version) ? " · Cloud" : "")
@@ -119,7 +121,7 @@ namespace PlayerBackup {
 
         void Draw() {
             DrawDelete();
-            foreach (var property in new[] { nameof(BackupStatus), nameof(RestoreStatus), nameof(HasBackupStatus), nameof(HasRestoreStatus), nameof(ShowBackupProgress), nameof(ShowBackup), nameof(ShowCancel), nameof(ShowRestart),
+            foreach (var property in new[] { nameof(BackupFeedback), nameof(RestoreStatus), nameof(ShowBackup), nameof(ShowCancel), nameof(ShowRestart),
                 nameof(HistoryPage), nameof(NoBackups), nameof(ShowPrevious), nameof(ShowNext), nameof(RowA), nameof(RowB), nameof(RowC),
                 nameof(ShowPages), nameof(CanDownloadA), nameof(CanDownloadB), nameof(CanDownloadC), nameof(HasA), nameof(HasB), nameof(HasC), nameof(CanRestoreA), nameof(CanRestoreB), nameof(CanRestoreC),
                 nameof(CanCancelA), nameof(CanCancelB), nameof(CanCancelC) }) Changed(property);
@@ -217,12 +219,12 @@ namespace PlayerBackup {
                     if (automatic) CompleteSchedule();
                     await RefreshCloud(operation.Token);
                 }
-                BackupStatus = HasSession ? "Backup saved locally and in the cloud" : "Local backup saved";
+                BackupStatus = HasSession ? "Saved locally and in cloud" : "Local backup saved";
             } catch (OperationCanceledException) {
-                BackupStatus = saved ? "Local backup saved. Upload canceled." : "Backup canceled";
+                BackupStatus = saved ? "Saved locally · upload canceled" : "Backup canceled";
             } catch (Exception error) {
                 log.Error("Backup operation failed: " + error.GetType().Name);
-                BackupStatus = saved ? "Local backup saved. Cloud upload failed." : "Backup failed. Retry from the main menu.";
+                BackupStatus = saved ? "Saved locally · upload failed" : "Backup failed · retry from menu";
             } finally {
                 job = null;
                 operation.Dispose();
@@ -260,7 +262,7 @@ namespace PlayerBackup {
                         restoreDigest = string.Concat(hash.ComputeHash(input).Select(value => value.ToString("x2")));
                 }
                 restoreCategories = categories;
-                RestoreStatus = "Restore ready. Quit and relaunch through MoltenVR.";
+                RestoreStatus = "Restore ready";
             } catch (OperationCanceledException) {
                 restoreVersion = null;
                 RestoreStatus = "Restore canceled";

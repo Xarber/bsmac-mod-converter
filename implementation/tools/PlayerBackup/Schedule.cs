@@ -71,7 +71,7 @@ namespace PlayerBackup {
             }
             string prefix = CurrentVersion() + "-auto-";
             if (versions.Count(id => id.StartsWith(prefix, StringComparison.Ordinal)) >= int.Parse(AutomaticLimit)) {
-                BackupStatus = "Automatic limit reached. Delete an automatic backup or raise the limit.";
+                BackupStatus = "Automatic limit reached";
                 Draw();
                 return;
             }
