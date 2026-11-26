@@ -2,7 +2,7 @@
 using HarmonyLib;
 using UnityEngine;
 
-namespace Bsmac.MultiplayerCosmetics {
+namespace MultiplayerCosmetics {
     public sealed class RemoteWall : MonoBehaviour {
         Renderer core;
         MeshFilter mesh;

@@ -7,7 +7,7 @@ using HarmonyLib;
 using IPA;
 using UnityEngine;
 
-namespace Bsmac.MultiplayerCosmetics {
+namespace MultiplayerCosmetics {
     [Plugin(RuntimeOptions.SingleStartInit)]
     public sealed class Plugin {
         static IPA.Logging.Logger log;
@@ -27,6 +27,7 @@ namespace Bsmac.MultiplayerCosmetics {
             Patch("UIKeyboard", "Awake", nameof(KeyboardReady));
             Patch("HMUI.UIKeyboard", "Awake", nameof(KeyboardReady));
             Patch("BeatSaberMarkupLanguage.Components.ModalKeyboard", "OnEnable", nameof(KeyboardReady));
+            log.Info("Multiplayer Cosmetics startup completed.");
         }
 
         static void Patch(string typeName, string methodName, string hook, int count = 0) {

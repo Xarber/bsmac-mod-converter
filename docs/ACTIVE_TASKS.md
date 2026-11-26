@@ -117,3 +117,5 @@ T48 — BeatTogether active song start: installed the ScoreSaber 3.4.2 optional 
 T49 — User reported an active BeatTogether round completed. The game log recorded Multiplayer LevelFinishEvent. MultiplayerCore status remains tracked separately.
 T50 — Checked PC song tools and keyboard availability. BetterSongList already supplies a random selection. RandomSongPlayer is a separate PC BeatSaver downloader. Tatenshi RecentlyPlayed and Metalit MoreButtons are Quest releases. Solo environments canceled by the user.
 T51 — Built the 1.40.8 multiplayer cosmetics and desktop keyboard plugin. In-game visual and keyboard checks remain pending. See [multiplayer cosmetics](features-multiplayer-cosmetics.md).
+
+T52 — Fixed the BSIPA entry-point namespace mismatch observed in the 16:05 game log. The installer verifies manifest discovery metadata before applying the DLL. Runtime rendering and typing still need a fresh game session.

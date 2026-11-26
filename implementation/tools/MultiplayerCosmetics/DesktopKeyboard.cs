@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using HarmonyLib;
 using UnityEngine;
 
-namespace Bsmac.MultiplayerCosmetics {
+namespace MultiplayerCosmetics {
     public sealed class DesktopKeyboard : MonoBehaviour {
         static readonly List<DesktopKeyboard> Visible = new List<DesktopKeyboard>();
         internal Component Keyboard;

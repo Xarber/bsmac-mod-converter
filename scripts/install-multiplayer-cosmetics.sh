@@ -8,6 +8,8 @@ python="${BSMAC_PYTHON:-$root/player-sync/venv/bin/python}"
 export PYTHONPATH="$repo/implementation/python${PYTHONPATH:+:$PYTHONPATH}"
 stage=$(mktemp -d "${TMPDIR:-/tmp}/bsmac-cosmetics.XXXXXXXX")
 dotnet build "$repo/implementation/tools/MultiplayerCosmetics" -c Release -p:GameResources="$resources" -o "$stage"
+dotnet build "$repo/implementation/tools/AssemblyTool" -c Release -o "$stage/check"
+dotnet "$stage/check/AssemblyTool.dll" verify-ipa-plugin "$stage/MultiplayerCosmetics.dll"
 "$python" - "$stage" "$resources" <<'PY'
 import json
 import sys

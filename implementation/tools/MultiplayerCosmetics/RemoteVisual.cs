@@ -3,7 +3,7 @@ using System;
 using System.Linq;
 using UnityEngine;
 
-namespace Bsmac.MultiplayerCosmetics {
+namespace MultiplayerCosmetics {
     public sealed class RemoteVisual : MonoBehaviour {
         GameObject visual;
         GameObject source;

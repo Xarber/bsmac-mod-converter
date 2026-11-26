@@ -25,6 +25,16 @@ if (args[0] == "inspect") {
         }
     return;
 }
+if (args[0] == "verify-ipa-plugin") {
+    const string descriptor = ".manifest.json";
+    var manifest = asm.MainModule.Resources.OfType<EmbeddedResource>()
+        .Single(item => item.Name.EndsWith(descriptor, StringComparison.Ordinal));
+    string pluginNamespace = manifest.Name[..^descriptor.Length];
+    var pluginType = types.Single(type => type.Namespace == pluginNamespace &&
+        type.CustomAttributes.Any(attribute => attribute.AttributeType.FullName == "IPA.PluginAttribute"));
+    Console.WriteLine("Verified IPA manifest entry point: " + pluginType.FullName);
+    return;
+}
 if (args[0] == "resource") {
     var r = asm.MainModule.Resources.OfType<EmbeddedResource>().Single(r => r.Name == args[2]);
     File.WriteAllBytes(args[3], r.GetResourceData());

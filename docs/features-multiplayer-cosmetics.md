@@ -10,3 +10,5 @@ Multiplayer Cosmetics targets the PC build of Beat Saber 1.40.8 running in Molte
 With Beat Saber closed, run `bash scripts/install-multiplayer-cosmetics.sh`. Use `--stage` to build and generate the install plan without modifying the game. The installer signs the app and prints a rollback receipt. See [BeatTogether rollback](features-beattogether.md) for rollback and re-signing.
 
 The plugin compiled against the installed 1.40.8 assemblies. Multiplayer appearance, keyboard focus, and behavior during pooling and scene changes still need an in-game check. Verify with a remote player and a map with walls and both arrow and dot blocks. For keyboard input, pick an in-game search field, focus the game window on the Mac, type a few characters, press Backspace, and submit with the in-game keyboard.
+
+The first installed build was skipped by BSIPA because its embedded manifest and entry-point namespaces differed. The installer now checks the compiled entry point before applying it. A successful startup logs `Multiplayer Cosmetics startup completed.`
