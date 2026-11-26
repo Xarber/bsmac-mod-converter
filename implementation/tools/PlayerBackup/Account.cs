@@ -126,6 +126,8 @@ namespace PlayerBackup {
 
         string CurrentVersion() {
             var version = File.ReadAllText(Path.Combine(InstancePath(), "BeatSaberVersion.txt")).Trim();
+            if (IsWindows && !string.Equals(Application.version, version, StringComparison.Ordinal))
+                throw new InvalidOperationException("This Player Backup build is for Beat Saber 1.40.8");
             if (!Regex.IsMatch(version, @"^[0-9]{1,5}\.[0-9]{1,5}\.[0-9]{1,5}$"))
                 throw new InvalidOperationException();
             return version;
@@ -176,7 +178,7 @@ namespace PlayerBackup {
             var owner = session;
             try {
                 if (owner == null) return;
-                var python = Path.Combine(Root, "player-sync", "venv", "bin", "python");
+                var python = WorkerPython;
                 var start = new System.Diagnostics.ProcessStartInfo(python) {
                     UseShellExecute = false, RedirectStandardOutput = true,
                     Arguments = "-I -m bsmac_converter.player_exports " + Quote(InstancePath()) +
@@ -234,7 +236,7 @@ namespace PlayerBackup {
                     reply.EnsureSuccessStatusCode();
                     using (var input = await reply.Content.ReadAsStreamAsync())
                     using (var output = new FileStream(staging, FileMode.CreateNew, FileAccess.ReadWrite)) {
-                        if (ChangeFileMode(staging, 384) != 0) throw new IOException();
+                        if (!IsWindows && ChangeFileMode(staging, 384) != 0) throw new IOException();
                         var buffer = new byte[65536];
                         int read;
                         while ((read = await input.ReadAsync(buffer, 0, buffer.Length, cancellation)) > 0) {

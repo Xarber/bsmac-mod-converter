@@ -12,6 +12,7 @@ using BeatSaberMarkupLanguage.Settings;
 using BeatSaberMarkupLanguage.Util;
 using IPA;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace PlayerBackup {
     [Plugin(RuntimeOptions.SingleStartInit)]
@@ -26,7 +27,9 @@ namespace PlayerBackup {
         CancellationTokenSource job;
         string[] cloudVersions = Array.Empty<string>();
         string[] versions = Array.Empty<string>();
-        static string Root => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+        static string Root => IsWindows
+            ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Bsmac")
+            : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
                                            "Library", "Application Support", "bsmac");
         static string Backups => Path.Combine(Root, "player-backups");
         static string LocalBackup(string version) => Path.Combine(Backups, version + ".zip");
@@ -155,8 +158,8 @@ namespace PlayerBackup {
                     if (RestoreStatus != "Restore in progress") File.Delete(RestoreResult);
                 }
                 RefreshHistory();
-                settings = BSMLSettings.Instance;
-                settings.AddSettingsMenu("Player Backup", "PlayerBackup.Settings.bsml", this);
+                RegisterSettings();
+                SceneManager.activeSceneChanged += SceneChanged;
                 log.Info("Player Backup settings registered.");
                 ResumeSchedule();
                 await ResumeAccount();
@@ -165,9 +168,26 @@ namespace PlayerBackup {
             }
         }
 
+        void RegisterSettings() {
+            var current = BSMLSettings.Instance;
+            settings?.RemoveSettingsMenu(this);
+            current.AddSettingsMenu("Player Backup", "PlayerBackup.Settings.bsml", this);
+            settings = current;
+        }
+
+        async void SceneChanged(Scene previous, Scene current) {
+            if (!current.name.StartsWith("MainMenu", StringComparison.OrdinalIgnoreCase)) return;
+            int generation = menuGeneration;
+            await Task.Yield();
+            if (generation != menuGeneration) return;
+            try { RegisterSettings(); }
+            catch (Exception error) { log.Warn("Could not refresh Player Backup settings: " + error.Message); }
+        }
+
         [OnDisable]
         public void Disable() {
             ++menuGeneration;
+            SceneManager.activeSceneChanged -= SceneChanged;
             Cancel();
             EndAccount(!persistentSession);
             settings?.RemoveSettingsMenu(this);
@@ -312,6 +332,12 @@ namespace PlayerBackup {
         }
 
         static string InstancePath() {
+            if (IsWindows) {
+                var directory = Directory.GetParent(Application.dataPath);
+                if (directory != null && File.Exists(Path.Combine(directory.FullName, "Beat Saber.exe")))
+                    return directory.FullName;
+                throw new InvalidOperationException("Expected a Windows Beat Saber installation");
+            }
             for (var parent = new DirectoryInfo(Application.dataPath); parent != null; parent = parent.Parent) {
                 if (parent.Name == "Contents" && parent.Parent?.Name == "Beat Saber.app"
                     && parent.Parent.Parent != null)
@@ -320,8 +346,11 @@ namespace PlayerBackup {
             throw new InvalidOperationException("Expected a MoltenVR app bundle");
         }
 
+        static string WorkerPython => Path.Combine(Root, "player-sync", "venv",
+            IsWindows ? "Scripts" : "bin", IsWindows ? "python.exe" : "python");
+
         static Process StartWorker(string output, string[] categories, string extra, bool capture = false) {
-            var python = Path.Combine(Root, "player-sync", "venv", "bin", "python");
+            var python = WorkerPython;
             var start = new ProcessStartInfo(python) { UseShellExecute = false,
                 RedirectStandardOutput = capture, RedirectStandardError = capture };
             start.Arguments = string.Join(" ", new[] {
@@ -331,6 +360,11 @@ namespace PlayerBackup {
             return Process.Start(start);
         }
 
-        static string Quote(string value) => "\"" + value.Replace("\\", "\\\\").Replace("\"", "\\\"") + "\"";
+        static string Quote(string value) {
+            if (IsWindows) return "\"" + Regex.Replace(value, "(\\\\*)(\"|$)",
+                match => new string('\\', match.Groups[1].Length * 2) +
+                         (match.Groups[2].Value == "\"" ? "\\\"" : "")) + "\"";
+            return "\"" + value.Replace("\\", "\\\\").Replace("\"", "\\\"") + "\"";
+        }
     }
 }

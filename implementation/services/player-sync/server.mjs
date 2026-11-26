@@ -63,7 +63,7 @@ export function service({ configuration, origin, storage, exchange = oidc.author
         const codeChallenge = await oidc.calculatePKCECodeChallenge(verifier);
         pending.set(handle, { state, nonce, verifier, challenge, callbackUsed: false, until: now + transactionLifetime });
         const authorization = oidc.buildAuthorizationUrl(configuration, {
-          redirect_uri: callback.href, scope: 'openid offline_access app_data files_read', prompt: 'consent', state, nonce,
+          redirect_uri: callback.href, scope: 'openid offline_access app_data', prompt: 'consent', state, nonce,
           code_challenge: codeChallenge, code_challenge_method: 'S256',
         });
         return reply(response, 201, { handle, authorization: authorization.href });

@@ -155,3 +155,31 @@ def test_relaunch_drops_inherited_injector_state():
     assert launcher_environment(inherited) == {
         "HOME": "/example", "PATH": "/usr/bin", "LANG": "en_US.UTF-8",
     }
+
+
+def test_windows_directory_layout_round_trip(tmp_path, monkeypatch):
+    import bsmac_converter.player_backup as worker
+
+    (tmp_path / "BeatSaberVersion.txt").write_text("1.40.8")
+    (tmp_path / "Beat Saber.exe").touch()
+    (tmp_path / "Beat Saber_Data/Managed").mkdir(parents=True)
+    maps = tmp_path / "Beat Saber_Data/CustomLevels/Example"
+    maps.mkdir(parents=True)
+    (maps / "Info.dat").write_bytes(b"map")
+    player = tmp_path / "player"
+    player.mkdir()
+    save = player / "PlayerData.dat"
+    save.write_bytes(b"before")
+    configs = tmp_path / "UserData"
+    configs.mkdir()
+    config = configs / "example.json"
+    config.write_bytes(b"before")
+    backup = worker.create(tmp_path, player, tmp_path / "archive")
+    with zipfile.ZipFile(backup) as archive:
+        manifest = json.loads(archive.read("manifest.json"))
+    assert manifest["inventory"]["maps"][0]["path"] == "Example/Info.dat"
+    save.write_bytes(b"after")
+    config.write_bytes(b"after")
+    monkeypatch.setattr(worker, "ensure_closed", lambda *_: None)
+    worker.restore(tmp_path, player, backup, ("player", "configs"), apply=True)
+    assert save.read_bytes() == config.read_bytes() == b"before"

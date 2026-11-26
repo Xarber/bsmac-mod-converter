@@ -28,3 +28,13 @@ bash scripts/install-player-backup.sh
 ```
 
 For an existing Player Backup installation, pass `--replace-existing`. The installer verifies the staged DLL, keeps a rollback receipt, and signs the native app. Start through MoltenVR and open **Mod Settings → Player Backup**. Sign in through X-Center ID and allow App data. Local backups work without sign-in.
+
+## Install Player Backup on Windows
+
+Use PC Beat Saber 1.40.8 with BSIPA and BeatSaberMarkupLanguage already installed. Install Python 3.12 with the Windows Python launcher and the .NET SDK. Close Beat Saber, clone this repository at `testing`, then run in PowerShell from the checkout:
+
+```powershell
+.\scripts\install-player-backup.ps1 -GameDirectory 'C:\Program Files (x86)\Steam\steamapps\common\Beat Saber'
+```
+
+Pass `-ReplaceExisting` to upgrade. The installer builds against your installed game assemblies and saves the previous DLL when replacing it. The worker lives under `%LOCALAPPDATA%\Bsmac`. The plugin uses Unity's actual persistent data directory and protects browser-approved persistent sessions for the Windows user with DPAPI. Restore waits for normal shutdown and launches the exact restored installation's executable. Keep the owning store client running. Windows runtime, DPAPI and relaunch still require a real PC test.

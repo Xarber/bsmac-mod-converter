@@ -15,6 +15,7 @@ import subprocess
 import time
 import zipfile
 
+from .backup_platform import ensure_closed, maps_for, resources_for, safe_relative, wait_windows, windows_install
 from .index import sha256
 from .mod_installer import ENGINE, ROOT, require_closed
 from .transaction import install
@@ -38,8 +39,7 @@ def create(instance, player, output, configs=(), *, categories=CATEGORIES, repor
     version = game_version(instance)
     if snapshot_id and not re.fullmatch(re.escape(version) + r"-(manual|auto)-[0-9]{17}-[0-9a-f]{8}", snapshot_id):
         raise ValueError("Invalid snapshot ID for this version")
-    contents = instance / "Beat Saber.app/Contents"
-    resources = contents / "Resources"
+    resources = resources_for(instance)
     selected = {"player/" + name: player / name for name in PLAYER_FILES} if "player" in categories else {}
     config_root = (resources / "UserData").resolve()
     config_names = configs or (
@@ -50,7 +50,7 @@ def create(instance, player, output, configs=(), *, categories=CATEGORIES, repor
     for name in config_names if "configs" in categories else ():
         relative = Path(name)
         path = config_root / relative
-        if (relative.is_absolute() or ".." in relative.parts or path.is_symlink()
+        if (not safe_relative(name) or relative.is_absolute() or path.is_symlink()
                 or not path.resolve().is_relative_to(config_root)
                 or not path.is_file() or path.suffix.lower() not in CONFIG_TYPES):
             raise ValueError(f"Invalid selected config: {name}")
@@ -64,7 +64,7 @@ def create(instance, player, output, configs=(), *, categories=CATEGORIES, repor
         report_progress(5)
     for category, root, pattern in (
         ("mods", resources / "Plugins", "*.dll"),
-        ("maps", contents / "CustomLevels", "*/*"),
+        ("maps", maps_for(instance), "*/*"),
         *((name, resources / name, "*") for name in MODEL_DIRS),
     ):
         if (category if category in ("mods", "maps") else "models") not in categories:
@@ -112,7 +112,7 @@ def create(instance, player, output, configs=(), *, categories=CATEGORIES, repor
 
 def restore(instance, player, backup, categories, *, apply=False):
     """Validate the selected files before writing a rollback-backed transaction."""
-    resources = instance / "Beat Saber.app/Contents/Resources"
+    resources = resources_for(instance)
     roots = {"player": player.resolve(), "configs": (resources / "UserData").resolve()}
     with zipfile.ZipFile(backup) as archive, tempfile.TemporaryDirectory() as directory:
         entries = {entry.filename: entry for entry in archive.infolist()}
@@ -130,7 +130,7 @@ def restore(instance, player, backup, categories, *, apply=False):
             root = roots[category]
             path = Path(relative)
             target = root / path
-            if (not relative or path.is_absolute() or ".." in path.parts or chr(92) in relative
+            if (not safe_relative(relative) or path.is_absolute()
                     or not target.resolve().is_relative_to(root) or target.is_symlink()
                     or (category == "player" and relative not in PLAYER_FILES)
                     or (category == "configs" and path.suffix.lower() not in CONFIG_TYPES)):
@@ -146,7 +146,7 @@ def restore(instance, player, backup, categories, *, apply=False):
             staged.write_bytes(data)
             plan.append((staged, target))
         if apply:
-            require_closed()
+            ensure_closed(instance, require_closed)
             if not plan:
                 raise ValueError("The backup contains no selected files")
             return install(plan, instance / "PlayerBackup-Rollback")
@@ -184,7 +184,7 @@ def main(argv=None):
         parser.error("--relaunch requires an applied restore after the game quits")
     if args.relaunch:
         version = game_version(args.instance)
-        if args.instance.resolve() != (ROOT / "instances" / version).resolve() or not ENGINE.is_file():
+        if not windows_install(args.instance) and (args.instance.resolve() != (ROOT / "instances" / version).resolve() or not ENGINE.is_file()):
             parser.error("could not find the MoltenVR launcher for this instance")
 
     if args.result_file is None:
@@ -213,7 +213,13 @@ def main(argv=None):
             record("Restore finished · check selected data")
             if args.relaunch:
                 try:
-                    require_closed()
+                    ensure_closed(args.instance, require_closed)
+                    if windows_install(args.instance):
+                        subprocess.Popen([str(args.instance.resolve() / "Beat Saber.exe")],
+                                         cwd=args.instance, stdout=log, stderr=log,
+                                         creationflags=subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP,
+                                         env=launcher_environment(os.environ))
+                        return
                     child = subprocess.Popen([str(ENGINE), "launch", version], cwd=ROOT,
                                              stdout=log, stderr=log, start_new_session=True,
                                              env=launcher_environment(os.environ))
@@ -233,7 +239,7 @@ def main(argv=None):
                         print("MoltenVR ran, but desktop activation could not be confirmed.", flush=True)
                 except Exception:
                     traceback.print_exc()
-                    record("Restore finished · MoltenVR relaunch failed")
+                    record("Restore finished · game relaunch failed")
                     raise
 
 
@@ -241,14 +247,17 @@ def run(args, parser):
     if args.after_pid is not None:
         if args.after_pid <= 1:
             parser.error("invalid game PID")
-        for _ in range(120):
-            try:
-                os.kill(args.after_pid, 0)
-            except ProcessLookupError:
-                break
-            time.sleep(1)
+        if os.name == "nt":
+            wait_windows(args.after_pid)
         else:
-            parser.error("timed out waiting for Beat Saber to quit")
+            for _ in range(120):
+                try:
+                    os.kill(args.after_pid, 0)
+                except ProcessLookupError:
+                    break
+                time.sleep(1)
+            else:
+                parser.error("timed out waiting for Beat Saber to quit")
     if args.live_snapshot and args.restore:
         parser.error("live snapshots are backup-only")
     if args.apply and not args.restore:
@@ -288,7 +297,7 @@ def run(args, parser):
             print(json.dumps(result, indent=2))
     else:
         if not args.live_snapshot:
-            require_closed()
+            ensure_closed(args.instance, require_closed)
         progress = (lambda value: print(value, flush=True)) if args.progress else None
         print(create(args.instance, args.player_data, args.output, args.config,
                      categories=selected, report_progress=progress, snapshot_id=args.snapshot_id))

@@ -3,6 +3,7 @@
 import argparse
 import hashlib
 import json
+import os
 import re
 import subprocess
 import tempfile
@@ -21,7 +22,7 @@ ENGINE = Path('/Applications/MoltenVR.app/Contents/Resources/payload/bsmac/engin
 
 
 def curl(url, *args):
-    return subprocess.check_output(['/usr/bin/curl', '-fsSL', '--proto', '=https',
+    return subprocess.check_output([os.path.join(os.environ['SystemRoot'], 'System32', 'curl.exe') if os.name == 'nt' else '/usr/bin/curl', '-fsSL', '--proto', '=https',
                                     '--proto-redir', '=https', '--max-time', '180',
                                     '--max-filesize', '268435456', '--retry', '2', url, *args])
 

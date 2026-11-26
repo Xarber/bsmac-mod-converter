@@ -5,6 +5,7 @@ import sys
 from pathlib import Path
 
 from .player_backup import game_version
+from .backup_platform import resources_for
 
 COUNTERS = ("timePlayed", "playedLevelsCount", "cleardLevelsCount", "failedLevelsCount",
             "fullComboCount", "goodCutsCount", "badCutsCount", "missedCutsCount", "totalScore")
@@ -29,7 +30,7 @@ def project(instance, player):
             "levelId", "difficulty", "beatmapCharacteristicName", "highScore", "maxCombo", "fullCombo", "playCount"
         ) if name in record})
     scores.sort(key=lambda row: row["highScore"], reverse=True)
-    plugins = instance / "Beat Saber.app/Contents/Resources/Plugins"
+    plugins = resources_for(instance) / "Plugins"
     return {
         "game_version": {"version": game_version(instance)},
         "installed_mods": {"plugins": sorted(path.name for path in plugins.glob("*.dll") if path.is_file())[:500]},

@@ -24,7 +24,7 @@ Compatible Vivify bundles can be prepared automatically before Play when the loc
 
 ## Player Backup
 
-[Install the Player Backup mod and enable X-Center ID sharing](docs/features-player-sharing.md#install-player-backup-on-apple-silicon).
+Install Player Backup on [Apple Silicon](docs/features-player-sharing.md#install-player-backup-on-apple-silicon) or [Windows](docs/features-player-sharing.md#install-player-backup-on-windows).
 
 ## Verification
 

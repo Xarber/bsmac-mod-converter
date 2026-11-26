@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 using System;
 using System.Runtime.InteropServices;
+using System.IO;
 using System.Text;
 
 namespace PlayerBackup {
@@ -28,6 +29,10 @@ namespace PlayerBackup {
                 (uint)KeychainAccount.Length, KeychainAccount, out length, out data, out item) == 0;
 
         static void DeleteSession() {
+            if (IsWindows) {
+                File.Delete(WindowsSessionPath);
+                return;
+            }
             if (!FindSession(out _, out var data, out var item)) return;
             try { SecKeychainItemDelete(item); }
             finally { SecKeychainItemFreeContent(IntPtr.Zero, data); CFRelease(item); }
@@ -38,28 +43,42 @@ namespace PlayerBackup {
             DeleteSession();
             byte[] bytes = Encoding.UTF8.GetBytes(session + "\n" + sessionExpiry.Ticks);
             try {
+                if (IsWindows) {
+                    File.WriteAllBytes(WindowsSessionPath, ProtectWindows(bytes, false));
+                    return;
+                }
                 if (SecKeychainAddGenericPassword(IntPtr.Zero, (uint)KeychainService.Length, KeychainService,
                     (uint)KeychainAccount.Length, KeychainAccount, (uint)bytes.Length, bytes, IntPtr.Zero) != 0)
                     log.Warn("Could not save the session in Keychain.");
+            } catch (IOException) {
+                log.Warn("Could not save the session securely.");
             } finally {
                 Array.Clear(bytes, 0, bytes.Length);
             }
         }
 
         async System.Threading.Tasks.Task ResumeAccount() {
-            if (!FindSession(out uint length, out var data, out var item)) return;
-            try {
-                if (length == 0 || length > 100) return;
-                var bytes = new byte[(int)length];
-                Marshal.Copy(data, bytes, 0, bytes.Length);
-                var fields = Encoding.UTF8.GetString(bytes).Split('\n');
-                Array.Clear(bytes, 0, bytes.Length);
-                if (fields.Length != 2 || !IsToken(fields[0]) || !long.TryParse(fields[1], out long expiry) ||
-                    expiry <= DateTime.UtcNow.Ticks || expiry > DateTime.UtcNow.AddSeconds(MaxPersistentSeconds).Ticks) return;
-                persistentSession = true;
-                session = fields[0];
-                sessionExpiry = new DateTime(expiry, DateTimeKind.Utc);
-            } finally { SecKeychainItemFreeContent(IntPtr.Zero, data); CFRelease(item); }
+            byte[] bytes;
+            if (IsWindows) {
+                var saved = new FileInfo(WindowsSessionPath);
+                if (!saved.Exists || saved.Length > 4096) return;
+                try { bytes = ProtectWindows(File.ReadAllBytes(WindowsSessionPath), true); }
+                catch (IOException) { return; }
+            } else {
+                if (!FindSession(out uint length, out var data, out var item)) return;
+                try {
+                    if (length == 0 || length > 100) return;
+                    bytes = new byte[(int)length];
+                    Marshal.Copy(data, bytes, 0, bytes.Length);
+                } finally { SecKeychainItemFreeContent(IntPtr.Zero, data); CFRelease(item); }
+            }
+            var fields = Encoding.UTF8.GetString(bytes).Split('\n');
+            Array.Clear(bytes, 0, bytes.Length);
+            if (fields.Length != 2 || !IsToken(fields[0]) || !long.TryParse(fields[1], out long expiry) ||
+                expiry <= DateTime.UtcNow.Ticks || expiry > DateTime.UtcNow.AddSeconds(MaxPersistentSeconds).Ticks) return;
+            persistentSession = true;
+            session = fields[0];
+            sessionExpiry = new DateTime(expiry, DateTimeKind.Utc);
 
             try {
                 using (var timeout = new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(15)))

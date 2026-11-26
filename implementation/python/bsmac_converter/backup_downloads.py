@@ -5,6 +5,7 @@ from pathlib import Path
 import tempfile
 from urllib.parse import urlsplit
 
+from .backup_platform import ensure_closed, maps_for, resources_for, safe_relative, windows_install
 from .index import sha256
 from .mod_installer import curl, require_closed
 from .transaction import install
@@ -18,9 +19,9 @@ MODEL_EXTENSIONS = {
 
 
 def restore_models(instance, inventory, sources_file):
-    require_closed()
+    ensure_closed(instance, require_closed)
     sources = json.loads(sources_file.read_text()) if sources_file.is_file() else {}
-    resources = (instance / "Beat Saber.app/Contents/Resources").resolve(strict=True)
+    resources = resources_for(instance).resolve(strict=True)
     missing = []
     with tempfile.TemporaryDirectory() as directory:
         stage = Path(directory)
@@ -28,7 +29,7 @@ def restore_models(instance, inventory, sources_file):
         for category, extensions in MODEL_EXTENSIONS.items():
             for row in inventory.get(category, []):
                 name = row["path"]
-                if (Path(name).name != name or chr(92) in name
+                if (not safe_relative(name) or Path(name).name != name
                         or Path(name).suffix.lower() not in extensions):
                     continue
                 target = resources / category / name
@@ -59,9 +60,9 @@ def restore_packages(instance, inventory, sources_file, selected):
 
     from .mod_installer import install_zip
 
-    require_closed()
+    ensure_closed(instance, require_closed)
     sources = json.loads(sources_file.read_text()) if sources_file.is_file() else {}
-    contents = (instance / "Beat Saber.app/Contents").resolve(strict=True)
+    resources = resources_for(instance).resolve()
     result = {"restored": [], "unresolved": []}
     with tempfile.TemporaryDirectory() as directory:
         stage = Path(directory)
@@ -70,16 +71,16 @@ def restore_packages(instance, inventory, sources_file, selected):
                 name = row["path"]
                 parts = name.split("/")
                 digest = row["sha256"]
-                if any(not part or part in (".", "..") or chr(92) in part for part in parts):
+                if not safe_relative(name):
                     raise ValueError("Unsafe inventory path")
                 if category == "mods":
                     if len(parts) != 1 or not re.fullmatch(r"[A-Za-z0-9_.+ -]+\.dll", name):
                         raise ValueError("Invalid mod file name")
-                    root = contents / "Resources/Plugins"
+                    root = resources / "Plugins"
                 else:
                     if len(parts) != 2 or parts[1].lower() != "info.dat":
                         raise ValueError("Expected a map folder with Info.dat")
-                    root = contents / "CustomLevels"
+                    root = maps_for(instance).resolve()
                 target = root / name
                 if target.resolve() != target:
                     raise ValueError("Package destination must not be a symlink")
@@ -114,7 +115,7 @@ def restore_packages(instance, inventory, sources_file, selected):
                         plan = []
                         for index, item in enumerate(records):
                             member = item.filename
-                            if (Path(member).name != member or chr(92) in member or member in (".", "..")
+                            if (not safe_relative(member) or Path(member).name != member
                                     or item.is_dir() or (item.external_attr >> 28) == 10):
                                 raise ValueError("Expected flat map ZIP without links")
                             output = stage / f"map-{index}"
@@ -122,6 +123,12 @@ def restore_packages(instance, inventory, sources_file, selected):
                             plan.append((output, target.parent / member))
                         install(plan, instance / "PlayerBackup-Rollback")
                 if category == "mods":
+                    if windows_install(instance):
+                        file = stage / "plugin.dll"
+                        file.write_bytes(data)
+                        install([(file, target)], instance / "PlayerBackup-Rollback")
+                        result["restored"].append(name)
+                        continue
                     if instance.name != "1.40.8" or instance.parent.name != "instances":
                         raise ValueError("Mod restore requires a MoltenVR 1.40.8 instance")
                     install_zip(instance.parent.parent, archive_path, source["sha256"], [name])

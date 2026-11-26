@@ -103,3 +103,9 @@ T41 — Cloud archives move to delegated personal Files. Legacy archives migrate
 T42 — Use browseable X-Center ID app files scoped to the signed-in user. Import matching legacy personal Files without deleting originals, and fix the plugin cloud-history decoder and cloud labels. Live account sign-in, history and quota visibility remain native checks.
 
 T43 — Export four private user-owned Beat Saber collections. Portal publishing requires the verified registration owner and a passkey. Recent play history is absent from the inspected save. Native export and destination consent remain pending.
+
+T44 — Add Windows paths, installer, DPAPI session storage, and non-destructive process exit checks. Test the layout with synthetic files and compile the managed plugin. Windows runtime verification is pending.
+
+T45 — Re-register Player Backup settings when returning to a main-menu scene, preserving single registration and removing the event on disable. In-game return from a song remains a verification step.
+
+T46 — Stop requesting Files read. The older recovery code remains for explicitly granted tokens. BeatTogether's latest log confirms Ignorance stops in ENet.InitOpenSSL on missing libcrypto-1_1-x64. Still requires an arm64 port of the exact TLS transport. Multiplayer+ avatar tracking delay remains user-reported and lacks a confirmed cause.
