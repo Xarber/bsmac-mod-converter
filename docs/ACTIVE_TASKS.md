@@ -83,3 +83,5 @@ T31 — Added visible queue status, local archive history, X-Center browser logi
 T32 — Reactive backup controls, live snapshots, automatic cloud transfers and per-row restore staged. The issuer returned invalid_client for the deployed registration credentials. Existing keys were preserved. Live in-game layout and signed-in backup remain pending.
 
 T33 — Compact the backup layout and report live snapshot progress and operation-specific errors. Verify the native layout on the next user-owned launch.
+
+T34 — Use the native BSML settings container for vertical layout and full-width toggle rows. Native visual verification pending.

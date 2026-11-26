@@ -1,47 +1,41 @@
 <scrollable-settings-container>
-  <vertical spacing="1" child-expand-height="false">
-    <horizontal spacing="2" child-expand-width="false" child-expand-height="false">
-      <text text="~account-status" font-size="3" preferred-width="50" />
-      <button text="Sign in to X-Center ID" on-click="sign-in" active="~show-sign-in" />
-      <button text="Cancel sign-in" on-click="sign-out" active="~show-account-cancel" />
-      <button text="Sign out" on-click="sign-out" active="~show-sign-out" />
-    </horizontal>
-    <horizontal spacing="2" child-expand-height="false">
-      <bool-setting text="Player data" value="player" apply-on-change="true" />
-      <bool-setting text="Plugin configs" value="configs" apply-on-change="true" />
-    </horizontal>
-    <horizontal spacing="2" child-expand-height="false">
-      <bool-setting text="Mods" value="mods" apply-on-change="true" />
-      <bool-setting text="Maps" value="maps" apply-on-change="true" />
-      <bool-setting text="Models" value="models" apply-on-change="true" />
-    </horizontal>
-    <horizontal spacing="2" child-expand-height="false">
-      <button text="Back up now" on-click="backup" active="~show-backup" />
-      <button text="Cancel operation" on-click="cancel" active="~show-cancel" />
-    </horizontal>
-    <text text="~backup-status" active="~has-backup-status" font-size="3" />
-    <text text="~backup-progress" active="~show-backup-progress" font-size="3" />
-    <text text="~history-page" font-size="4" preferred-height="5" />
-    <horizontal active="~has-a" child-expand-height="false" spacing="2">
-      <text text="~row-a" font-size="3" preferred-width="43" />
-      <button text="Restore" on-click="restore-row-a" active="~restore-a" />
-      <button text="Cancel" on-click="cancel" active="~cancel-a" />
-    </horizontal>
-    <horizontal active="~has-b" child-expand-height="false" spacing="2">
-      <text text="~row-b" font-size="3" preferred-width="43" />
-      <button text="Restore" on-click="restore-row-b" active="~restore-b" />
-      <button text="Cancel" on-click="cancel" active="~cancel-b" />
-    </horizontal>
-    <horizontal active="~has-c" child-expand-height="false" spacing="2">
-      <text text="~row-c" font-size="3" preferred-width="43" />
-      <button text="Restore" on-click="restore-row-c" active="~restore-c" />
-      <button text="Cancel" on-click="cancel" active="~cancel-c" />
-    </horizontal>
-    <horizontal spacing="2" child-expand-height="false">
-      <button text="Previous backups" on-click="previous" active="~show-prev" />
-      <button text="More backups" on-click="next" active="~show-next" />
-    </horizontal>
-    <text text="~restore-status" active="~has-restore-status" font-size="3" />
-    <button text="Quit and apply restore" on-click="quit-restore" active="~show-restart" />
-  </vertical>
+  <horizontal spacing="2" child-expand-width="false" child-control-height="true" child-expand-height="false" min-height="6">
+    <text text="~account-status" font-size="3" preferred-width="44" />
+    <button text="Sign in to X-Center ID" on-click="sign-in" active="~show-sign-in" />
+    <button text="Cancel sign-in" on-click="sign-out" active="~show-account-cancel" />
+    <button text="Sign out" on-click="sign-out" active="~show-sign-out" />
+  </horizontal>
+  <bool-setting text="Player data" value="player" apply-on-change="true" />
+  <bool-setting text="Plugin configs" value="configs" apply-on-change="true" />
+  <bool-setting text="Mods" value="mods" apply-on-change="true" />
+  <bool-setting text="Maps" value="maps" apply-on-change="true" />
+  <bool-setting text="Models" value="models" apply-on-change="true" />
+  <horizontal spacing="2" child-control-height="true" child-expand-height="false" min-height="6">
+    <button text="Back up now" on-click="backup" active="~show-backup" />
+    <button text="Cancel operation" on-click="cancel" active="~show-cancel" />
+  </horizontal>
+  <text text="~backup-status" active="~has-backup-status" font-size="3" />
+  <text text="~backup-progress" active="~show-backup-progress" font-size="3" />
+  <text text="~history-page" font-size="4" preferred-height="5" />
+  <horizontal active="~has-a" child-control-height="true" child-expand-height="false" min-height="6" spacing="2">
+    <text text="~row-a" font-size="3" preferred-width="43" />
+    <button text="Restore" on-click="restore-row-a" active="~restore-a" />
+    <button text="Cancel" on-click="cancel" active="~cancel-a" />
+  </horizontal>
+  <horizontal active="~has-b" child-control-height="true" child-expand-height="false" min-height="6" spacing="2">
+    <text text="~row-b" font-size="3" preferred-width="43" />
+    <button text="Restore" on-click="restore-row-b" active="~restore-b" />
+    <button text="Cancel" on-click="cancel" active="~cancel-b" />
+  </horizontal>
+  <horizontal active="~has-c" child-control-height="true" child-expand-height="false" min-height="6" spacing="2">
+    <text text="~row-c" font-size="3" preferred-width="43" />
+    <button text="Restore" on-click="restore-row-c" active="~restore-c" />
+    <button text="Cancel" on-click="cancel" active="~cancel-c" />
+  </horizontal>
+  <horizontal spacing="2" child-control-height="true" child-expand-height="false" min-height="6">
+    <button text="Previous backups" on-click="previous" active="~show-prev" />
+    <button text="More backups" on-click="next" active="~show-next" />
+  </horizontal>
+  <text text="~restore-status" active="~has-restore-status" font-size="3" />
+  <button text="Quit and apply restore" on-click="quit-restore" active="~show-restart" />
 </scrollable-settings-container>
