@@ -81,3 +81,5 @@ T30 — Deployed Player Sync on X-Center and verified public health, issuer sign
 T31 — Added visible queue status, local archive history, X-Center browser login, and current-version upload/download to Player Backup. Build and installation can be verified without launching. Live in-game UI and authenticated transfer remain runtime checks.
 
 T32 — Reactive backup controls, live snapshots, automatic cloud transfers and per-row restore staged. The issuer returned invalid_client for the deployed registration credentials. Existing keys were preserved. Live in-game layout and signed-in backup remain pending.
+
+T33 — Compact the backup layout and report live snapshot progress and operation-specific errors. Verify the native layout on the next user-owned launch.

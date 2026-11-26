@@ -33,7 +33,17 @@ namespace PlayerBackup {
         public event PropertyChangedEventHandler PropertyChanged;
         void Changed(string property) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(property));
 
-        [UIValue("queue-status")] public string QueueStatus { get; private set; } = "Ready";
+        [UIValue("backup-status")] public string BackupStatus { get; private set; } = "";
+        [UIValue("restore-status")] public string RestoreStatus { get; private set; } = "";
+        [UIValue("has-backup-status")] public bool HasBackupStatus => BackupStatus.Length > 0;
+        [UIValue("has-restore-status")] public bool HasRestoreStatus => RestoreStatus.Length > 0;
+        [UIValue("show-backup-progress")] public bool ShowBackupProgress => job != null && restoreVersion == null;
+        [UIValue("backup-progress")] public string BackupProgress { get; private set; } = "";
+        void ShowProgress(int percent) {
+            int blocks = Math.Max(0, Math.Min(10, percent / 10));
+            BackupProgress = new string('■', blocks) + new string('□', 10 - blocks) + $"  {percent}%";
+            Changed(nameof(BackupProgress));
+        }
         [UIValue("show-backup")] public bool ShowBackup => job == null && restoreVersion == null;
         [UIValue("show-cancel")] public bool ShowCancel => !ShowBackup;
         [UIValue("show-restart")] public bool ShowRestart => restoreCategories != null && job == null;
@@ -68,7 +78,7 @@ namespace PlayerBackup {
         }
 
         void Draw() {
-            foreach (var property in new[] { nameof(QueueStatus), nameof(ShowBackup), nameof(ShowCancel), nameof(ShowRestart),
+            foreach (var property in new[] { nameof(BackupStatus), nameof(RestoreStatus), nameof(HasBackupStatus), nameof(HasRestoreStatus), nameof(ShowBackupProgress), nameof(ShowBackup), nameof(ShowCancel), nameof(ShowRestart),
                 nameof(HistoryPage), nameof(ShowPrevious), nameof(ShowNext), nameof(RowA), nameof(RowB), nameof(RowC),
                 nameof(HasA), nameof(HasB), nameof(HasC), nameof(CanRestoreA), nameof(CanRestoreB), nameof(CanRestoreC),
                 nameof(CanCancelA), nameof(CanCancelB), nameof(CanCancelC) }) Changed(property);
@@ -126,32 +136,44 @@ namespace PlayerBackup {
         public async void Backup() {
             if (!ShowBackup) return;
             string[] categories = Categories();
-            if (categories.Length == 0) { QueueStatus = "Select at least one category"; Draw(); return; }
+            if (categories.Length == 0) { BackupStatus = "Select at least one category"; Draw(); return; }
             var operation = new CancellationTokenSource();
             job = operation;
-            QueueStatus = "Saving backup…";
+            BackupStatus = "Saving backup…";
+            ShowProgress(0);
             Draw();
             bool saved = false;
             try {
                 var version = CurrentVersion();
-                using (var process = StartWorker(Backups, categories, "--live-snapshot")) {
-                    using (operation.Token.Register(() => Stop(process)))
-                        await Task.Run(() => process.WaitForExit());
+                using (var process = StartWorker(Backups, categories, "--live-snapshot --progress", true))
+                using (operation.Token.Register(() => Stop(process))) {
+                    var errors = process.StandardError.ReadToEndAsync();
+                    string line;
+                    while ((line = await process.StandardOutput.ReadLineAsync()) != null) {
+                        if (int.TryParse(line, out int progress) && progress >= 0 && progress <= 100)
+                            ShowProgress(progress);
+                    }
+                    await Task.Run(() => process.WaitForExit());
                     operation.Token.ThrowIfCancellationRequested();
-                    if (process.ExitCode != 0) throw new IOException();
+                    if (process.ExitCode != 0) {
+                        var detail = (await errors).Split('\n').LastOrDefault(row => !string.IsNullOrWhiteSpace(row));
+                        log.Error("Backup worker failed: " + detail);
+                        throw new IOException();
+                    }
                 }
                 saved = true;
                 if (HasSession) {
-                    QueueStatus = "Uploading backup…";
+                    BackupStatus = "Uploading backup…";
                     Draw();
                     await UploadBackup(version, operation.Token);
                     await RefreshCloud(operation.Token);
                 }
-                QueueStatus = HasSession ? "Backup saved locally and in the cloud" : "Local backup saved";
+                BackupStatus = HasSession ? "Backup saved locally and in the cloud" : "Local backup saved";
             } catch (OperationCanceledException) {
-                QueueStatus = saved ? "Local backup saved. Upload canceled." : "Backup canceled";
-            } catch (Exception) {
-                QueueStatus = saved ? "Local backup saved. Cloud upload failed." : "Backup failed. Retry from the main menu.";
+                BackupStatus = saved ? "Local backup saved. Upload canceled." : "Backup canceled";
+            } catch (Exception error) {
+                log.Error("Backup operation failed: " + error.GetType().Name);
+                BackupStatus = saved ? "Local backup saved. Cloud upload failed." : "Backup failed. Retry from the main menu.";
             } finally {
                 job = null;
                 operation.Dispose();
@@ -172,12 +194,13 @@ namespace PlayerBackup {
         async void Prepare(int index) {
             if (!CanRestore(index)) return;
             var categories = Categories();
-            if (categories.Length == 0) { QueueStatus = "Select at least one category"; Draw(); return; }
+            if (categories.Length == 0) { RestoreStatus = "Select at least one category"; Draw(); return; }
             var version = At(index);
+            RestoreStatus = "";
             restoreVersion = version;
             var operation = new CancellationTokenSource(TimeSpan.FromSeconds(45));
             job = operation;
-            QueueStatus = "Preparing restore…";
+            RestoreStatus = "Preparing restore…";
             Draw();
             try {
                 if (!File.Exists(LocalBackup(version))) await DownloadBackup(version, operation.Token);
@@ -188,13 +211,13 @@ namespace PlayerBackup {
                         restoreDigest = string.Concat(hash.ComputeHash(input).Select(value => value.ToString("x2")));
                 }
                 restoreCategories = categories;
-                QueueStatus = "Restore ready. Quit and relaunch through MoltenVR.";
+                RestoreStatus = "Restore ready. Quit and relaunch through MoltenVR.";
             } catch (OperationCanceledException) {
                 restoreVersion = null;
-                QueueStatus = "Restore canceled";
+                RestoreStatus = "Restore canceled";
             } catch (Exception) {
                 restoreVersion = null;
-                QueueStatus = "Could not prepare this backup";
+                RestoreStatus = "Could not prepare this backup";
             } finally {
                 job = null;
                 operation.Dispose();
@@ -208,7 +231,7 @@ namespace PlayerBackup {
             restoreCategories = null;
             restoreVersion = null;
             restoreDigest = null;
-            QueueStatus = job == null ? "Ready" : "Canceling…";
+            if (job == null) RestoreStatus = "";
             Draw();
         }
 
@@ -229,14 +252,18 @@ namespace PlayerBackup {
         }
 
         static string InstancePath() {
-            var contents = Directory.GetParent(Application.dataPath)?.Parent;
-            if (contents?.Name != "Contents") throw new InvalidOperationException("Expected a MoltenVR app bundle");
-            return contents.Parent.Parent.FullName;
+            for (var parent = new DirectoryInfo(Application.dataPath); parent != null; parent = parent.Parent) {
+                if (parent.Name == "Contents" && parent.Parent?.Name == "Beat Saber.app"
+                    && parent.Parent.Parent != null)
+                    return parent.Parent.Parent.FullName;
+            }
+            throw new InvalidOperationException("Expected a MoltenVR app bundle");
         }
 
-        static Process StartWorker(string output, string[] categories, string extra) {
+        static Process StartWorker(string output, string[] categories, string extra, bool capture = false) {
             var python = Path.Combine(Root, "player-sync", "venv", "bin", "python");
-            var start = new ProcessStartInfo(python) { UseShellExecute = false };
+            var start = new ProcessStartInfo(python) { UseShellExecute = false,
+                RedirectStandardOutput = capture, RedirectStandardError = capture };
             start.Arguments = string.Join(" ", new[] {
                 "-I", "-m", "bsmac_converter.player_backup", Quote(InstancePath()),
                 Quote(Application.persistentDataPath), Quote(output), extra,

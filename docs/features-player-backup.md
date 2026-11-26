@@ -40,3 +40,5 @@ Select categories and choose **Back up now** from the main menu. The worker read
 Local and cloud backups appear together by version. Select **Restore** beside the current version's backup. A cloud-only archive downloads and validates immediately. The selected categories apply after quitting. Use **Quit and apply restore** and wait for the restore worker to finish before opening Beat Saber again through MoltenVR. Package restoration still requires configured sources.
 
 Choose **Sign in to X-Center ID** to open the issuer in the browser. Cancel ends local polling. The account session stays in memory. Issuer credential rejection is shown in the browser and in the game.
+
+The compact menu keeps account status and sign-in on one row. Backup progress and errors appear beside the backup action, and restore feedback stays with backup history.

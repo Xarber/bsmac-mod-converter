@@ -31,7 +31,7 @@ def game_version(instance):
     return version
 
 
-def create(instance, player, output, configs=(), *, categories=CATEGORIES):
+def create(instance, player, output, configs=(), *, categories=CATEGORIES, report_progress=None):
     version = game_version(instance)
     contents = instance / "Beat Saber.app/Contents"
     resources = contents / "Resources"
@@ -55,6 +55,8 @@ def create(instance, player, output, configs=(), *, categories=CATEGORIES):
         "schema": 1, "gameVersion": version, "createdAt": datetime.now(timezone.utc).isoformat(),
         "files": {}, "inventory": {},
     }
+    if report_progress:
+        report_progress(5)
     for category, root, pattern in (
         ("mods", resources / "Plugins", "*.dll"),
         ("maps", contents / "CustomLevels", "*/*"),
@@ -70,11 +72,13 @@ def create(instance, player, output, configs=(), *, categories=CATEGORIES):
             and not path.name.startswith(".")
         ]
 
+    if report_progress:
+        report_progress(35)
     output.mkdir(mode=0o700, parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(dir=output) as scratch:
         staged = Path(scratch) / "backup.zip"
         with zipfile.ZipFile(staged, "w", zipfile.ZIP_DEFLATED) as archive:
-            for name, path in sorted(selected.items()):
+            for index, (name, path) in enumerate(sorted(selected.items()), 1):
                 if path.is_file() and not path.is_symlink():
                     if path.stat().st_size > 64 * 1024**2:
                         raise ValueError(f"Selected file is too large: {name}")
@@ -85,12 +89,16 @@ def create(instance, player, output, configs=(), *, categories=CATEGORIES):
                         raise ValueError(f"Save changed during backup. Retry from the main menu: {name}")
                     manifest["files"][name] = hashlib.sha256(payload).hexdigest()
                     archive.writestr(name, payload)
+                if report_progress:
+                    report_progress(35 + 60 * index // len(selected))
             if "player" in categories and "player/PlayerData.dat" not in manifest["files"]:
                 raise ValueError("PlayerData.dat is missing")
             archive.writestr("manifest.json", json.dumps(manifest, indent=2))
         destination = output / f"{version}.zip"
         os.chmod(staged, 0o600)
         os.replace(staged, destination)
+    if report_progress:
+        report_progress(100)
     return destination
 
 
@@ -148,6 +156,7 @@ def main(argv=None):
     parser.add_argument("--restore", action="store_true", help="preview restore from the ZIP at OUTPUT")
     parser.add_argument("--apply", action="store_true", help="apply the selected restore")
     parser.add_argument("--expected-sha256", help=argparse.SUPPRESS)
+    parser.add_argument("--progress", action="store_true", help=argparse.SUPPRESS)
     parser.add_argument("--live-snapshot", action="store_true", help=argparse.SUPPRESS)
     parser.add_argument("--after-pid", type=int, help=argparse.SUPPRESS)
     args = parser.parse_args(argv)
@@ -202,7 +211,9 @@ def main(argv=None):
     else:
         if not args.live_snapshot:
             require_closed()
-        print(create(args.instance, args.player_data, args.output, args.config, categories=selected))
+        progress = (lambda value: print(value, flush=True)) if args.progress else None
+        print(create(args.instance, args.player_data, args.output, args.config,
+                     categories=selected, report_progress=progress))
 
 
 if __name__ == "__main__":
