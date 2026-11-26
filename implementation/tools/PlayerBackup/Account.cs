@@ -145,7 +145,13 @@ namespace PlayerBackup {
             data.Position = 0;
         }
 
-        [Serializable] sealed class CloudVersion { public string version = null; }
+        [Serializable] sealed class CloudVersion {
+            public string version = null;
+            public string id = null;
+            public string name = null;
+            public string sha256 = null;
+        }
+        System.Collections.Generic.Dictionary<string, string> cloudNames = new System.Collections.Generic.Dictionary<string, string>();
         [Serializable] sealed class CloudHistory { public CloudVersion[] versions = null; }
 
         async Task RefreshCloud(CancellationToken cancellation) {
@@ -159,8 +165,29 @@ namespace PlayerBackup {
                 reply.EnsureSuccessStatusCode();
                 var history = Newtonsoft.Json.JsonConvert.DeserializeObject<CloudHistory>(await reply.Content.ReadAsStringAsync());
                 if (session != owner) return;
-                cloudVersions = (history?.versions ?? Array.Empty<CloudVersion>())
-                    .Select(item => item.version).Where(IsSnapshot).ToArray();
+                var rows = (history?.versions ?? Array.Empty<CloudVersion>()).Where(item => item != null && IsSnapshot(item.version)).ToArray();
+                var names = await Task.Run(() => {
+                    var matched = new System.Collections.Generic.Dictionary<string, string>();
+                    foreach (var row in rows) {
+                        cancellation.ThrowIfCancellationRequested();
+                        if (string.IsNullOrWhiteSpace(row.id) || string.IsNullOrWhiteSpace(row.name) ||
+                            row.name == row.version + ".zip" || !Regex.IsMatch(row.sha256 ?? "", "^[a-f0-9]{64}$")) continue;
+                        var path = LocalBackup(row.version);
+                        try {
+                            if (File.Exists(path)) {
+                                using (var input = File.OpenRead(path))
+                                using (var hash = SHA256.Create())
+                                    if (input.Length > MaxBackup || HexDigest(hash.ComputeHash(input)) != row.sha256) continue;
+                            }
+                            var label = new string(row.name.Where(c => !char.IsControl(c) && c != '<' && c != '>').Take(55).ToArray());
+                            if (!string.IsNullOrWhiteSpace(label)) matched[row.version] = label;
+                        } catch (IOException) { }
+                    }
+                    return matched;
+                }, cancellation);
+                if (session != owner) return;
+                cloudNames = names;
+                cloudVersions = rows.Select(item => item.version).Distinct().ToArray();
                 RefreshHistory();
             }
         }
@@ -227,6 +254,8 @@ namespace PlayerBackup {
             }
         }
 
+        static string HexDigest(byte[] bytes) => BitConverter.ToString(bytes).Replace("-", "").ToLowerInvariant();
+
         async Task DownloadBackup(string version, CancellationToken cancellation) {
             var owner = session;
             Directory.CreateDirectory(Backups);
@@ -244,6 +273,11 @@ namespace PlayerBackup {
                             if (output.Length + read > MaxBackup) throw new InvalidDataException();
                             await output.WriteAsync(buffer, 0, read, cancellation);
                         }
+                        output.Position = 0;
+                        var tag = reply.Headers.ETag?.Tag?.Trim('"');
+                        if (tag == null || !Regex.IsMatch(tag, "^[a-f0-9]{64}$")) throw new InvalidDataException("Missing backup digest");
+                        using (var hash = SHA256.Create())
+                            if (HexDigest(hash.ComputeHash(output)) != tag) throw new InvalidDataException("Backup digest mismatch");
                         output.Position = 0;
                         CheckBackup(output, SnapshotVersion(version));
                     }
@@ -274,6 +308,7 @@ namespace PlayerBackup {
             sessionExpiry = default;
             persistentSession = false;
             cloudVersions = Array.Empty<string>();
+            cloudNames.Clear();
             SetAccountStatus("Signed out");
             RefreshHistory();
             if (revoke) {

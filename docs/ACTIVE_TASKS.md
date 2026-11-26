@@ -128,3 +128,5 @@ T55 — User confirmed Windows remote blocks and reported missing remote sabers.
 
 T56 — Add independent remote blocks, bombs, sabers, and walls preferences and support CustomNotes bomb prefabs. Live multiplayer and settings persistence require retesting.
 T57 — Replay names in X-Center ID. The current Beat Saber service only uploads backup ZIPs. BeatLeader replays are local files and public leaderboard downloads. Identify an existing replay uploader or confirm a new replay cloud workflow before changing file permissions.
+
+T58 — Player Backup editable cloud metadata. Added upload flags, backfill for tracked Browseable snapshots, a persistent per-account file ID and digest index, and hash-checked display labels/downloads. Backend rename and replacement regression tests run locally. Standalone replay uploader is absent.

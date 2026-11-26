@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
 import { createServer } from 'node:http';
-import { existsSync, mkdirSync, readFileSync, readdirSync, unlinkSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, readdirSync, renameSync, unlinkSync, writeFileSync } from 'node:fs';
 import { fileLimit, appFiles } from './app-files.mjs';
 import { writeSharedRecords } from './shared-records.mjs';
 import { personalFiles } from './personal-files.mjs';
@@ -210,18 +210,65 @@ export function service({ configuration, origin, storage, exchange = oidc.author
             if (error.status !== 403) console.error('Legacy Files import deferred');
           }
         }
-        if (listing) return reply(response, 200, {
-          versions: entries.filter(item => item.name.endsWith('.zip') && snapshotPattern.test(item.name.slice(0, -4)))
-            .map(item => ({ version: item.name.slice(0, -4), modified: new Date(item.created).toISOString() })),
-        });
+        const indexPath = resolve(legacy, 'backup-file-index');
+        const indexed = (key) => {
+          const path = resolve(indexPath, key + '.json');
+          return existsSync(path) ? JSON.parse(readFileSync(path, 'utf8')) : undefined;
+        };
+        const record = (key, id, sha256) => {
+          mkdirSync(indexPath, {recursive: true, mode: 0o700});
+          const path = resolve(indexPath, key + '.json');
+          const staged = path + '.' + token() + '.tmp';
+          writeFileSync(staged, JSON.stringify({id, sha256}), {mode: 0o600, flag: 'wx'});
+          try { renameSync(staged, path); }
+          finally { if (existsSync(staged)) unlinkSync(staged); }
+        };
+        const keys = new Set([
+          ...(existsSync(indexPath) ? readdirSync(indexPath).filter(name => name.endsWith('.json'))
+            .map(name => name.slice(0, -5)).filter(key => snapshotPattern.test(key)) : []),
+          ...entries.filter(item => item.name.endsWith('.zip') && snapshotPattern.test(item.name.slice(0, -4)))
+            .map(item => item.name.slice(0, -4)),
+        ]);
+        for (const key of keys) {
+          if (indexed(key)) continue;
+          const matches = entries.filter(item => item.name === key + '.zip');
+          if (matches.length === 1 && /^[a-f0-9]{64}$/.test(matches[0].sha256 ?? ''))
+            record(key, matches[0].id, matches[0].sha256);
+        }
+        const find = (key) => {
+          const record = indexed(key);
+          return record && entries.find(item => item.id === record.id);
+        };
+        if (listing) {
+          for (const key of keys) {
+            const item = find(key);
+            if (item?.browseable === true && item.editable === false && item.sha256 === indexed(key).sha256) {
+              try { await personal.enableEditing(item.id); }
+              catch { console.error('Backup file editing upgrade deferred'); break; }
+            }
+          }
+          return reply(response, 200, {
+          versions: [...keys].flatMap(key => {
+            const item = find(key);
+            return item && item.sha256 === indexed(key).sha256 ? [{
+              version: key, id: item.id, name: item.name, sha256: item.sha256,
+              modified: new Date(item.created).toISOString(),
+            }] : [];
+          }),
+          });
+        }
         const name = version + '.zip';
-        const matches = entries.filter(item => item.name === name);
-        if (matches.length > 1) return reply(response, 409, { error: 'Duplicate backup in Files' });
-        const entry = matches[0];
-        const saved = entry && await personal.read(entry.id);
-        const revision = saved ? '"' + digest(saved) + '"' : '"0"';
+        const entry = find(version);
+        if (entry && entry.sha256 !== indexed(version).sha256)
+          return reply(response, 409, { error: 'Backup contents were replaced in Files' });
+        if (!entry && entries.some(item => item.name === name))
+          return reply(response, 409, { error: 'Backup name is already in use' });
+        const saved = entry && method !== 'HEAD' && await personal.read(entry.id);
+        if (saved && digest(saved) !== entry.sha256)
+          return reply(response, 409, { error: 'Backup changed while downloading' });
+        const revision = entry ? '"' + entry.sha256 + '"' : '"0"';
         if (method === 'GET' || method === 'HEAD') {
-          return saved ? reply(response, 200, method === 'HEAD' ? undefined : saved,
+          return entry ? reply(response, 200, method === 'HEAD' ? undefined : saved,
             { 'Content-Type': 'application/zip', ETag: revision })
             : reply(response, 404, { error: 'No backup for this version' });
         }
@@ -231,7 +278,8 @@ export function service({ configuration, origin, storage, exchange = oidc.author
           return reply(response, 204);
         }
         if (entry) return reply(response, 409, { error: 'Delete the existing snapshot before replacing it' });
-        await personal.save(name, uploaded);
+        const id = await personal.save(name, uploaded);
+        record(version, id, digest(uploaded));
         return reply(response, 204, undefined, { ETag: '"' + digest(uploaded) + '"' });
       } finally { locks.delete(session.owner); }
     } catch (error) {

@@ -19,3 +19,9 @@ The local HTTP test mocks the issuer exchange and verifies proof binding, single
 ## Deployment record
 
 On November 26, 2026 X-Center deployed backend revision `82befe4` with the original registration and shared persistent storage. The loopback service is on port 18423. Public health, unauthenticated backup rejection, issuer sign-in page, and proof-bound pending pickup were verified. A user-signed-in callback and live backup transfer remain pending. The appliance change record contains rollback steps.
+
+## Editable backup names
+
+Backup uploads set both Browseable and Editable on the user's app-container files. Existing tracked Browseable backups are upgraded when listed. Backups use the X-Center file ID and the original SHA-256 in a per-account index on the persistent volume. Legacy filenames seed this index when they identify a single file with a valid digest. Dashboard renames preserve snapshot identity. Replaced bytes are rejected as a conflict, and deleting a cloud file leaves any local copy available. Downloaded bytes are checked against the reported digest and the backup manifest. Player Backup displays a cloud label only if any local ZIP under that snapshot ID has identical bytes. The local ZIP retains its stable filename for the restore worker.
+
+BeatLeader replay files are currently local. The backup upload route handles snapshot ZIPs only, so it does not grant Editable to standalone replay files.

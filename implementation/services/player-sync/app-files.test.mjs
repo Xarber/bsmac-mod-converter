@@ -12,9 +12,9 @@ test('writes browseable chunks to the delegated application folder', async () =>
     calls.push([init.method, init.body && JSON.parse(init.body)]);
     return Response.json({id, chunkSize: 3});
   });
-  await files.save('backup.zip', Buffer.from('abcde'));
+  assert.equal(await files.save('backup.zip', Buffer.from('abcde')), id);
   assert.deepEqual(calls, [
-    ['POST', {name: 'backup.zip', size: 5, browseable: true}],
+    ['POST', {name: 'backup.zip', size: 5, browseable: true, editable: true}],
     ['PUT', {position: 0, content: 'YWJj'}],
     ['PUT', {position: 3, content: 'ZGU='}],
     ['POST', {}],

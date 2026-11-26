@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
+import { createHash } from 'node:crypto';
+
 export const fileLimit = 32 * 1024 * 1024;
 
 export function appFiles(access, clientId, request = fetch) {
@@ -46,7 +48,7 @@ export function appFiles(access, clientId, request = fetch) {
     async save(name, bytes) {
       if (bytes.length > fileLimit) throw Object.assign(new Error('Backup exceeds transfer limit'), { status: 413 });
       const {id, chunkSize} = await (await call('/uploads', 'POST',
-        {name, size: bytes.length, browseable: true})).json();
+        {name, size: bytes.length, browseable: true, editable: true})).json();
       if (typeof id !== 'string' || !/^[0-9a-f-]{36}$/.test(id) ||
           !Number.isSafeInteger(chunkSize) || chunkSize < 1 || chunkSize > 1024 * 1024)
         throw new Error('Unexpected upload metadata');
@@ -55,16 +57,27 @@ export function appFiles(access, clientId, request = fetch) {
         for (let position = 0; position < bytes.length; position += chunkSize) {
           await call(route, 'PUT', {position, content: bytes.subarray(position, position + chunkSize).toString('base64')});
         }
-        await call(route, 'POST', {});
+        const saved = await (await call(route, 'POST', {})).json();
+        if (typeof saved.id !== 'string' || !/^[0-9a-f-]{36}$/.test(saved.id))
+          throw new Error('Unexpected committed file ID');
+        return saved.id;
       } catch (error) {
         // A failed completion response may still mean the file was committed.
         try {
           const state = await (await call(route)).json();
-          if (state.committed) return;
+          if (state.committed) {
+            const hash = createHash('sha256').update(bytes).digest('hex');
+            const matches = (await this.list()).filter(file => file.name === name && file.sha256 === hash);
+            if (matches.length === 1) return matches[0].id;
+            throw error;
+          }
           await call(route, 'DELETE');
         } catch { /* X-Center ID expires incomplete uploads. */ }
         throw error;
       }
+    },
+    async enableEditing(id) {
+      await call('/' + encodeURIComponent(id), 'PUT', {browseable: true, editable: true});
     },
     async remove(id) { await call('/' + encodeURIComponent(id), 'DELETE'); },
   };

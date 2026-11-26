@@ -16,13 +16,14 @@ test('single-use sign-in pickup and account-scoped revision-guarded backup', asy
   }, 'test-client');
   let renewals = 0;
   const accounts = new Map();
+  const names = new Map();
   const files = (access) => {
     if (!accounts.has(access)) accounts.set(access, new Map());
     const entries = accounts.get(access);
     return {
-      list: async () => [...entries.keys()].map(name => ({name, id: name, created: Date.now()})),
+      list: async () => [...entries.keys()].map(name => ({name: names.get(name) ?? name, id: name, sha256: createHash("sha256").update(entries.get(name)).digest("hex"), created: Date.now()})),
       read: async (id) => entries.get(id),
-      save: async (name, data) => entries.set(name, data),
+      save: async (name, data) => { entries.set(name, data); return name; },
       remove: async (id) => entries.delete(id),
     };
   };
@@ -77,8 +78,16 @@ test('single-use sign-in pickup and account-scoped revision-guarded backup', asy
   assert.equal((await request(url, {headers: {authorization}})).status, 200);
   const snapshot = '1.40.8-manual-20261126123456789-abcdef12';
   assert.equal((await request('/api/backups/' + snapshot, upload)).status, 204);
+  names.set(snapshot + '.zip', 'My renamed backup.zip');
   const list = await request('/api/backups', {headers: {authorization}});
-  assert.deepEqual((await list.json()).versions.map(row => row.version).sort(), ['1.40.8', snapshot]);
+  const rows = (await list.json()).versions;
+  assert.deepEqual(rows.map(row => row.version).sort(), ['1.40.8', snapshot]);
+  assert.equal(rows.find(row => row.version === snapshot).name, 'My renamed backup.zip');
+  assert.equal((await request('/api/backups/' + snapshot, {headers: {authorization}})).status, 200);
+  const original = accounts.get('first-account').get(snapshot + '.zip');
+  accounts.get('first-account').set(snapshot + '.zip', Buffer.from('replaced'));
+  assert.equal((await request('/api/backups/' + snapshot, {headers: {authorization}})).status, 409);
+  accounts.get('first-account').set(snapshot + '.zip', original);
   const head = await request('/api/backups/' + snapshot, {method: 'HEAD', headers: {authorization}});
   assert.equal((await request('/api/backups/' + snapshot, {method: 'DELETE',
     headers: {authorization, 'If-Match': head.headers.get('etag')}})).status, 204);

@@ -122,7 +122,8 @@ namespace PlayerBackup {
                 System.Globalization.DateTimeStyles.AssumeUniversal, out var created))
                 where = created.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss") +
                     (details[1] == "auto" ? " · Auto" : " · Manual") + (cloudVersions.Contains(version) ? " · Cloud" : "");
-            return SnapshotVersion(version) + " · " + where;
+            return (cloudVersions.Contains(version) && cloudNames.TryGetValue(version, out var name) ? name + " · " : "") +
+                SnapshotVersion(version) + " · " + where;
         }
 
         void Draw() {
