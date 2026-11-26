@@ -77,3 +77,5 @@ T28 — Player Backup plugin installed on the reference Mac after a warning-free
 T29 — Fixed the BSIPA manifest namespace rejection from the reference Player.log. Selectable restore now covers model files and reviewed map/mod packages. Added OIDC handoff service and cloud CLI. Pending live menu retest, automatic discovery of source URLs, and production deployment and consent verification.
 
 T30 — Deployed Player Sync on X-Center and verified public health, issuer sign-in entry, and pending pickup. The second game log showed BSMLSettings was accessed before initialization. The installed plugin now waits for the main menu. Runtime menu and authenticated transfer remain pending.
+
+T31 — Added visible queue status, local archive history, X-Center browser login, and current-version upload/download to Player Backup. Build and installation can be verified without launching. Live in-game UI and authenticated transfer remain runtime checks.

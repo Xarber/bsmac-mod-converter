@@ -32,3 +32,9 @@ Use one private record per game version in the signed-in user's namespace, with 
 Restore only after the user reviews a preview and the game has closed. Validate version, paths and hashes and preserve the current files for rollback. Resolve confirmed map IDs through BeatSaver and pinned mod versions through verified installers. Automatically fetch models only from verified origins with permission to download and verify their hashes. Present missing provenance explicitly and use automatic Metal preparation for compatible restored assets.
 
 The registration export lists `https://beatsaber.xcenter.it/api/account/callback`. On November 26 the endpoint returned HTTP 404. The server and browser handoff client are implemented. Portal activation and deployment remain unverified. See [deployment and verification](features-player-sync-service.md).
+
+## Queue, backup history and cloud account
+
+The Player Backup screen shows the queued operation and its selected categories. Cancel clears the queue. The history lists local ZIPs and their modified times across game versions. Restore targets the running game's version. Old versions stay visible without being applied to the wrong game.
+
+Choose **Sign in** in Player Backup to open X-Center ID in the system browser. Return to the game after consent. The service session stays in memory for this game session. Upload and download transfer the current version after sign-in. The in-game controls preserve existing local and cloud copies. The documented CLI supports explicit replacement. Download only saves a local ZIP. Use the separate restore action to apply selected categories.
