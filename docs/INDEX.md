@@ -22,3 +22,5 @@ Repository review covers all first-party source added here, the local legacy con
 - [Versioned player backups](features-player-backup.md)
 
 - [X-Center ID backup service](features-player-sync-service.md)
+
+- [Install Player Backup and share Beat Saber data](features-player-sharing.md)

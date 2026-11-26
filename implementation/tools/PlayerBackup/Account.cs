@@ -104,6 +104,7 @@ namespace PlayerBackup {
                         SetAccountStatus("Signed in to X-Center ID");
                         try { await RefreshCloud(attempt.Token); }
                         catch (HttpRequestException) { SetAccountStatus("Cloud unavailable · allow app data access"); }
+                        await PublishExports(attempt.Token);
                         RunScheduledBackup();
                         break;
                     }
@@ -168,6 +169,34 @@ namespace PlayerBackup {
             using (var request = new HttpRequestMessage(method, path)) {
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", owner);
                 return await AccountClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellation);
+            }
+        }
+
+        async Task PublishExports(CancellationToken cancellation) {
+            var owner = session;
+            try {
+                if (owner == null) return;
+                var python = Path.Combine(Root, "player-sync", "venv", "bin", "python");
+                var start = new System.Diagnostics.ProcessStartInfo(python) {
+                    UseShellExecute = false, RedirectStandardOutput = true,
+                    Arguments = "-I -m bsmac_converter.player_exports " + Quote(InstancePath()) +
+                        " " + Quote(Application.persistentDataPath),
+                };
+                string payload;
+                using (var process = System.Diagnostics.Process.Start(start))
+                using (cancellation.Register(() => Stop(process))) {
+                    payload = await process.StandardOutput.ReadToEndAsync();
+                    await Task.Run(() => process.WaitForExit());
+                    if (process.ExitCode != 0 || session != owner || cancellation.IsCancellationRequested) return;
+                }
+                using (var request = new HttpRequestMessage(HttpMethod.Post, "/api/exports")) {
+                    request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", owner);
+                    request.Content = new StringContent(payload, Encoding.UTF8, "application/json");
+                    using (var reply = await AccountClient.SendAsync(request, cancellation))
+                        reply.EnsureSuccessStatusCode();
+                }
+            } catch (Exception error) {
+                log.Warn("Shared Beat Saber records were not updated: " + error.GetType().Name);
             }
         }
 

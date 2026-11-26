@@ -225,6 +225,7 @@ namespace PlayerBackup {
                     await UploadBackup(version, operation.Token);
                     if (automatic) CompleteSchedule();
                     await RefreshCloud(operation.Token);
+                    await PublishExports(operation.Token);
                 }
                 BackupStatus = HasSession ? "Saved locally and in cloud" : "Local backup saved";
             } catch (OperationCanceledException) {

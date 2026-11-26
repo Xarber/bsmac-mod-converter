@@ -22,6 +22,10 @@ Conversions are content-addressed, validated, staged separately and never silent
 
 Compatible Vivify bundles can be prepared automatically before Play when the local worker and narrow versioned patch are installed. See [setup, controls and verification limits](docs/features-automatic-vivify.md).
 
+## Player Backup
+
+[Install the Player Backup mod and enable X-Center ID sharing](docs/features-player-sharing.md#install-player-backup-on-apple-silicon).
+
 ## Verification
 
 ```sh

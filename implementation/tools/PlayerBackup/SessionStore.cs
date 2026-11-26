@@ -63,7 +63,10 @@ namespace PlayerBackup {
 
             try {
                 using (var timeout = new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(15)))
+                {
                     await RefreshCloud(timeout.Token);
+                    await PublishExports(timeout.Token);
+                }
                 if (!HasSession) return;
                 SetAccountStatus("Signed in to X-Center ID");
                 RunScheduledBackup();

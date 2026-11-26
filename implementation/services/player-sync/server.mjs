@@ -3,6 +3,7 @@ import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
 import { createServer } from 'node:http';
 import { existsSync, mkdirSync, readFileSync, readdirSync, unlinkSync, writeFileSync } from 'node:fs';
 import { fileLimit, appFiles } from './app-files.mjs';
+import { writeSharedRecords } from './shared-records.mjs';
 import { personalFiles } from './personal-files.mjs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -144,6 +145,13 @@ export function service({ configuration, origin, storage, exchange = oidc.author
           return reply(response, 401, { error: 'Sign in again' });
         }
         if (!sessions.has(sessionKey)) return reply(response, 401, { error: 'Sign in again' });
+      }
+      if (method === 'POST' && url.pathname === '/api/exports') {
+        const input = JSON.parse(await body(request, 128 * 1024));
+        if (!sessions.has(sessionKey) || session.until <= Date.now())
+          return reply(response, 401, { error: 'Session expired' });
+        await writeSharedRecords(input, session.access, configuration.clientMetadata().client_id);
+        return reply(response, 204);
       }
       const listing = method === 'GET' && url.pathname === '/api/backups';
       const version = url.pathname.match(/^\/api\/backups\/([^/]+)$/)?.[1];
