@@ -13,3 +13,9 @@ The official BeatTogether server advertises plain ENet. The adapter accepts plai
 On an Apple Silicon Mac, a separate test process loaded the 1.40.8 Unity Mono runtime, the original Ignorance assembly and staged adapter during the initial isolated checks, then exchanged a reliable payload over both IPv4 and IPv6 loopback. The installer confirmed both TLS modes were rejected and the application signature passed strict verification. A live lobby and matchmaking remain unverified.
 
 The installed direct-import assembly passed the same IPv4 and IPv6 tests with no adjacent configuration file in the test directory. The live lobby check remains open.
+
+## Active gameplay with ScoreSaber
+
+The live game log confirmed an ENet connection. Two active song starts then failed when ScoreSaber 3.4.2 tried to inject a single-player pause controller while creating the multiplayer player. With ScoreSaber 3.4.2 installed, run `bash scripts/install-scoresaber-multiplayer.sh` while the game is closed. The installer checks the original assembly hash and makes only that dependency optional. Pause event handling keeps its original behavior wherever the controller exists. The installer records a rollback receipt and verifies the signature. The patched assembly was inspected after installation. Verify by playing a normal map with spectator mode off and testing ScoreSaber in solo play.
+
+MultiplayerCore 1.6.1 separately logged missing status metadata during successful and failed rounds. The configured endpoint returned valid JSON, and upstream 1.6.2 only documents a computer-name fix. The logs do not establish why the status repository lacked the response in-game. Per-player controls that depend on that metadata remain unverified.

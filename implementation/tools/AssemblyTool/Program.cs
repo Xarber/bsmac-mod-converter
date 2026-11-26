@@ -42,6 +42,30 @@ if (args[0] == "ignorance-native-imports") {
             throw new ArgumentException("Expected an absolute macOS library path");
         module.Name = library;
     }
+} else if (args[0] == "scoresaber-multiplayer-pause") {
+    if (args.Length != 4 || asm.Name.Name != "ScoreSaber" ||
+        asm.Name.Version != new Version(3, 4, 2, 0) ||
+        !Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(args[1]))).Equals(
+            "3992353d7a71b3a8b13bdc63f6905f3ce6337f8fff423352657a03d19a331bc7", StringComparison.OrdinalIgnoreCase))
+        throw new InvalidOperationException("Expected the inspected ScoreSaber 3.4.2 assembly");
+    using var attributes = AssemblyDefinition.ReadAssembly(args[2]);
+    var optional = attributes.MainModule.GetType("Zenject.InjectOptionalAttribute")
+        .Methods.Single(method => method.IsConstructor && !method.HasParameters);
+    var guard = types.Single(type => type.FullName == "ScoreSaber.Features.Live.Compete.Services.CompetePauseGuard");
+    var controller = guard.Fields.Single(field => field.Name == "_pauseController" && field.FieldType.FullName == "PauseController");
+    var parameter = guard.Methods.Single(method => method.IsConstructor).Parameters
+        .Single(item => item.ParameterType.FullName == "PauseController");
+    parameter.CustomAttributes.Add(new CustomAttribute(asm.MainModule.ImportReference(optional)));
+
+    foreach (string name in new[] { "Initialize", "Dispose" }) {
+        var body = guard.Methods.Single(method => method.Name == name).Body;
+        var start = body.Instructions[0];
+        var ret = body.Instructions.Single(instruction => instruction.OpCode == OpCodes.Ret);
+        var il = body.GetILProcessor();
+        il.InsertBefore(start, il.Create(OpCodes.Ldarg_0));
+        il.InsertBefore(start, il.Create(OpCodes.Ldfld, controller));
+        il.InsertBefore(start, il.Create(OpCodes.Brfalse, ret));
+    }
 } else if (args[0] == "replace-resource") {
     if (args.Length != 7)
         throw new ArgumentException("replace-resource input name original-sha256 derivative derivative-sha256 output");

@@ -111,3 +111,5 @@ T45 — Re-register Player Backup settings when returning to a main-menu scene, 
 T46 — Stop requesting Files read. The older recovery code remains for explicitly granted tokens. BeatTogether transport remediation is tracked under T22. Multiplayer+ avatar tracking delay remains user-reported and lacks a confirmed cause.
 
 T47 — Player Backup waits off the game thread for macOS Keychain access during saved sign-in. Verify delayed approval after a rebuilt game.
+
+T48 — BeatTogether active song start: installed the ScoreSaber 3.4.2 optional pause-controller patch after two matching player-initialization failures. Recheck normal maps as an active player and solo pause behavior. MultiplayerCore status-repository warning remains open independently. Direct endpoint JSON was healthy and the latest compatible MultiplayerCore release does not document a fix.
