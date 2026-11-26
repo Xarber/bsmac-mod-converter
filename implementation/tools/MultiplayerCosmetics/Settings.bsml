@@ -1,0 +1,4 @@
+<vertical child-control-height="false">
+  <toggle-setting text="Remote cosmetics" value="cosmetics" apply-on-change="true" />
+  <toggle-setting text="Physical keyboard" value="desktop-typing" apply-on-change="true" />
+</vertical>

@@ -10,15 +10,19 @@ namespace MultiplayerCosmetics {
         GameObject source;
         MeshRenderer[] hidden = Array.Empty<MeshRenderer>();
         internal Func<Component> Source;
-        internal Color Tint;
+        internal Color? Tint;
         static readonly int ColorProperty = Shader.PropertyToID("_Color");
         int remainingFrames = 450;
 
         void LateUpdate() {
             if (Source == null) return;
+            if (!Plugin.Options.Enabled) { Source = null; return; }
             try {
                 var model = Source();
-                if (model != null && Apply(model.gameObject, model.transform, Plugin.Field(Plugin.Field(model, "liteSaberInstance"), "colorableMaterials") as Material[]) || --remainingFrames == 0)
+                var instance = Plugin.Field(model, "liteSaberInstance");
+                var custom = instance?.GetType().FullName == "CustomSabersLite.Models.CustomLiteSaber";
+                var materials = custom ? Plugin.Field(instance, "colorableMaterials") as Material[] : null;
+                if ((custom && Apply(model.gameObject, model.transform, materials)) || --remainingFrames == 0)
                     Source = null;
             } catch (Exception e) {
                 Source = null;
@@ -32,10 +36,10 @@ namespace MultiplayerCosmetics {
                 renderer.enabled && renderer.GetComponent<MeshFilter>()?.sharedMesh != null &&
                 renderer.sharedMaterials.Length > 0 &&
                 renderer.sharedMaterials.All(material => material != null && material.shader.isSupported)).ToArray();
-            if (meshes.Length == 0 || colorable == null) return false;
+            if (meshes.Length == 0) return false;
 
             Clear();
-            var tinted = new HashSet<Material>(colorable);
+            var tinted = new HashSet<Material>(colorable ?? Array.Empty<Material>());
             var target = GetComponentsInChildren<MeshRenderer>(true).Where(renderer => renderer.enabled).ToArray();
             var root = new GameObject("Remote cosmetic meshes");
             root.SetActive(false);
@@ -58,10 +62,10 @@ namespace MultiplayerCosmetics {
                     destination.SetPropertyBlock(properties);
                     var materials = destination.sharedMaterials;
                     for (int slot = 0; slot < materials.Length; slot++) {
-                        if (!tinted.Contains(materials[slot])) continue;
+                        if (!Tint.HasValue || !tinted.Contains(materials[slot])) continue;
                         mesh.GetPropertyBlock(properties, slot);
                         if (properties.isEmpty) mesh.GetPropertyBlock(properties);
-                        properties.SetColor(ColorProperty, Tint);
+                        properties.SetColor(ColorProperty, Tint.Value);
                         destination.SetPropertyBlock(properties, slot);
                     }
                 }

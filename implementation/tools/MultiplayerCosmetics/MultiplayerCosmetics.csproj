@@ -13,6 +13,9 @@
     <Reference Include="UnityEngine.InputLegacyModule"><HintPath>$(GameResources)/Beat Saber_Data/Managed/UnityEngine.InputLegacyModule.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="UnityEngine.AnimationModule"><HintPath>$(GameResources)/Beat Saber_Data/Managed/UnityEngine.AnimationModule.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="UnityEngine.PhysicsModule"><HintPath>$(GameResources)/Beat Saber_Data/Managed/UnityEngine.PhysicsModule.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="BSML"><HintPath>$(GameResources)/Plugins/BSML.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Unity.InputSystem"><HintPath>$(GameResources)/Beat Saber_Data/Managed/Unity.InputSystem.dll</HintPath><Private>false</Private></Reference>
+    <EmbeddedResource Include="Settings.bsml" LogicalName="MultiplayerCosmetics.Settings.bsml" />
     <EmbeddedResource Include="manifest.json" LogicalName="MultiplayerCosmetics.manifest.json" />
   </ItemGroup>
 </Project>

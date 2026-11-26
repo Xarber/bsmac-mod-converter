@@ -9,20 +9,26 @@ using UnityEngine;
 
 namespace MultiplayerCosmetics {
     [Plugin(RuntimeOptions.SingleStartInit)]
-    public sealed class Plugin {
+    public sealed partial class Plugin {
         static IPA.Logging.Logger log;
         static object noteLoader;
         static readonly Component[] localSabers = new Component[2];
         static readonly Harmony Harmony = new Harmony("it.xcenter.bsmac.multiplayer-cosmetics");
         static Type WallLoader => AccessTools.TypeByName("CustomWalls.Utilities.MaterialAssetLoader");
 
-        [Init] public Plugin(IPA.Logging.Logger logger) { log = logger; }
+        [Init]
+        public Plugin(IPA.Logging.Logger logger, IPA.Config.Config config) {
+            log = logger;
+            LoadSettings(config);
+        }
 
         [OnEnable]
         public void Enable() {
             Patch("CustomNotes.Managers.NoteAssetLoader", "Initialize", nameof(NoteLoaderReady));
             Patch("MultiplayerConnectedPlayerGameNoteController", "Init", nameof(NoteReady), 4);
             Patch("MultiplayerConnectedPlayerObstacleController", "Init", nameof(WallReady), 2);
+            RegisterSettings();
+            Patch("CustomSabersLite.Components.LiteSaberModelController", "PreInit", nameof(LocalSaberReady), 2);
             Patch("SaberModelContainer", "Start", nameof(SaberReady));
             Patch("UIKeyboard", "Awake", nameof(KeyboardReady));
             Patch("HMUI.UIKeyboard", "Awake", nameof(KeyboardReady));
@@ -55,6 +61,7 @@ namespace MultiplayerCosmetics {
         static void NoteReady(Component __instance, object __0) {
             try {
                 var existing = __instance.GetComponent<RemoteNote>();
+                if (!Options.Enabled) { existing?.Clear(); return; }
                 var color = Property(__0, "colorType")?.ToString();
                 var direction = Property(__0, "cutDirection")?.ToString();
                 if (color != "ColorA" && color != "ColorB") { existing?.Clear(); return; }
@@ -82,6 +89,7 @@ namespace MultiplayerCosmetics {
             try {
                 var old = __instance.GetComponent<RemoteWall>();
                 old?.Restore();
+                if (!Options.Enabled) return;
                 var loader = WallLoader;
                 var selection = Selection(StaticProperty(loader, "CustomMaterialObjects"), StaticProperty(loader, "SelectedMaterial"));
                 var selected = Property(selection, "MaterialRenderer") as Renderer;
@@ -97,6 +105,14 @@ namespace MultiplayerCosmetics {
             } catch (Exception e) { ReportOnce("wall", e); }
         }
 
+        static void LocalSaberReady(Component __instance, object __1) {
+            var remote = AccessTools.TypeByName("MultiplayerConnectedPlayerFacade");
+            if (remote == null || __instance.GetComponentInParent(remote) != null) return;
+            var hand = Property(__1, "saberType")?.ToString();
+            if (hand == "SaberA") localSabers[0] = __instance;
+            if (hand == "SaberB") localSabers[1] = __instance;
+        }
+
         static void SaberReady(Component __instance) {
             try {
                 var saber = Field(__instance, "_saber");
@@ -105,15 +121,16 @@ namespace MultiplayerCosmetics {
                 int hand = side == "SaberA" ? 0 : 1;
                 if (__instance.GetComponentInParent(AccessTools.TypeByName("MultiplayerConnectedPlayerFacade")) == null) {
                     var lite = AccessTools.TypeByName("CustomSabersLite.Components.LiteSaberModelController");
-                    if (lite != null) localSabers[hand] = __instance.GetComponentInChildren(lite, true);
+                    if (lite != null && __instance.GetComponentInChildren(lite, true) is Component model) localSabers[hand] = model;
                     return;
                 }
+                if (!Options.Enabled) return;
                 var controller = __instance.GetComponentInChildren(AccessTools.TypeByName("SaberModelController"), true);
                 var manager = Field(controller, "_colorManager");
                 var colorType = AccessTools.TypeByName("ColorType");
                 var lookup = manager == null || colorType == null ? null :
                     AccessTools.Method(manager.GetType(), "ColorForType", new[] { colorType });
-                if (lookup?.Invoke(manager, new[] { Enum.Parse(colorType, hand == 0 ? "ColorA" : "ColorB") }) is not Color tint) return;
+                var tint = lookup?.Invoke(manager, new[] { Enum.Parse(colorType, hand == 0 ? "ColorA" : "ColorB") }) as Color?;
                 var visual = __instance.gameObject.AddComponent<RemoteVisual>();
                 visual.Tint = tint;
                 visual.Source = () => localSabers[hand];

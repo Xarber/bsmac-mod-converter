@@ -8,13 +8,40 @@ namespace MultiplayerCosmetics {
     public sealed class DesktopKeyboard : MonoBehaviour {
         static readonly List<DesktopKeyboard> Visible = new List<DesktopKeyboard>();
         internal Component Keyboard;
+        UnityEngine.InputSystem.Keyboard windowsKeyboard;
+
         void OnEnable() => Visible.Add(this);
-        void OnDisable() => Visible.Remove(this);
+        void OnDisable() {
+            Visible.Remove(this);
+            BindWindowsKeyboard(null);
+        }
+
+        void BindWindowsKeyboard(UnityEngine.InputSystem.Keyboard keyboard) {
+            if (ReferenceEquals(windowsKeyboard, keyboard)) return;
+            if (windowsKeyboard != null) windowsKeyboard.onTextInput -= TextInput;
+            windowsKeyboard = keyboard;
+            if (windowsKeyboard != null) windowsKeyboard.onTextInput += TextInput;
+        }
+
+        bool IsTarget => Plugin.Options.DesktopTyping && Keyboard != null && Application.isFocused &&
+            Visible.Count > 0 && Visible[Visible.Count - 1] == this;
+
+        void TextInput(char character) {
+            if (IsTarget && !char.IsControl(character)) Receive(character.ToString());
+        }
 
         void Update() {
-            if (Keyboard == null || !Application.isFocused || Visible.Count == 0 ||
-                Visible[Visible.Count - 1] != this) return;
-            var input = Input.inputString;
+            if (Application.platform == RuntimePlatform.WindowsPlayer) {
+                BindWindowsKeyboard(IsTarget ? UnityEngine.InputSystem.Keyboard.current : null);
+                if (windowsKeyboard != null) {
+                    if (windowsKeyboard.backspaceKey.wasPressedThisFrame) Receive("\b");
+                    return;
+                }
+            }
+            if (IsTarget) Receive(Input.inputString);
+        }
+
+        void Receive(string input) {
             if (string.IsNullOrEmpty(input)) return;
             try {
                 var model = Plugin.Property(Keyboard, "Keyboard");

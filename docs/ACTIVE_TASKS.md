@@ -123,3 +123,5 @@ T52 — Fixed the BSIPA entry-point namespace mismatch observed in the 16:05 gam
 T53 — Remote notes rendered but the user reported oversized meshes, missing color, and missing rotation or animation. Installed a dedicated remote note visual using CustomNotes sizing and tint with the game's moving note transform and the model's animation hierarchy. Release build, IPA entry point, and installed signature passed. Live visual retest pending.
 
 T54 — User verified remote blocks. Updated remote saber material overrides to use each remote player's note palette. Build and IPA entry-point validation passed. Live comparison with different palettes is pending.
+
+T55 — User confirmed Windows remote blocks and reported missing remote sabers. Added the CustomSabersLite initialization hook, persisted cosmetics and typing toggles, and a Windows desktop-input route. Windows VR verification pending. Removed Camera2 from the Mac instance with a rollback copy.
