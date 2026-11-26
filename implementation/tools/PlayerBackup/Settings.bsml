@@ -1,26 +1,33 @@
 <scrollable-settings-container>
-  <vertical spacing="2">
-    <text text="X-Center ID" font-size="4" />
-    <text text="~account-status" font-size="3" />
-    <horizontal spacing="2">
-      <button text="Sign in" on-click="sign-in" />
-      <button text="Cancel sign-in / Sign out" on-click="sign-out" />
-    </horizontal>
-    <horizontal spacing="2">
-      <button text="Upload this version" on-click="upload" />
-      <button text="Download this version" on-click="download" />
-    </horizontal>
-    <text text="~queue-status" font-size="3" />
-    <toggle-setting text="Player data" value="player" apply-on-change="true" />
-    <toggle-setting text="Plugin configs" value="configs" apply-on-change="true" />
-    <toggle-setting text="Mods" value="mods" apply-on-change="true" />
-    <toggle-setting text="Maps" value="maps" apply-on-change="true" />
-    <toggle-setting text="Models" value="models" apply-on-change="true" />
-    <button text="Back up after exit" on-click="backup" />
-    <button text="Restore selected items after exit" on-click="restore" />
-    <button text="Cancel queued operation" on-click="cancel" />
-    <text text="Local backups by game version" font-size="4" />
-    <text text="~history" font-size="3" />
-    <button text="Refresh backup list" on-click="refresh-history" />
-  </vertical>
+  <text text="~account-status" font-size="3" preferred-height="6" />
+  <button text="Sign in to X-Center ID" on-click="sign-in" active="~show-sign-in" />
+  <button text="Cancel sign-in" on-click="sign-out" active="~show-account-cancel" />
+  <button text="Sign out" on-click="sign-out" active="~show-sign-out" />
+  <text text="~queue-status" font-size="3" preferred-height="8" />
+  <bool-setting text="Player data" value="player" apply-on-change="true" />
+  <bool-setting text="Plugin configs" value="configs" apply-on-change="true" />
+  <bool-setting text="Mods" value="mods" apply-on-change="true" />
+  <bool-setting text="Maps" value="maps" apply-on-change="true" />
+  <bool-setting text="Models" value="models" apply-on-change="true" />
+  <button text="Back up now" on-click="backup" active="~show-backup" />
+  <button text="Cancel operation" on-click="cancel" active="~show-cancel" />
+  <button text="Quit and apply restore" on-click="quit-restore" active="~show-restart" />
+  <text text="~history-page" font-size="4" preferred-height="7" />
+  <horizontal active="~has-a" preferred-height="9" spacing="2">
+    <text text="~row-a" font-size="3" preferred-width="55" />
+    <button text="Restore" on-click="restore-row-a" active="~restore-a" />
+    <button text="Cancel" on-click="cancel" active="~cancel-a" />
+  </horizontal>
+  <horizontal active="~has-b" preferred-height="9" spacing="2">
+    <text text="~row-b" font-size="3" preferred-width="55" />
+    <button text="Restore" on-click="restore-row-b" active="~restore-b" />
+    <button text="Cancel" on-click="cancel" active="~cancel-b" />
+  </horizontal>
+  <horizontal active="~has-c" preferred-height="9" spacing="2">
+    <text text="~row-c" font-size="3" preferred-width="55" />
+    <button text="Restore" on-click="restore-row-c" active="~restore-c" />
+    <button text="Cancel" on-click="cancel" active="~cancel-c" />
+  </horizontal>
+  <button text="Previous backups" on-click="previous" active="~show-prev" />
+  <button text="More backups" on-click="next" active="~show-next" />
 </scrollable-settings-container>

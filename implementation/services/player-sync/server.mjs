@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
 import { createServer } from 'node:http';
-import { existsSync, mkdirSync, readFileSync, renameSync, unlinkSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, renameSync, unlinkSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import * as oidc from 'openid-client';
@@ -70,10 +70,21 @@ export function service({ configuration, origin, storage, exchange = oidc.author
         entry.callbackUsed = true;
         const callbackUrl = new URL(callback);
         callbackUrl.search = url.search;
-        const result = await exchange(configuration, callbackUrl, {
-          expectedState: entry.state, expectedNonce: entry.nonce, pkceCodeVerifier: entry.verifier,
-          idTokenExpected: true,
-        });
+        let result;
+        try {
+          result = await exchange(configuration, callbackUrl, {
+            expectedState: entry.state, expectedNonce: entry.nonce, pkceCodeVerifier: entry.verifier,
+            idTokenExpected: true,
+          });
+        } catch (error) {
+          entry.failure = error.error === 'invalid_client' ? 'client_rejected' : 'sign_in_rejected';
+          console.error('Player Sync callback rejected:', entry.failure);
+          return reply(response, 502, Buffer.from(entry.failure === 'client_rejected'
+            ? 'X-Center ID rejected the server credentials. Return to Beat Saber.'
+            : 'X-Center ID could not complete sign-in. Return to Beat Saber.'), {
+            'Content-Type': 'text/plain; charset=utf-8',
+          });
+        }
         const claims = result.claims();
         if (!claims || claims.iss !== issuer.href.replace(/\/$/, '') || typeof claims.sub !== 'string')
           return reply(response, 401, { error: 'Invalid account' });
@@ -88,6 +99,10 @@ export function service({ configuration, origin, storage, exchange = oidc.author
         const entry = pending.get(handle);
         if (!entry || typeof proof !== 'string' || !timingSafeEqual(Buffer.from(digest(proof)), Buffer.from(entry.challenge)))
           return reply(response, 401, { error: 'Invalid or expired pickup' });
+        if (entry.failure) {
+          pending.delete(handle);
+          return reply(response, 403, { error: entry.failure });
+        }
         if (!entry.owner) return reply(response, 202, { status: 'pending' });
         if (sessions.size >= 1024) return reply(response, 503, { error: 'Sign-in is busy' });
         pending.delete(handle);
@@ -104,14 +119,21 @@ export function service({ configuration, origin, storage, exchange = oidc.author
         sessions.delete(sessionKey);
         return reply(response, 204);
       }
+      const folder = resolve(storage, session.owner);
+      if (method === 'GET' && url.pathname === '/api/backups') {
+        const versions = existsSync(folder) ? readdirSync(folder)
+          .filter(name => /^\d{1,5}\.\d{1,5}\.\d{1,5}\.zip$/.test(name))
+          .map(name => ({ version: name.slice(0, -4), modified: statSync(resolve(folder, name)).mtime.toISOString() }))
+          : [];
+        return reply(response, 200, { versions });
+      }
       const version = url.pathname.match(/^\/api\/backups\/(\d{1,5}\.\d{1,5}\.\d{1,5})$/)?.[1];
       if (!version) return reply(response, 404, { error: 'Unknown route' });
-      const folder = resolve(storage, session.owner);
       const target = resolve(folder, version + '.zip');
       const current = () => existsSync(target) ? readFileSync(target) : undefined;
-      if (method === 'GET') {
+      if (method === 'GET' || method === 'HEAD') {
         const saved = current();
-        return saved ? reply(response, 200, saved, { 'Content-Type': 'application/zip', ETag: '"' + digest(saved) + '"' })
+        return saved ? reply(response, 200, method === 'HEAD' ? undefined : saved, { 'Content-Type': 'application/zip', ETag: '"' + digest(saved) + '"' })
           : reply(response, 404, { error: 'No backup for this version' });
       }
       if (method !== 'PUT' && method !== 'DELETE') return reply(response, 405, { error: 'Unsupported method' });

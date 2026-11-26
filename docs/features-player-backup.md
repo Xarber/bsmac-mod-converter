@@ -33,8 +33,10 @@ Restore only after the user reviews a preview and the game has closed. Validate 
 
 The registration export lists `https://beatsaber.xcenter.it/api/account/callback`. On November 26 the endpoint returned HTTP 404. The server and browser handoff client are implemented. Portal activation and deployment remain unverified. See [deployment and verification](features-player-sync-service.md).
 
-## Queue, backup history and cloud account
+## Live backups and restore
 
-The Player Backup screen shows the queued operation and its selected categories. Cancel clears the queue. The history lists local ZIPs and their modified times across game versions. Restore targets the running game's version. Old versions stay visible without being applied to the wrong game.
+Select categories and choose **Back up now** from the main menu. The worker reads the last saves written to disk and aborts if a file changes during its read. When signed in, a successful local backup uploads automatically with a revision check.
 
-Choose **Sign in** in Player Backup to open X-Center ID in the system browser. Return to the game after consent. The service session stays in memory for this game session. Upload and download transfer the current version after sign-in. The in-game controls preserve existing local and cloud copies. The documented CLI supports explicit replacement. Download only saves a local ZIP. Use the separate restore action to apply selected categories.
+Local and cloud backups appear together by version. Select **Restore** beside the current version's backup. A cloud-only archive downloads and validates immediately. The selected categories apply after quitting. Use **Quit and apply restore** and wait for the restore worker to finish before opening Beat Saber again through MoltenVR. Package restoration still requires configured sources.
+
+Choose **Sign in to X-Center ID** to open the issuer in the browser. Cancel ends local polling. The account session stays in memory. Issuer credential rejection is shown in the browser and in the game.

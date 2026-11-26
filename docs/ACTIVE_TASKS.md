@@ -79,3 +79,5 @@ T29 — Fixed the BSIPA manifest namespace rejection from the reference Player.l
 T30 — Deployed Player Sync on X-Center and verified public health, issuer sign-in entry, and pending pickup. The second game log showed BSMLSettings was accessed before initialization. The installed plugin now waits for the main menu. Runtime menu and authenticated transfer remain pending.
 
 T31 — Added visible queue status, local archive history, X-Center browser login, and current-version upload/download to Player Backup. Build and installation can be verified without launching. Live in-game UI and authenticated transfer remain runtime checks.
+
+T32 — Reactive backup controls, live snapshots, automatic cloud transfers and per-row restore staged. The issuer returned invalid_client for the deployed registration credentials. Existing keys were preserved. Live in-game layout and signed-in backup remain pending.

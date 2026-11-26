@@ -24,16 +24,22 @@ namespace PlayerBackup {
         CancellationTokenSource signIn;
         string session;
         DateTime sessionExpiry;
-        CancellationTokenSource transfer;
         [DllImport("libc", EntryPoint = "chmod")]
         static extern int ChangeFileMode(string path, uint mode);
         const int MaxBackup = 32 * 1024 * 1024;
+        bool HasSession => session != null && sessionExpiry > DateTime.UtcNow;
+        [UIValue("show-sign-in")] public bool ShowSignIn => signIn == null && !HasSession;
+        [UIValue("show-account-cancel")] public bool ShowAccountCancel => signIn != null;
+        [UIValue("show-sign-out")] public bool ShowSignOut => HasSession;
         [UIValue("account-status")]
         public string AccountStatus { get; private set; } = "Signed out";
 
         void SetAccountStatus(string value) {
             AccountStatus = value;
             Changed(nameof(AccountStatus));
+            Changed(nameof(ShowSignIn));
+            Changed(nameof(ShowAccountCancel));
+            Changed(nameof(ShowSignOut));
         }
 
         [Serializable] sealed class StartReply { public string handle = null; public string authorization = null; }
@@ -76,6 +82,14 @@ namespace PlayerBackup {
                     using (var reply = await Post("/api/account/pickup",
                         "{\"handle\":\"" + start.handle + "\",\"proof\":\"" + proof + "\"}", attempt.Token)) {
                         if (reply.StatusCode == HttpStatusCode.Accepted) continue;
+                        if (reply.StatusCode == HttpStatusCode.Forbidden) {
+                            var failure = await reply.Content.ReadAsStringAsync();
+                            signIn = null;
+                            SetAccountStatus(failure.Contains("client_rejected")
+                                ? "X-Center ID rejected the server credentials"
+                                : "X-Center ID could not complete sign-in");
+                            return;
+                        }
                         reply.EnsureSuccessStatusCode();
                         var pickup = JsonUtility.FromJson<PickupReply>(await reply.Content.ReadAsStringAsync());
                         if (!IsToken(pickup.session) || pickup.expiresIn <= 0 || pickup.expiresIn > 28800)
@@ -83,7 +97,10 @@ namespace PlayerBackup {
                         attempt.Token.ThrowIfCancellationRequested();
                         session = pickup.session;
                         sessionExpiry = DateTime.UtcNow.AddSeconds(pickup.expiresIn);
+                        signIn = null;
                         SetAccountStatus("Signed in to X-Center ID");
+                        try { await RefreshCloud(attempt.Token); }
+                        catch (HttpRequestException) { SetAccountStatus("Signed in. Could not load cloud history."); }
                         break;
                     }
                 }
@@ -92,21 +109,18 @@ namespace PlayerBackup {
             } catch (Exception) {
                 if (signIn == attempt) SetAccountStatus("Sign-in failed. Try again.");
             } finally {
-                if (signIn == attempt) signIn = null;
+                if (signIn == attempt) {
+                    signIn = null;
+                    SetAccountStatus(AccountStatus);
+                }
                 attempt.Dispose();
             }
         }
 
         [Serializable] sealed class BackupManifest { public int schema = 0; public string gameVersion = null; }
 
-        [UIAction("upload")] public async void Upload() => await Transfer(true);
-        [UIAction("download")] public async void Download() => await Transfer(false);
-
         string CurrentVersion() {
-            var contents = Directory.GetParent(Application.dataPath)?.Parent;
-            if (contents?.Name != "Contents") throw new InvalidOperationException();
-            var instance = contents.Parent?.Parent?.FullName;
-            var version = File.ReadAllText(Path.Combine(instance, "BeatSaberVersion.txt")).Trim();
+            var version = File.ReadAllText(Path.Combine(InstancePath(), "BeatSaberVersion.txt")).Trim();
             if (!Regex.IsMatch(version, @"^[0-9]{1,5}\.[0-9]{1,5}\.[0-9]{1,5}$"))
                 throw new InvalidOperationException();
             return version;
@@ -124,86 +138,83 @@ namespace PlayerBackup {
             data.Position = 0;
         }
 
-        async Task Transfer(bool upload) {
-            if (transfer != null) return;
-            var ownerSession = session;
-            if (ownerSession == null || sessionExpiry <= DateTime.UtcNow) {
-                SetAccountStatus("Sign in to transfer backups");
-                return;
-            }
+        [Serializable] sealed class CloudVersion { public string version = null; }
+        [Serializable] sealed class CloudHistory { public CloudVersion[] versions = null; }
 
-            var operation = new CancellationTokenSource(TimeSpan.FromSeconds(45));
-            transfer = operation;
-            string staging = null;
+        async Task RefreshCloud(CancellationToken cancellation) {
+            var owner = session;
+            using (var reply = await SendBackup(HttpMethod.Get, "/api/backups", owner, cancellation)) {
+                reply.EnsureSuccessStatusCode();
+                var history = JsonUtility.FromJson<CloudHistory>(await reply.Content.ReadAsStringAsync());
+                if (session != owner) return;
+                cloudVersions = (history?.versions ?? Array.Empty<CloudVersion>())
+                    .Select(item => item.version).Where(IsVersion).ToArray();
+                RefreshHistory();
+            }
+        }
+
+        static async Task<HttpResponseMessage> SendBackup(HttpMethod method, string path, string owner,
+                CancellationToken cancellation) {
+            if (owner == null) throw new InvalidOperationException("Sign in first");
+            using (var request = new HttpRequestMessage(method, path)) {
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", owner);
+                return await AccountClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellation);
+            }
+        }
+
+        async Task UploadBackup(string version, CancellationToken cancellation) {
+            var owner = session;
+            var path = "/api/backups/" + version;
+            string revision;
+            using (var reply = await SendBackup(HttpMethod.Head, path, owner, cancellation)) {
+                if (reply.StatusCode == HttpStatusCode.NotFound) revision = "\"0\"";
+                else {
+                    reply.EnsureSuccessStatusCode();
+                    revision = reply.Headers.ETag?.Tag ?? throw new InvalidDataException();
+                }
+            }
+            if (owner != session) throw new OperationCanceledException();
+            using (var input = File.OpenRead(LocalBackup(version)))
+            using (var request = new HttpRequestMessage(HttpMethod.Put, path)) {
+                if (input.Length > MaxBackup) throw new InvalidDataException();
+                CheckBackup(input, version);
+                request.Content = new StreamContent(input);
+                request.Content.Headers.ContentType = new MediaTypeHeaderValue("application/zip");
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", owner);
+                request.Headers.TryAddWithoutValidation("If-Match", revision);
+                using (var response = await AccountClient.SendAsync(request, cancellation))
+                    response.EnsureSuccessStatusCode();
+            }
+        }
+
+        async Task DownloadBackup(string version, CancellationToken cancellation) {
+            var owner = session;
+            Directory.CreateDirectory(Backups);
+            var staging = Path.Combine(Backups, "." + Guid.NewGuid().ToString("N") + ".tmp");
             try {
-                var version = CurrentVersion();
-                var path = Path.Combine(Backups, version + ".zip");
-                if (upload && !File.Exists(path)) {
-                    SetAccountStatus("Create a local backup first");
-                    return;
-                }
-                if (!upload && File.Exists(path)) {
-                    SetAccountStatus("A local backup already exists for " + version);
-                    return;
-                }
-                SetAccountStatus(upload ? "Uploading backup…" : "Downloading backup…");
-                using (var request = new HttpRequestMessage(upload ? HttpMethod.Put : HttpMethod.Get, "/api/backups/" + version)) {
-                    request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", ownerSession);
-                    if (upload) {
-                        using (var input = File.OpenRead(path)) {
-                            if (input.Length > MaxBackup) throw new InvalidDataException();
-                            CheckBackup(input, version);
-                            request.Content = new StreamContent(input);
-                            request.Content.Headers.ContentType = new MediaTypeHeaderValue("application/zip");
-                            request.Headers.TryAddWithoutValidation("If-Match", "\"0\"");
-                            using (var response = await AccountClient.SendAsync(request, operation.Token)) {
-                                if (session != ownerSession) return;
-                                if (response.StatusCode == HttpStatusCode.PreconditionFailed) {
-                                    SetAccountStatus("A cloud backup already exists for " + version);
-                                    return;
-                                }
-                                response.EnsureSuccessStatusCode();
-                            }
+                using (var reply = await SendBackup(HttpMethod.Get, "/api/backups/" + version, owner, cancellation)) {
+                    reply.EnsureSuccessStatusCode();
+                    using (var input = await reply.Content.ReadAsStreamAsync())
+                    using (var output = new FileStream(staging, FileMode.CreateNew, FileAccess.ReadWrite)) {
+                        if (ChangeFileMode(staging, 384) != 0) throw new IOException();
+                        var buffer = new byte[65536];
+                        int read;
+                        while ((read = await input.ReadAsync(buffer, 0, buffer.Length, cancellation)) > 0) {
+                            if (owner != session) throw new OperationCanceledException();
+                            if (output.Length + read > MaxBackup) throw new InvalidDataException();
+                            await output.WriteAsync(buffer, 0, read, cancellation);
                         }
-                    } else {
-                        using (var response = await AccountClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, operation.Token)) {
-                            if (session != ownerSession) return;
-                            if (response.StatusCode == HttpStatusCode.NotFound) {
-                                SetAccountStatus("No cloud backup for " + version);
-                                return;
-                            }
-                            response.EnsureSuccessStatusCode();
-                            Directory.CreateDirectory(Backups);
-                            staging = Path.Combine(Backups, "." + Guid.NewGuid().ToString("N") + ".tmp");
-                            using (var input = await response.Content.ReadAsStreamAsync())
-                            using (var output = new FileStream(staging, FileMode.CreateNew, FileAccess.ReadWrite)) {
-                                if (ChangeFileMode(staging, 384) != 0) throw new IOException();
-                                var buffer = new byte[65536];
-                                int read;
-                                while ((read = await input.ReadAsync(buffer, 0, buffer.Length, operation.Token)) > 0) {
-                                    if (session != ownerSession) return;
-                                    if (output.Length + read > MaxBackup) throw new InvalidDataException();
-                                    await output.WriteAsync(buffer, 0, read, operation.Token);
-                                }
-                                output.Position = 0;
-                                CheckBackup(output, version);
-                            }
-                            if (session != ownerSession) return;
-                            File.Move(staging, path);
-                            staging = null;
-                            RefreshHistory();
-                        }
+                        output.Position = 0;
+                        CheckBackup(output, version);
                     }
                 }
-                if (session == ownerSession) SetAccountStatus(upload ? "Cloud backup saved" : "Cloud backup downloaded");
-            } catch (Exception) {
-                if (session == ownerSession) SetAccountStatus("Backup transfer failed. Check the file and sign-in.");
+                cancellation.ThrowIfCancellationRequested();
+                if (owner != session) throw new OperationCanceledException();
+                File.Move(staging, LocalBackup(version));
             } finally {
-                if (staging != null) {
+                if (File.Exists(staging)) {
                     try { File.Delete(staging); } catch (IOException) { }
                 }
-                transfer = null;
-                operation.Dispose();
             }
         }
 
@@ -216,11 +227,12 @@ namespace PlayerBackup {
             var attempt = signIn;
             signIn = null;
             attempt?.Cancel();
-            transfer?.Cancel();
             var previous = session;
             session = null;
             sessionExpiry = default;
+            cloudVersions = Array.Empty<string>();
             SetAccountStatus("Signed out");
+            RefreshHistory();
             if (previous != null) _ = Revoke(previous);
         }
 

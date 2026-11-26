@@ -78,7 +78,11 @@ def create(instance, player, output, configs=(), *, categories=CATEGORIES):
                 if path.is_file() and not path.is_symlink():
                     if path.stat().st_size > 64 * 1024**2:
                         raise ValueError(f"Selected file is too large: {name}")
+                    before = path.stat()
                     payload = path.read_bytes()
+                    after = path.stat()
+                    if (before.st_ino, before.st_size, before.st_mtime_ns) != (after.st_ino, after.st_size, after.st_mtime_ns):
+                        raise ValueError(f"Save changed during backup. Retry from the main menu: {name}")
                     manifest["files"][name] = hashlib.sha256(payload).hexdigest()
                     archive.writestr(name, payload)
             if "player" in categories and "player/PlayerData.dat" not in manifest["files"]:
@@ -143,6 +147,8 @@ def main(argv=None):
     parser.add_argument("--exclude", action="append", choices=CATEGORIES, default=[])
     parser.add_argument("--restore", action="store_true", help="preview restore from the ZIP at OUTPUT")
     parser.add_argument("--apply", action="store_true", help="apply the selected restore")
+    parser.add_argument("--expected-sha256", help=argparse.SUPPRESS)
+    parser.add_argument("--live-snapshot", action="store_true", help=argparse.SUPPRESS)
     parser.add_argument("--after-pid", type=int, help=argparse.SUPPRESS)
     args = parser.parse_args(argv)
     if args.after_pid is not None:
@@ -156,6 +162,8 @@ def main(argv=None):
             time.sleep(1)
         else:
             parser.error("timed out waiting for Beat Saber to quit")
+    if args.live_snapshot and args.restore:
+        parser.error("live snapshots are backup-only")
     if args.apply and not args.restore:
         parser.error("--apply requires --restore")
     default = ("player", "configs") if args.restore else CATEGORIES
@@ -163,6 +171,8 @@ def main(argv=None):
     if not selected:
         parser.error("select at least one category")
     if args.restore:
+        if args.expected_sha256 and sha256(args.output) != args.expected_sha256:
+            raise ValueError("Backup changed since restore was prepared")
         inventory_categories = set(selected).intersection({"models", "mods", "maps"})
         if inventory_categories:
             from .backup_downloads import restore_models, restore_packages
@@ -190,7 +200,8 @@ def main(argv=None):
             }
             print(json.dumps(result, indent=2))
     else:
-        require_closed()
+        if not args.live_snapshot:
+            require_closed()
         print(create(args.instance, args.player_data, args.output, args.config, categories=selected))
 
 
