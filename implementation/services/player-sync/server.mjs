@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
 import { createServer } from 'node:http';
-import { existsSync, readFileSync, readdirSync, unlinkSync } from 'node:fs';
-import { fileLimit, personalFiles } from './personal-files.mjs';
+import { existsSync, mkdirSync, readFileSync, readdirSync, unlinkSync, writeFileSync } from 'node:fs';
+import { fileLimit, appFiles } from './app-files.mjs';
+import { personalFiles } from './personal-files.mjs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import * as oidc from 'openid-client';
@@ -33,7 +34,7 @@ function reply(response, status, value, headers = {}) {
   response.end(value === undefined ? undefined : Buffer.isBuffer(value) ? value : JSON.stringify(value));
 }
 
-export function service({ configuration, origin, storage, exchange = oidc.authorizationCodeGrant, refresh = oidc.refreshTokenGrant, files = personalFiles }) {
+export function service({ configuration, origin, storage, exchange = oidc.authorizationCodeGrant, refresh = oidc.refreshTokenGrant, files = appFiles, legacyFiles = personalFiles }) {
   const callback = new URL('/api/account/callback', origin);
   const pending = new Map();
   const sessions = new Map();
@@ -61,7 +62,7 @@ export function service({ configuration, origin, storage, exchange = oidc.author
         const codeChallenge = await oidc.calculatePKCECodeChallenge(verifier);
         pending.set(handle, { state, nonce, verifier, challenge, callbackUsed: false, until: now + transactionLifetime });
         const authorization = oidc.buildAuthorizationUrl(configuration, {
-          redirect_uri: callback.href, scope: 'openid offline_access files_write', prompt: 'consent', state, nonce,
+          redirect_uri: callback.href, scope: 'openid offline_access app_data files_read', prompt: 'consent', state, nonce,
           code_challenge: codeChallenge, code_challenge_method: 'S256',
         });
         return reply(response, 201, { handle, authorization: authorization.href });
@@ -159,7 +160,7 @@ export function service({ configuration, origin, storage, exchange = oidc.author
         return reply(response, 401, { error: 'Session expired' });
       locks.set(session.owner, true);
       try {
-        const personal = files(session.access);
+        const personal = files(session.access, configuration.clientMetadata().client_id);
         let entries = await personal.list();
         const legacy = resolve(storage, session.owner);
         if (listing && existsSync(legacy)) {
@@ -174,6 +175,31 @@ export function service({ configuration, origin, storage, exchange = oidc.author
             const migrated = entries.filter(item => item.name === name);
             if (migrated.length === 1 && digest(await personal.read(migrated[0].id)) === digest(bytes))
               unlinkSync(path);
+          }
+        }
+        if (listing && !session.checkedLegacyFiles) {
+          try {
+            const previous = legacyFiles(session.access);
+            for (const item of await previous.list()) {
+              const imported = resolve(legacy, 'personal-imports', digest(item.id));
+              if (existsSync(imported)) continue;
+              if (!item.name.endsWith('.zip') || !snapshotPattern.test(item.name.slice(0, -4)) ||
+                  item.size > 2 * 1024 * 1024) continue;
+              const bytes = await previous.read(item.id);
+              if (bytes.length < 4 || bytes.readUInt32LE(0) !== 0x04034b50) continue;
+              if (!entries.some(entry => entry.name === item.name)) {
+                await personal.save(item.name, bytes);
+                entries = await personal.list();
+              }
+              const matches = entries.filter(entry => entry.name === item.name);
+              if (matches.length === 1 && digest(await personal.read(matches[0].id)) === digest(bytes)) {
+                mkdirSync(resolve(legacy, 'personal-imports'), {recursive: true, mode: 0o700});
+                writeFileSync(imported, '', {mode: 0o600, flag: 'wx'});
+              }
+            }
+            session.checkedLegacyFiles = true;
+          } catch (error) {
+            if (error.status !== 403) console.error('Legacy Files import deferred');
           }
         }
         if (listing) return reply(response, 200, {

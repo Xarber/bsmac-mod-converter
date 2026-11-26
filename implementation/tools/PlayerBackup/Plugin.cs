@@ -118,7 +118,7 @@ namespace PlayerBackup {
                 System.Globalization.CultureInfo.InvariantCulture,
                 System.Globalization.DateTimeStyles.AssumeUniversal, out var created))
                 where = created.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss") +
-                    (details[1] == "auto" ? " · Auto" : " · Manual") + (file.Exists ? "" : " · Cloud");
+                    (details[1] == "auto" ? " · Auto" : " · Manual") + (cloudVersions.Contains(version) ? " · Cloud" : "");
             return SnapshotVersion(version) + " · " + where;
         }
 

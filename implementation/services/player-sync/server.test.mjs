@@ -27,7 +27,7 @@ test('single-use sign-in pickup and account-scoped revision-guarded backup', asy
     };
   };
   const server = service({
-    configuration, files, origin: 'https://beatsaber.xcenter.it', storage,
+    configuration, files, legacyFiles: () => ({ list: async () => [] }), origin: 'https://beatsaber.xcenter.it', storage,
     refresh: async (_, token) => {
       assert.equal(token, "original-test-refresh");
       renewals++;

@@ -99,3 +99,5 @@ T39 — Restore receipt and logs confirmed MoltenVR launched and OpenXR reached 
 T40 — The live black-screen process inherited DOORSTOP_INITIALIZED and reported a BSIPA Harmony load failure. Relaunch now clears old injector and launcher state. Empty history uses the existing backup row. Native relaunch verification pending.
 
 T41 — Cloud archives move to delegated personal Files. Legacy archives migrate only for the matching owner after consent and byte verification. Added reversible local-only clearing. Live user consent and migration checks remain pending.
+
+T42 — Use browseable X-Center ID app files scoped to the signed-in user. Import matching legacy personal Files without deleting originals, and fix the plugin cloud-history decoder and cloud labels. Live account sign-in, history and quota visibility remain native checks.
