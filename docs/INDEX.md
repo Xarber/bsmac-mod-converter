@@ -20,3 +20,5 @@ The project extends a separately installed MoltenVR translator to handle legacy 
 Repository review covers all first-party source added here, the local legacy converter scripts, relevant Vivify/AudioLink/CustomWalls assets and selected native gameplay patch methods. This is not a review of all installed mods or the entire game. Assets and decompiled third-party source remain outside Git.
 
 - [Versioned player backups](features-player-backup.md)
+
+- [X-Center ID backup service](features-player-sync-service.md)

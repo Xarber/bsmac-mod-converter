@@ -8,7 +8,7 @@ using BeatSaberMarkupLanguage.Settings;
 using IPA;
 using UnityEngine;
 
-namespace Bsmac.PlayerBackup {
+namespace PlayerBackup {
     [Plugin(RuntimeOptions.SingleStartInit)]
     public sealed class Plugin {
         readonly IPA.Logging.Logger log;
@@ -43,8 +43,8 @@ namespace Bsmac.PlayerBackup {
 
         void Queue(bool restore) {
             var choices = new[] {
-                (Player, "player"), (Configs, "configs"), (!restore && Mods, "mods"),
-                (!restore && Maps, "maps"), (Models, "models")
+                (Player, "player"), (Configs, "configs"), (Mods, "mods"),
+                (Maps, "maps"), (Models, "models")
             };
             pending = choices.Where(choice => choice.Item1).Select(choice => choice.Item2).ToArray();
             restoring = restore;

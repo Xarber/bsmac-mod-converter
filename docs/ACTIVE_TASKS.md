@@ -73,3 +73,5 @@ Desktop independence checkpoint: verified 475 archive entries outside Desktop an
 | T27 | Document and fix Camera2 omission after fresh install showed a magenta screen | Implemented | Camera2-only staging produced a hash-checked plan and a shader resource byte-identical to the working reference. New installs include the same patch. Confirm the affected system's desktop mirror and headset after a user-owned launch. |
 
 T28 — Player Backup plugin installed on the reference Mac after a warning-free build and signed transaction. Local versioned backup, selective restore, and hash-pinned model download tests passed. In-game interaction, map and mod download resolvers, and X-Center ID backend deployment remain pending. See [player backups](features-player-backup.md).
+
+T29 — Fixed the BSIPA manifest namespace rejection from the reference Player.log. Selectable restore now covers model files and reviewed map/mod packages. Added OIDC handoff service and cloud CLI. Pending live menu retest, automatic discovery of source URLs, and production deployment and consent verification.

@@ -67,3 +67,28 @@ def test_missing_model_download(tmp_path, monkeypatch):
     assert restore_models(tmp_path, inventory, sources)["restored"] == 1
     assert (resources / "CustomNotes/example.bloq").read_bytes() == payload
     assert restore_models(tmp_path, inventory, sources)["restored"] == 0
+
+
+def test_verified_map_package(tmp_path, monkeypatch):
+    from hashlib import sha256
+    from bsmac_converter.backup_downloads import restore_packages
+
+    (tmp_path / "Beat Saber.app/Contents").mkdir(parents=True)
+    info = b'{"version": "2.1.0"}'
+    map_zip = tmp_path / "source.zip"
+    with zipfile.ZipFile(map_zip, "w") as archive:
+        archive.writestr("Info.dat", info)
+        archive.writestr("Expert.dat", b"test chart")
+    digest = sha256(info).hexdigest()
+    registry = tmp_path / "package-sources.json"
+    registry.write_text(json.dumps({digest: {
+        "url": "https://example.com/example.zip", "sha256": sha256(map_zip.read_bytes()).hexdigest(),
+    }}))
+    inventory = {"maps": [{"path": "Example/Info.dat", "sha256": digest}]}
+    monkeypatch.setattr("bsmac_converter.backup_downloads.require_closed", lambda: None)
+    monkeypatch.setattr("bsmac_converter.backup_downloads.curl",
+                        lambda url, flag, target: Path(target).write_bytes(map_zip.read_bytes()))
+    result = restore_packages(tmp_path, inventory, registry, ("maps",))
+    assert result["restored"] == ["Example/Info.dat"]
+    assert (tmp_path / "Beat Saber.app/Contents/CustomLevels/Example/Expert.dat").read_bytes() == b"test chart"
+    assert restore_packages(tmp_path, inventory, registry, ("maps",))["restored"] == []

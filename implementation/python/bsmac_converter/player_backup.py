@@ -160,20 +160,19 @@ def main(argv=None):
         parser.error("--apply requires --restore")
     default = ("player", "configs") if args.restore else CATEGORIES
     selected = tuple(name for name in (args.include or default) if name not in args.exclude)
-    if args.restore and any(name in ("mods", "maps") for name in selected):
-        parser.error("mod and map inventory restoration is not implemented")
     if not selected:
         parser.error("select at least one category")
     if args.restore:
-        if "models" in selected:
-            from .backup_downloads import restore_models
+        inventory_categories = set(selected).intersection({"models", "mods", "maps"})
+        if inventory_categories:
+            from .backup_downloads import restore_models, restore_packages
             with zipfile.ZipFile(args.output) as archive:
                 if archive.getinfo("manifest.json").file_size > 16 * 1024**2:
                     raise ValueError("Backup manifest is too large")
                 manifest = json.loads(archive.read("manifest.json"))
             if manifest["schema"] != 1 or manifest["gameVersion"] != game_version(args.instance):
                 raise ValueError("Backup does not match this Beat Saber version")
-        fields = tuple(name for name in selected if name != "models")
+        fields = tuple(name for name in selected if name in ("player", "configs"))
         if fields:
             result = restore(args.instance, args.player_data, args.output, fields, apply=args.apply)
             print(result if args.apply else json.dumps(result, indent=2))
@@ -181,6 +180,13 @@ def main(argv=None):
             result = restore_models(args.instance, manifest["inventory"],
                                     args.output.parent / "model-sources.json") if args.apply else {
                 name: entries for name, entries in manifest["inventory"].items() if name in MODEL_DIRS
+            }
+            print(json.dumps(result, indent=2))
+        packages = tuple(name for name in ("maps", "mods") if name in selected)
+        if packages:
+            result = restore_packages(args.instance, manifest["inventory"],
+                                       args.output.parent / "package-sources.json", packages) if args.apply else {
+                name: manifest["inventory"].get(name, []) for name in packages
             }
             print(json.dumps(result, indent=2))
     else:
