@@ -87,3 +87,5 @@ T33 — Compact the backup layout and report live snapshot progress and operatio
 T34 — Use the native BSML settings container for vertical layout and full-width toggle rows. Native visual verification pending.
 
 T35 — Add opt-in Keychain session reuse, launch-based backup frequency, compact history and cloud-only download rows. Native layout and signed-in runtime verification pending.
+
+T36 — Add multiple dated snapshots per game version, automatic backup cap, and confirmation-based deletion. Browser-hosted renewal consent documented in the SDK. Native layout and signed-in round trip pending.

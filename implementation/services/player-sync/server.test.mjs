@@ -64,6 +64,14 @@ test('single-use sign-in pickup and account-scoped revision-guarded backup', asy
   assert.equal((await request(url, upload)).status, 412);
   assert.equal(renewals, 1);
   assert.equal((await request(url, {headers: {authorization}})).status, 200);
+  const snapshot = '1.40.8-manual-20261126123456789-abcdef12';
+  assert.equal((await request('/api/backups/' + snapshot, upload)).status, 204);
+  const list = await request('/api/backups', {headers: {authorization}});
+  assert.deepEqual((await list.json()).versions.map(row => row.version).sort(), ['1.40.8', snapshot]);
+  const head = await request('/api/backups/' + snapshot, {method: 'HEAD', headers: {authorization}});
+  assert.equal((await request('/api/backups/' + snapshot, {method: 'DELETE',
+    headers: {authorization, 'If-Match': head.headers.get('etag')}})).status, 204);
+  assert.equal((await request(url, {headers: {authorization}})).status, 200);
   const other = await signIn('other test proof', 'second-account');
   assert.equal((await request(url, {headers: {authorization: other}})).status, 404);
   assert.equal((await request('/api/account/logout', {method: 'POST', headers: {authorization}})).status, 204);

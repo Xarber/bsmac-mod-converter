@@ -152,7 +152,7 @@ namespace PlayerBackup {
                 var history = JsonUtility.FromJson<CloudHistory>(await reply.Content.ReadAsStringAsync());
                 if (session != owner) return;
                 cloudVersions = (history?.versions ?? Array.Empty<CloudVersion>())
-                    .Select(item => item.version).Where(IsVersion).ToArray();
+                    .Select(item => item.version).Where(IsSnapshot).ToArray();
                 RefreshHistory();
             }
         }
@@ -181,7 +181,7 @@ namespace PlayerBackup {
             using (var input = File.OpenRead(LocalBackup(version)))
             using (var request = new HttpRequestMessage(HttpMethod.Put, path)) {
                 if (input.Length > MaxBackup) throw new InvalidDataException();
-                CheckBackup(input, version);
+                CheckBackup(input, SnapshotVersion(version));
                 request.Content = new StreamContent(input);
                 request.Content.Headers.ContentType = new MediaTypeHeaderValue("application/zip");
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", owner);
@@ -209,7 +209,7 @@ namespace PlayerBackup {
                             await output.WriteAsync(buffer, 0, read, cancellation);
                         }
                         output.Position = 0;
-                        CheckBackup(output, version);
+                        CheckBackup(output, SnapshotVersion(version));
                     }
                 }
                 cancellation.ThrowIfCancellationRequested();

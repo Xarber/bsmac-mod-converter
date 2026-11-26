@@ -31,8 +31,10 @@ def game_version(instance):
     return version
 
 
-def create(instance, player, output, configs=(), *, categories=CATEGORIES, report_progress=None):
+def create(instance, player, output, configs=(), *, categories=CATEGORIES, report_progress=None, snapshot_id=None):
     version = game_version(instance)
+    if snapshot_id and not re.fullmatch(re.escape(version) + r"-(manual|auto)-[0-9]{17}-[0-9a-f]{8}", snapshot_id):
+        raise ValueError("Invalid snapshot ID for this version")
     contents = instance / "Beat Saber.app/Contents"
     resources = contents / "Resources"
     selected = {"player/" + name: player / name for name in PLAYER_FILES} if "player" in categories else {}
@@ -94,9 +96,12 @@ def create(instance, player, output, configs=(), *, categories=CATEGORIES, repor
             if "player" in categories and "player/PlayerData.dat" not in manifest["files"]:
                 raise ValueError("PlayerData.dat is missing")
             archive.writestr("manifest.json", json.dumps(manifest, indent=2))
-        destination = output / f"{version}.zip"
+        destination = output / f"{snapshot_id or version}.zip"
         os.chmod(staged, 0o600)
-        os.replace(staged, destination)
+        if snapshot_id:
+            os.link(staged, destination)
+        else:
+            os.replace(staged, destination)
     if report_progress:
         report_progress(100)
     return destination
@@ -156,6 +161,7 @@ def main(argv=None):
     parser.add_argument("--restore", action="store_true", help="preview restore from the ZIP at OUTPUT")
     parser.add_argument("--apply", action="store_true", help="apply the selected restore")
     parser.add_argument("--expected-sha256", help=argparse.SUPPRESS)
+    parser.add_argument("--snapshot-id", help=argparse.SUPPRESS)
     parser.add_argument("--progress", action="store_true", help=argparse.SUPPRESS)
     parser.add_argument("--live-snapshot", action="store_true", help=argparse.SUPPRESS)
     parser.add_argument("--after-pid", type=int, help=argparse.SUPPRESS)
@@ -213,7 +219,7 @@ def main(argv=None):
             require_closed()
         progress = (lambda value: print(value, flush=True)) if args.progress else None
         print(create(args.instance, args.player_data, args.output, args.config,
-                     categories=selected, report_progress=progress))
+                     categories=selected, report_progress=progress, snapshot_id=args.snapshot_id))
 
 
 if __name__ == "__main__":

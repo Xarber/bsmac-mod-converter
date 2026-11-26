@@ -44,7 +44,7 @@ namespace PlayerBackup {
             BackupProgress = new string('■', blocks) + new string('□', 10 - blocks) + $"  {percent}%";
             Changed(nameof(BackupProgress));
         }
-        [UIValue("show-backup")] public bool ShowBackup => job == null && restoreVersion == null;
+        [UIValue("show-backup")] public bool ShowBackup => job == null && restoreVersion == null && deleteTarget == null;
         [UIValue("show-cancel")] public bool ShowCancel => !ShowBackup;
         [UIValue("show-restart")] public bool ShowRestart => restoreCategories != null && job == null;
         [UIValue("no-backups")] public bool NoBackups => versions.Length == 0;
@@ -67,7 +67,7 @@ namespace PlayerBackup {
 
         string At(int row) => versions.ElementAtOrDefault(page * 3 + row);
         bool CanCancel(int row) => restoreVersion != null && At(row) == restoreVersion;
-        bool CanRestore(int row) => ShowBackup && At(row) != null && At(row) == CurrentVersion() && File.Exists(LocalBackup(At(row)));
+        bool CanRestore(int row) => ShowBackup && At(row) != null && SnapshotVersion(At(row)) == CurrentVersion() && File.Exists(LocalBackup(At(row)));
         bool CanDownload(int row) => ShowBackup && HasSession && At(row) != null && cloudVersions.Contains(At(row)) &&
             !File.Exists(LocalBackup(At(row)));
         [UIValue("download-a")] public bool CanDownloadA => CanDownload(0);
@@ -108,10 +108,17 @@ namespace PlayerBackup {
             string where = file.Exists
                 ? file.LastWriteTime.ToString("yyyy-MM-dd HH:mm") + (cloudVersions.Contains(version) ? " · Cloud" : "")
                 : "Cloud";
-            return version + " · " + where;
+            var details = version.Split('-');
+            if (details.Length == 4 && DateTime.TryParseExact(details[2], "yyyyMMddHHmmssfff",
+                System.Globalization.CultureInfo.InvariantCulture,
+                System.Globalization.DateTimeStyles.AssumeUniversal, out var created))
+                where = created.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss") +
+                    (details[1] == "auto" ? " · Auto" : " · Manual") + (file.Exists ? "" : " · Cloud");
+            return SnapshotVersion(version) + " · " + where;
         }
 
         void Draw() {
+            DrawDelete();
             foreach (var property in new[] { nameof(BackupStatus), nameof(RestoreStatus), nameof(HasBackupStatus), nameof(HasRestoreStatus), nameof(ShowBackupProgress), nameof(ShowBackup), nameof(ShowCancel), nameof(ShowRestart),
                 nameof(HistoryPage), nameof(NoBackups), nameof(ShowPrevious), nameof(ShowNext), nameof(RowA), nameof(RowB), nameof(RowC),
                 nameof(ShowPages), nameof(CanDownloadA), nameof(CanDownloadB), nameof(CanDownloadC), nameof(HasA), nameof(HasB), nameof(HasC), nameof(CanRestoreA), nameof(CanRestoreB), nameof(CanRestoreC),
@@ -120,8 +127,8 @@ namespace PlayerBackup {
 
         void RefreshHistory() {
             var local = Directory.Exists(Backups) ? Directory.EnumerateFiles(Backups, "*.zip")
-                .Select(Path.GetFileNameWithoutExtension).Where(IsVersion) : Enumerable.Empty<string>();
-            versions = local.Concat(cloudVersions).Distinct().OrderByDescending(value => Version.Parse(value)).ToArray();
+                .Select(Path.GetFileNameWithoutExtension).Where(IsSnapshot) : Enumerable.Empty<string>();
+            versions = local.Concat(cloudVersions).Distinct().OrderByDescending(value => Version.Parse(SnapshotVersion(value))).ThenByDescending(value => value.Split('-').ElementAtOrDefault(2)).ToArray();
             page = Math.Min(page, Math.Max(0, (versions.Length - 1) / 3));
             Draw();
         }
@@ -166,10 +173,13 @@ namespace PlayerBackup {
 
         string[] Categories() => new[] { (Player, "player"), (Configs, "configs"), (Mods, "mods"),
             (Maps, "maps"), (Models, "models") }.Where(choice => choice.Item1).Select(choice => choice.Item2).ToArray();
-        static bool IsVersion(string version) => Regex.IsMatch(version ?? "", @"^[0-9]{1,5}\.[0-9]{1,5}\.[0-9]{1,5}$");
 
-        [UIAction("backup")]
-        public async void Backup() {
+        static bool IsSnapshot(string id) => Regex.IsMatch(id ?? "",
+            @"^[0-9]{1,5}\.[0-9]{1,5}\.[0-9]{1,5}(?:-(?:manual|auto)-[0-9]{17}-[0-9a-f]{8})?$");
+        static string SnapshotVersion(string id) => id.Split('-')[0];
+
+        [UIAction("backup")] public void Backup() => SaveBackup(false);
+        async void SaveBackup(bool automatic) {
             if (!ShowBackup) return;
             string[] categories = Categories();
             if (categories.Length == 0) { BackupStatus = "Select at least one category"; Draw(); return; }
@@ -180,8 +190,10 @@ namespace PlayerBackup {
             Draw();
             bool saved = false;
             try {
-                var version = CurrentVersion();
-                using (var process = StartWorker(Backups, categories, "--live-snapshot --progress", true))
+                var version = CurrentVersion() + (automatic ? "-auto-" : "-manual-") +
+                    DateTime.UtcNow.ToString("yyyyMMddHHmmssfff", System.Globalization.CultureInfo.InvariantCulture) +
+                    "-" + Guid.NewGuid().ToString("N").Substring(0, 8);
+                using (var process = StartWorker(Backups, categories, "--live-snapshot --progress --snapshot-id " + version, true))
                 using (operation.Token.Register(() => Stop(process))) {
                     var errors = process.StandardError.ReadToEndAsync();
                     string line;
@@ -202,7 +214,7 @@ namespace PlayerBackup {
                     BackupStatus = "Uploading backup…";
                     Draw();
                     await UploadBackup(version, operation.Token);
-                    CompleteSchedule();
+                    if (automatic) CompleteSchedule();
                     await RefreshCloud(operation.Token);
                 }
                 BackupStatus = HasSession ? "Backup saved locally and in the cloud" : "Local backup saved";
@@ -243,7 +255,7 @@ namespace PlayerBackup {
                 if (!File.Exists(LocalBackup(version))) await DownloadBackup(version, operation.Token);
                 operation.Token.ThrowIfCancellationRequested();
                 using (var input = File.OpenRead(LocalBackup(version))) {
-                    CheckBackup(input, version);
+                    CheckBackup(input, SnapshotVersion(version));
                     using (var hash = System.Security.Cryptography.SHA256.Create())
                         restoreDigest = string.Concat(hash.ComputeHash(input).Select(value => value.ToString("x2")));
                 }
@@ -265,6 +277,7 @@ namespace PlayerBackup {
         [UIAction("cancel")]
         public void Cancel() {
             job?.Cancel();
+            deleteTarget = null;
             restoreCategories = null;
             restoreVersion = null;
             restoreDigest = null;

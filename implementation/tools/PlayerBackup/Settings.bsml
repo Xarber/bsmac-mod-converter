@@ -6,6 +6,7 @@
     <button text="Sign out" on-click="sign-out" active="~show-sign-out" />
   </horizontal>
   <dropdown-list-setting text="Automatic backup" value="frequency" choices="frequencies" apply-on-change="true" />
+  <dropdown-list-setting text="Automatic backups to keep" value="automatic-limit" choices="automatic-limits" apply-on-change="true" />
   <bool-setting text="Player data" value="player" apply-on-change="true" />
   <bool-setting text="Plugin configs" value="configs" apply-on-change="true" />
   <bool-setting text="Mods" value="mods" apply-on-change="true" />
@@ -21,18 +22,21 @@
   <horizontal active="~has-a" child-control-width="true" child-expand-width="false" child-control-height="true" child-expand-height="false" min-height="6" spacing="2">
     <text text="~row-a" font-size="3" flexible-width="1" />
     <button text="Download" on-click="download-row-a" active="~download-a" />
+    <button text="Delete" on-click="delete-row-a" active="~delete-a" />
     <button text="Restore" on-click="restore-row-a" active="~restore-a" />
     <button text="Cancel" on-click="cancel" active="~cancel-a" />
   </horizontal>
   <horizontal active="~has-b" child-control-width="true" child-expand-width="false" child-control-height="true" child-expand-height="false" min-height="6" spacing="2">
     <text text="~row-b" font-size="3" flexible-width="1" />
     <button text="Download" on-click="download-row-b" active="~download-b" />
+    <button text="Delete" on-click="delete-row-b" active="~delete-b" />
     <button text="Restore" on-click="restore-row-b" active="~restore-b" />
     <button text="Cancel" on-click="cancel" active="~cancel-b" />
   </horizontal>
   <horizontal active="~has-c" child-control-width="true" child-expand-width="false" child-control-height="true" child-expand-height="false" min-height="6" spacing="2">
     <text text="~row-c" font-size="3" flexible-width="1" />
     <button text="Download" on-click="download-row-c" active="~download-c" />
+    <button text="Delete" on-click="delete-row-c" active="~delete-c" />
     <button text="Restore" on-click="restore-row-c" active="~restore-c" />
     <button text="Cancel" on-click="cancel" active="~cancel-c" />
   </horizontal>
@@ -42,5 +46,6 @@
     <button text="More backups" on-click="next" active="~show-next" />
   </horizontal>
   <text text="~restore-status" active="~has-restore-status" font-size="3" />
+  <button text="Confirm deletion" active="~confirm-delete" on-click="confirm-delete-action" />
   <button text="Quit and apply restore" on-click="quit-restore" active="~show-restart" />
 </scrollable-settings-container>

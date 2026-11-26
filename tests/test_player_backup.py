@@ -92,3 +92,22 @@ def test_verified_map_package(tmp_path, monkeypatch):
     assert result["restored"] == ["Example/Info.dat"]
     assert (tmp_path / "Beat Saber.app/Contents/CustomLevels/Example/Expert.dat").read_bytes() == b"test chart"
     assert restore_packages(tmp_path, inventory, registry, ("maps",))["restored"] == []
+
+
+def test_separate_snapshots_preserve_legacy_and_previous_manual_backup(tmp_path):
+    (tmp_path / "BeatSaberVersion.txt").write_text("1.40.8")
+    (tmp_path / "Beat Saber.app/Contents/Resources/UserData").mkdir(parents=True)
+    player = tmp_path / "player"
+    player.mkdir()
+    save = player / "PlayerData.dat"
+    save.write_text("first")
+    out = tmp_path / "out"
+    legacy = create(tmp_path, player, out)
+    first = create(tmp_path, player, out, snapshot_id="1.40.8-manual-20261126123456789-aaaaaaaa")
+    save.write_text("second")
+    create(tmp_path, player, out, snapshot_id="1.40.8-manual-20261126123456790-bbbbbbbb")
+    with pytest.raises(FileExistsError):
+        create(tmp_path, player, out, snapshot_id=first.stem)
+    for path in (legacy, first):
+        with zipfile.ZipFile(path) as archive:
+            assert archive.read("player/PlayerData.dat") == b"first"

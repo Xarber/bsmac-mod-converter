@@ -46,3 +46,7 @@ The compact menu keeps account status and sign-in on one row. Backup progress an
 The **Automatic backup** dropdown counts main-menu launches. Manual only is the default. A due backup runs after account sign-in and resets the counter when its cloud upload succeeds. Choose **Stay signed in** on the X-Center ID consent page. If the issuer grants renewal, the plugin stores only the product session in macOS Keychain for up to 14 days. Declining keeps the session in memory. Server restarts currently require sign-in again. When a backup is due and sign-in is needed, the menu shows a prompt. No provider tokens or client secret are stored in the plugin.
 
 Cloud-only entries offer **Download**. Downloading saves a local ZIP without modifying the game. The current version then offers **Restore**. Older versions can be listed and downloaded without being applied to the running version.
+
+## Multiple backups per version
+
+New in-game backups have separate dated snapshot IDs. Existing version-only backups remain available. Manual backups have no count limit. The automatic backup limit is per game version and defaults to five. Scheduled backups pause at the limit until you delete an automatic snapshot or raise the limit. Select **Delete** beside an item and confirm to remove its local file and, when signed in, the matching cloud copy. The legacy CLI continues to use a single version-only ZIP.

@@ -12,6 +12,7 @@ const digest = (value) => createHash('sha256').update(value).digest('hex');
 const transactionLifetime = 5 * 60_000;
 const sessionLifetime = 8 * 60 * 60_000;
 const persistentLifetime = 14 * 24 * 60 * 60_000;
+const snapshotPattern = /^(\d{1,5}\.\d{1,5}\.\d{1,5})(?:-(?:manual|auto)-\d{17}-[a-f0-9]{8})?$/;
 const maxBackup = 32 * 1024 * 1024;
 
 async function body(request, limit) {
@@ -142,13 +143,13 @@ export function service({ configuration, origin, storage, exchange = oidc.author
       const folder = resolve(storage, session.owner);
       if (method === 'GET' && url.pathname === '/api/backups') {
         const versions = existsSync(folder) ? readdirSync(folder)
-          .filter(name => /^\d{1,5}\.\d{1,5}\.\d{1,5}\.zip$/.test(name))
+          .filter(name => name.endsWith(".zip") && snapshotPattern.test(name.slice(0, -4)))
           .map(name => ({ version: name.slice(0, -4), modified: statSync(resolve(folder, name)).mtime.toISOString() }))
           : [];
         return reply(response, 200, { versions });
       }
-      const version = url.pathname.match(/^\/api\/backups\/(\d{1,5}\.\d{1,5}\.\d{1,5})$/)?.[1];
-      if (!version) return reply(response, 404, { error: 'Unknown route' });
+      const version = url.pathname.match(/^\/api\/backups\/([^/]+)$/)?.[1];
+      if (!version || !snapshotPattern.test(version)) return reply(response, 404, { error: 'Unknown route' });
       const target = resolve(folder, version + '.zip');
       const current = () => existsSync(target) ? readFileSync(target) : undefined;
       if (method === 'GET' || method === 'HEAD') {
