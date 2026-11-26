@@ -11,6 +11,7 @@ The project extends a separately installed MoltenVR translator to handle legacy 
 - [Automatic loose equipment preparation](features-automatic-equipment.md)
 - [Automatic Qosmetics notes](features-qosmetics.md)
 - [Camera2 full-screen magenta recovery](features-camera2.md)
+- [BeatTogether on Apple Silicon](features-beattogether.md)
 - [BeatLeader replays](features-beatleader-replays.md)
 - [Testing and evidence](TESTING.md)
 - [Security and licensing](SECURITY.md)
