@@ -183,3 +183,16 @@ def test_windows_directory_layout_round_trip(tmp_path, monkeypatch):
     monkeypatch.setattr(worker, "ensure_closed", lambda *_: None)
     worker.restore(tmp_path, player, backup, ("player", "configs"), apply=True)
     assert save.read_bytes() == config.read_bytes() == b"before"
+
+
+def test_windows_wait_does_not_terminate_process():
+    import os
+    import subprocess
+    import sys
+    from bsmac_converter.backup_platform import wait_windows
+
+    if os.name != "nt":
+        pytest.skip("Windows process handle")
+    with subprocess.Popen([sys.executable, "-c", "import time; time.sleep(0.3)"]) as child:
+        wait_windows(child.pid)
+        assert child.wait(timeout=2) == 0

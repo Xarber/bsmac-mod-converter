@@ -41,3 +41,12 @@ jobs:
       - run: npm ci --ignore-scripts
       - run: npm test
       - run: npm audit --omit=dev --audit-level=high
+  windows-backup:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -e . pytest
+      - run: python -m pytest tests/test_player_backup.py -q

@@ -122,6 +122,7 @@ def restore(instance, player, backup, categories, *, apply=False):
         if manifest["schema"] != 1 or manifest["gameVersion"] != game_version(instance):
             raise ValueError("Backup does not match this Beat Saber version")
         plan = []
+        destinations = set()
         total = 0
         for name, expected in manifest["files"].items():
             category, _, relative = name.partition("/")
@@ -135,6 +136,10 @@ def restore(instance, player, backup, categories, *, apply=False):
                     or (category == "player" and relative not in PLAYER_FILES)
                     or (category == "configs" and path.suffix.lower() not in CONFIG_TYPES)):
                 raise ValueError("Unsafe backup member path")
+            normalized = os.path.normcase(str(target.resolve()))
+            if normalized in destinations:
+                raise ValueError("Duplicate restore destination")
+            destinations.add(normalized)
             size = entries[name].file_size
             total += size
             if size > 64 * 1024**2 or total > 256 * 1024**2:
