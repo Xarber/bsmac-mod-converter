@@ -28,7 +28,7 @@ namespace PlayerBackup {
         static extern int ChangeFileMode(string path, uint mode);
         const int MaxBackup = 32 * 1024 * 1024;
         bool HasSession => session != null && sessionExpiry > DateTime.UtcNow;
-        [UIValue("show-sign-in")] public bool ShowSignIn => signIn == null && !HasSession;
+        [UIValue("show-sign-in")] public bool ShowSignIn => !resumingSession && signIn == null && !HasSession;
         [UIValue("show-account-cancel")] public bool ShowAccountCancel => signIn != null;
         [UIValue("show-sign-out")] public bool ShowSignOut => HasSession;
         [UIValue("account-status")]
@@ -54,7 +54,7 @@ namespace PlayerBackup {
 
         [UIAction("sign-in")]
         public async void SignIn() {
-            if (signIn != null || (session != null && sessionExpiry > DateTime.UtcNow)) return;
+            if (resumingSession || signIn != null || HasSession) return;
             var attempt = new CancellationTokenSource(TimeSpan.FromMinutes(5));
             signIn = attempt;
             try {

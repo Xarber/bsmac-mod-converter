@@ -38,3 +38,6 @@ Use PC Beat Saber 1.40.8 with BSIPA and BeatSaberMarkupLanguage already installe
 ```
 
 Pass `-ReplaceExisting` to upgrade. The installer builds against your installed game assemblies and saves the previous DLL when replacing it. The worker lives under `%LOCALAPPDATA%\Bsmac`. The plugin uses Unity's actual persistent data directory and protects browser-approved persistent sessions for the Windows user with DPAPI. Restore waits for normal shutdown and launches the exact restored installation's executable. Keep the owning store client running. Windows runtime, DPAPI and relaunch still require a real PC test.
+
+
+On macOS, Player Backup waits for the Keychain lookup off the game thread before offering a new sign-in. The account section prompts you to allow access if macOS asks, then resumes the saved session in the same game launch. A rebuilt and re-signed game can still trigger the macOS Keychain prompt. Windows uses its existing protected credential storage.

@@ -3,6 +3,7 @@ using System;
 using System.Runtime.InteropServices;
 using System.IO;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace PlayerBackup {
     public sealed partial class Plugin {
@@ -10,6 +11,8 @@ namespace PlayerBackup {
         const string KeychainService = "it.xcenter.beatsaber.player-sync";
         const string KeychainAccount = "session";
         bool persistentSession;
+        bool resumingSession;
+        const int KeychainItemNotFound = -25300;
         const int MaxPersistentSeconds = 14 * 24 * 60 * 60;
         [DllImport(Security)]
         static extern int SecKeychainFindGenericPassword(IntPtr keychain, uint serviceLength, string service,
@@ -24,16 +27,16 @@ namespace PlayerBackup {
         [DllImport("/System/Library/Frameworks/CoreFoundation.framework/CoreFoundation")]
         static extern void CFRelease(IntPtr item);
 
-        static bool FindSession(out uint length, out IntPtr data, out IntPtr item) =>
+        static int FindSession(out uint length, out IntPtr data, out IntPtr item) =>
             SecKeychainFindGenericPassword(IntPtr.Zero, (uint)KeychainService.Length, KeychainService,
-                (uint)KeychainAccount.Length, KeychainAccount, out length, out data, out item) == 0;
+                (uint)KeychainAccount.Length, KeychainAccount, out length, out data, out item);
 
         static void DeleteSession() {
             if (IsWindows) {
                 File.Delete(WindowsSessionPath);
                 return;
             }
-            if (!FindSession(out _, out var data, out var item)) return;
+            if (FindSession(out _, out var data, out var item) != 0) return;
             try { SecKeychainItemDelete(item); }
             finally { SecKeychainItemFreeContent(IntPtr.Zero, data); CFRelease(item); }
         }
@@ -57,7 +60,19 @@ namespace PlayerBackup {
             }
         }
 
-        async System.Threading.Tasks.Task ResumeAccount() {
+        static (int Status, byte[] Bytes) ReadKeychainSession() {
+            int status = FindSession(out uint length, out var data, out var item);
+            if (status != 0) return (status, null);
+            try {
+                if (length == 0 || length > 100) return (0, null);
+                var bytes = new byte[(int)length];
+                Marshal.Copy(data, bytes, 0, bytes.Length);
+                return (0, bytes);
+            } finally { SecKeychainItemFreeContent(IntPtr.Zero, data); CFRelease(item); }
+        }
+
+        async Task ResumeAccount() {
+            int generation = menuGeneration;
             byte[] bytes;
             if (IsWindows) {
                 var saved = new FileInfo(WindowsSessionPath);
@@ -65,17 +80,28 @@ namespace PlayerBackup {
                 try { bytes = ProtectWindows(File.ReadAllBytes(WindowsSessionPath), true); }
                 catch (IOException) { return; }
             } else {
-                if (!FindSession(out uint length, out var data, out var item)) return;
-                try {
-                    if (length == 0 || length > 100) return;
-                    bytes = new byte[(int)length];
-                    Marshal.Copy(data, bytes, 0, bytes.Length);
-                } finally { SecKeychainItemFreeContent(IntPtr.Zero, data); CFRelease(item); }
+                resumingSession = true;
+                SetAccountStatus("Checking saved sign-in… Allow access if macOS asks.");
+                var result = await Task.Run(ReadKeychainSession);
+                if (generation != menuGeneration) {
+                    if (result.Bytes != null) Array.Clear(result.Bytes, 0, result.Bytes.Length);
+                    return;
+                }
+                resumingSession = false;
+                bytes = result.Bytes;
+                if (bytes == null) {
+                    SetAccountStatus(result.Status == 0 || result.Status == KeychainItemNotFound
+                        ? "Signed out" : "Keychain access was unavailable. Sign in again.");
+                    return;
+                }
             }
             var fields = Encoding.UTF8.GetString(bytes).Split('\n');
             Array.Clear(bytes, 0, bytes.Length);
             if (fields.Length != 2 || !IsToken(fields[0]) || !long.TryParse(fields[1], out long expiry) ||
-                expiry <= DateTime.UtcNow.Ticks || expiry > DateTime.UtcNow.AddSeconds(MaxPersistentSeconds).Ticks) return;
+                expiry <= DateTime.UtcNow.Ticks || expiry > DateTime.UtcNow.AddSeconds(MaxPersistentSeconds).Ticks) {
+                SetAccountStatus("Signed out");
+                return;
+            }
             persistentSession = true;
             session = fields[0];
             sessionExpiry = new DateTime(expiry, DateTimeKind.Utc);

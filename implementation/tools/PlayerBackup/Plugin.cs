@@ -187,6 +187,7 @@ namespace PlayerBackup {
         [OnDisable]
         public void Disable() {
             ++menuGeneration;
+            resumingSession = false;
             SceneManager.activeSceneChanged -= SceneChanged;
             Cancel();
             EndAccount(!persistentSession);
