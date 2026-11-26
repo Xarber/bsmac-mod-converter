@@ -85,3 +85,5 @@ T32 — Reactive backup controls, live snapshots, automatic cloud transfers and 
 T33 — Compact the backup layout and report live snapshot progress and operation-specific errors. Verify the native layout on the next user-owned launch.
 
 T34 — Use the native BSML settings container for vertical layout and full-width toggle rows. Native visual verification pending.
+
+T35 — Add opt-in Keychain session reuse, launch-based backup frequency, compact history and cloud-only download rows. Native layout and signed-in runtime verification pending.

@@ -66,7 +66,40 @@ namespace PlayerBackup {
 
         string At(int row) => versions.ElementAtOrDefault(page * 3 + row);
         bool CanCancel(int row) => restoreVersion != null && At(row) == restoreVersion;
-        bool CanRestore(int row) => ShowBackup && At(row) != null && At(row) == CurrentVersion();
+        bool CanRestore(int row) => ShowBackup && At(row) != null && At(row) == CurrentVersion() && File.Exists(LocalBackup(At(row)));
+        bool CanDownload(int row) => ShowBackup && HasSession && At(row) != null && cloudVersions.Contains(At(row)) &&
+            !File.Exists(LocalBackup(At(row)));
+        [UIValue("download-a")] public bool CanDownloadA => CanDownload(0);
+        [UIValue("download-b")] public bool CanDownloadB => CanDownload(1);
+        [UIValue("download-c")] public bool CanDownloadC => CanDownload(2);
+        [UIValue("show-pages")] public bool ShowPages => ShowPrevious || ShowNext;
+
+        [UIAction("download-row-a")] public void DownloadA() => Download(0);
+        [UIAction("download-row-b")] public void DownloadB() => Download(1);
+        [UIAction("download-row-c")] public void DownloadC() => Download(2);
+
+        async void Download(int row) {
+            if (!CanDownload(row)) return;
+            string version = At(row);
+            restoreVersion = version;
+            var operation = new CancellationTokenSource(TimeSpan.FromSeconds(45));
+            job = operation;
+            RestoreStatus = "Downloading " + version + "…";
+            Draw();
+            try {
+                await DownloadBackup(version, operation.Token);
+                RestoreStatus = "Downloaded " + version;
+            } catch (OperationCanceledException) {
+                RestoreStatus = "Download canceled";
+            } catch (Exception) {
+                RestoreStatus = "Could not download " + version;
+            } finally {
+                restoreVersion = null;
+                job = null;
+                operation.Dispose();
+                RefreshHistory();
+            }
+        }
         string Row(int row) {
             var version = At(row);
             if (version == null) return "";
@@ -80,7 +113,7 @@ namespace PlayerBackup {
         void Draw() {
             foreach (var property in new[] { nameof(BackupStatus), nameof(RestoreStatus), nameof(HasBackupStatus), nameof(HasRestoreStatus), nameof(ShowBackupProgress), nameof(ShowBackup), nameof(ShowCancel), nameof(ShowRestart),
                 nameof(HistoryPage), nameof(ShowPrevious), nameof(ShowNext), nameof(RowA), nameof(RowB), nameof(RowC),
-                nameof(HasA), nameof(HasB), nameof(HasC), nameof(CanRestoreA), nameof(CanRestoreB), nameof(CanRestoreC),
+                nameof(ShowPages), nameof(CanDownloadA), nameof(CanDownloadB), nameof(CanDownloadC), nameof(HasA), nameof(HasB), nameof(HasC), nameof(CanRestoreA), nameof(CanRestoreB), nameof(CanRestoreC),
                 nameof(CanCancelA), nameof(CanCancelB), nameof(CanCancelC) }) Changed(property);
         }
 
@@ -108,6 +141,8 @@ namespace PlayerBackup {
                 settings = BSMLSettings.Instance;
                 settings.AddSettingsMenu("Player Backup", "PlayerBackup.Settings.bsml", this);
                 log.Info("Player Backup settings registered.");
+                ResumeSchedule();
+                await ResumeAccount();
             } catch (Exception error) {
                 log.Error("Could not register Player Backup settings: " + error.Message);
             }
@@ -117,7 +152,7 @@ namespace PlayerBackup {
         public void Disable() {
             ++menuGeneration;
             Cancel();
-            ClearAccount();
+            EndAccount(!StaySignedIn);
             settings?.RemoveSettingsMenu(this);
             settings = null;
         }
@@ -166,6 +201,7 @@ namespace PlayerBackup {
                     BackupStatus = "Uploading backup…";
                     Draw();
                     await UploadBackup(version, operation.Token);
+                    CompleteSchedule();
                     await RefreshCloud(operation.Token);
                 }
                 BackupStatus = HasSession ? "Backup saved locally and in the cloud" : "Local backup saved";

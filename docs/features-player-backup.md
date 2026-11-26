@@ -42,3 +42,7 @@ Local and cloud backups appear together by version. Select **Restore** beside th
 Choose **Sign in to X-Center ID** to open the issuer in the browser. Cancel ends local polling. The account session stays in memory. Issuer credential rejection is shown in the browser and in the game.
 
 The compact menu keeps account status and sign-in on one row. Backup progress and errors appear beside the backup action, and restore feedback stays with backup history.
+
+The **Automatic backup** dropdown counts main-menu launches. Manual only is the default. A due backup runs after account sign-in and resets the counter when its cloud upload succeeds. **Stay signed in** opts into storing the service session in macOS Keychain. Sessions expire after up to eight hours and require sign-in after a server restart. When a backup is due and sign-in is needed, the menu shows a prompt. No provider tokens or client secret are stored in the plugin.
+
+Cloud-only entries offer **Download**. Downloading saves a local ZIP without modifying the game. The current version then offers **Restore**. Older versions can be listed and downloaded without being applied to the running version.

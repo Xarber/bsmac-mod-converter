@@ -1,10 +1,12 @@
 <scrollable-settings-container>
-  <horizontal spacing="2" child-expand-width="false" child-control-height="true" child-expand-height="false" min-height="6">
-    <text text="~account-status" font-size="3" preferred-width="44" />
+  <horizontal spacing="2" child-control-width="true" child-expand-width="false" child-control-height="true" child-expand-height="false" min-height="6">
+    <text text="~account-status" font-size="3" flexible-width="1" />
     <button text="Sign in to X-Center ID" on-click="sign-in" active="~show-sign-in" />
     <button text="Cancel sign-in" on-click="sign-out" active="~show-account-cancel" />
     <button text="Sign out" on-click="sign-out" active="~show-sign-out" />
   </horizontal>
+  <bool-setting text="Stay signed in" value="stay-signed-in" apply-on-change="true" />
+  <dropdown-list-setting text="Automatic backup" value="frequency" choices="frequencies" apply-on-change="true" />
   <bool-setting text="Player data" value="player" apply-on-change="true" />
   <bool-setting text="Plugin configs" value="configs" apply-on-change="true" />
   <bool-setting text="Mods" value="mods" apply-on-change="true" />
@@ -16,23 +18,26 @@
   </horizontal>
   <text text="~backup-status" active="~has-backup-status" font-size="3" />
   <text text="~backup-progress" active="~show-backup-progress" font-size="3" />
-  <text text="~history-page" font-size="4" preferred-height="5" />
-  <horizontal active="~has-a" child-control-height="true" child-expand-height="false" min-height="6" spacing="2">
-    <text text="~row-a" font-size="3" preferred-width="43" />
+  <text text="~history-page" font-size="4" min-height="4" />
+  <horizontal active="~has-a" child-control-width="true" child-expand-width="false" child-control-height="true" child-expand-height="false" min-height="6" spacing="2">
+    <text text="~row-a" font-size="3" flexible-width="1" />
+    <button text="Download" on-click="download-row-a" active="~download-a" />
     <button text="Restore" on-click="restore-row-a" active="~restore-a" />
     <button text="Cancel" on-click="cancel" active="~cancel-a" />
   </horizontal>
-  <horizontal active="~has-b" child-control-height="true" child-expand-height="false" min-height="6" spacing="2">
-    <text text="~row-b" font-size="3" preferred-width="43" />
+  <horizontal active="~has-b" child-control-width="true" child-expand-width="false" child-control-height="true" child-expand-height="false" min-height="6" spacing="2">
+    <text text="~row-b" font-size="3" flexible-width="1" />
+    <button text="Download" on-click="download-row-b" active="~download-b" />
     <button text="Restore" on-click="restore-row-b" active="~restore-b" />
     <button text="Cancel" on-click="cancel" active="~cancel-b" />
   </horizontal>
-  <horizontal active="~has-c" child-control-height="true" child-expand-height="false" min-height="6" spacing="2">
-    <text text="~row-c" font-size="3" preferred-width="43" />
+  <horizontal active="~has-c" child-control-width="true" child-expand-width="false" child-control-height="true" child-expand-height="false" min-height="6" spacing="2">
+    <text text="~row-c" font-size="3" flexible-width="1" />
+    <button text="Download" on-click="download-row-c" active="~download-c" />
     <button text="Restore" on-click="restore-row-c" active="~restore-c" />
     <button text="Cancel" on-click="cancel" active="~cancel-c" />
   </horizontal>
-  <horizontal spacing="2" child-control-height="true" child-expand-height="false" min-height="6">
+  <horizontal active="~show-pages" spacing="2" child-control-height="true" child-expand-height="false" min-height="6">
     <button text="Previous backups" on-click="previous" active="~show-prev" />
     <button text="More backups" on-click="next" active="~show-next" />
   </horizontal>

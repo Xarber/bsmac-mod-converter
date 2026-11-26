@@ -98,9 +98,11 @@ namespace PlayerBackup {
                         session = pickup.session;
                         sessionExpiry = DateTime.UtcNow.AddSeconds(pickup.expiresIn);
                         signIn = null;
+                        SaveSession();
                         SetAccountStatus("Signed in to X-Center ID");
                         try { await RefreshCloud(attempt.Token); }
                         catch (HttpRequestException) { SetAccountStatus("Signed in. Could not load cloud history."); }
+                        RunScheduledBackup();
                         break;
                     }
                 }
@@ -223,7 +225,9 @@ namespace PlayerBackup {
                            (c >= '0' && c <= '9') || c == '_' || c == '-');
 
         [UIAction("sign-out")]
-        public void ClearAccount() {
+        public void ClearAccount() => EndAccount(true);
+
+        void EndAccount(bool revoke) {
             var attempt = signIn;
             signIn = null;
             attempt?.Cancel();
@@ -233,7 +237,10 @@ namespace PlayerBackup {
             cloudVersions = Array.Empty<string>();
             SetAccountStatus("Signed out");
             RefreshHistory();
-            if (previous != null) _ = Revoke(previous);
+            if (revoke) {
+                DeleteSession();
+                if (previous != null) _ = Revoke(previous);
+            }
         }
 
         static async Task Revoke(string previous) {
