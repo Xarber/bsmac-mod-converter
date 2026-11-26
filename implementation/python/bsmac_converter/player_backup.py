@@ -153,6 +153,15 @@ def restore(instance, player, backup, categories, *, apply=False):
         return [str(target) for _, target in plan]
 
 
+def launcher_environment(inherited):
+    """Start the MoltenVR engine outside the old game's injector state."""
+    return {
+        key: value for key, value in inherited.items()
+        if not key.startswith(("DOORSTOP_", "DYLD_", "_PYI_"))
+        and key not in {"MONO_PATH", "MONO_ENV_OPTIONS", "PYTHONHOME", "PYTHONPATH", "PYINSTALLER_RESET_ENVIRONMENT"}
+    }
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("instance", type=Path)
@@ -206,7 +215,8 @@ def main(argv=None):
                 try:
                     require_closed()
                     child = subprocess.Popen([str(ENGINE), "launch", version], cwd=ROOT,
-                                             stdout=log, stderr=log, start_new_session=True)
+                                             stdout=log, stderr=log, start_new_session=True,
+                                             env=launcher_environment(os.environ))
                     try:
                         launch_code = child.wait(timeout=3)
                     except subprocess.TimeoutExpired:

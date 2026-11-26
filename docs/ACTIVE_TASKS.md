@@ -95,3 +95,5 @@ T37 — Keep delete confirmation in the selected row and constrain feedback to s
 T38 — Hide the empty history footer. Both reference snapshots contained distinct avatar bytes, but no restore receipt was present. The confirmation action now starts the worker before shutdown. The worker waits for the previous process, applies the restore and requests a MoltenVR relaunch only on success. Avatar byte restore and rollback are tested offline. User-owned in-game confirmation remains pending.
 
 T39 — Restore receipt and logs confirmed MoltenVR launched and OpenXR reached a focused session. Added targeted macOS activation of only the already-running instance, and a fixed-height empty-history row. Cloud-only download and foreground restart await native verification.
+
+T40 — The live black-screen process inherited DOORSTOP_INITIALIZED and reported a BSIPA Harmony load failure. Relaunch now clears old injector and launcher state. Empty history uses the existing backup row. Native relaunch verification pending.

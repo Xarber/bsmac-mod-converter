@@ -40,7 +40,7 @@ namespace PlayerBackup {
         static string RestoreResult => Path.Combine(Root, "player-sync", "restore-result.txt");
         [UIValue("backup-feedback")] public string BackupFeedback =>
             job != null && restoreVersion == null && deleteTarget == null && BackupStatus == "Saving backup…"
-                ? BackupProgress : BackupStatus;
+                ? BackupProgress : NoBackups && BackupStatus.Length == 0 ? "No backups yet" : BackupStatus;
         string BackupProgress = "";
         void ShowProgress(int percent) {
             int blocks = Math.Max(0, Math.Min(10, percent / 10));
@@ -50,7 +50,7 @@ namespace PlayerBackup {
         [UIValue("show-backup")] public bool ShowBackup => job == null && restoreVersion == null && deleteTarget == null;
         [UIValue("show-cancel")] public bool ShowCancel => !ShowBackup;
         [UIValue("show-restart")] public bool ShowRestart => restoreCategories != null && job == null;
-        [UIValue("no-backups")] public bool NoBackups => versions.Length == 0;
+        bool NoBackups => versions.Length == 0;
         [UIValue("history-page")] public string HistoryPage => versions.Length == 0 ? "No backups yet"
             : $"Backups · {page + 1} / {(versions.Length + 2) / 3}";
         [UIValue("show-prev")] public bool ShowPrevious => page > 0 && ShowBackup;
@@ -125,7 +125,7 @@ namespace PlayerBackup {
         void Draw() {
             DrawDelete();
             foreach (var property in new[] { nameof(BackupFeedback), nameof(RestoreStatus), nameof(ShowRestoreFooter), nameof(ShowBackup), nameof(ShowCancel), nameof(ShowRestart),
-                nameof(HistoryPage), nameof(NoBackups), nameof(ShowPrevious), nameof(ShowNext), nameof(RowA), nameof(RowB), nameof(RowC),
+                nameof(HistoryPage), nameof(ShowPrevious), nameof(ShowNext), nameof(RowA), nameof(RowB), nameof(RowC),
                 nameof(ShowPages), nameof(CanDownloadA), nameof(CanDownloadB), nameof(CanDownloadC), nameof(HasA), nameof(HasB), nameof(HasC), nameof(CanRestoreA), nameof(CanRestoreB), nameof(CanRestoreC),
                 nameof(CanCancelA), nameof(CanCancelB), nameof(CanCancelC) }) Changed(property);
         }

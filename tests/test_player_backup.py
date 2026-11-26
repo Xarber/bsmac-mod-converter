@@ -141,3 +141,17 @@ def test_restore_worker_restores_avatar_after_game_exits(tmp_path, monkeypatch):
     previous = next(row for row in record["entries"] if row["target"] == str(avatar))
     assert Path(previous["backup"]).read_bytes() == b"newer avatar"
     assert result.read_text().startswith("Restore finished")
+
+
+def test_relaunch_drops_inherited_injector_state():
+    from bsmac_converter.player_backup import launcher_environment
+
+    inherited = {
+        "HOME": "/example", "PATH": "/usr/bin", "LANG": "en_US.UTF-8",
+        "DOORSTOP_INITIALIZED": "TRUE", "DOORSTOP_TARGET_ASSEMBLY": "old.dll",
+        "DYLD_INSERT_LIBRARIES": "old.dylib", "MONO_PATH": "old",
+        "_PYI_PARENT_PROCESS_LEVEL": "1", "PYTHONPATH": "old", "PYINSTALLER_RESET_ENVIRONMENT": "0",
+    }
+    assert launcher_environment(inherited) == {
+        "HOME": "/example", "PATH": "/usr/bin", "LANG": "en_US.UTF-8",
+    }
