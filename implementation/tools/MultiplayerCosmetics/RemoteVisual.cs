@@ -2,6 +2,7 @@
 using System;
 using System.Linq;
 using UnityEngine;
+using System.Collections.Generic;
 
 namespace MultiplayerCosmetics {
     public sealed class RemoteVisual : MonoBehaviour {
@@ -9,13 +10,15 @@ namespace MultiplayerCosmetics {
         GameObject source;
         MeshRenderer[] hidden = Array.Empty<MeshRenderer>();
         internal Func<Component> Source;
+        internal Color Tint;
+        static readonly int ColorProperty = Shader.PropertyToID("_Color");
         int remainingFrames = 450;
 
         void LateUpdate() {
             if (Source == null) return;
             try {
                 var model = Source();
-                if (model != null && Apply(model.gameObject, model.transform) || --remainingFrames == 0)
+                if (model != null && Apply(model.gameObject, model.transform, Plugin.Field(Plugin.Field(model, "liteSaberInstance"), "colorableMaterials") as Material[]) || --remainingFrames == 0)
                     Source = null;
             } catch (Exception e) {
                 Source = null;
@@ -23,15 +26,16 @@ namespace MultiplayerCosmetics {
             }
         }
 
-        internal bool Apply(GameObject asset, Transform origin) {
+        internal bool Apply(GameObject asset, Transform origin, Material[] colorable) {
             if (asset == source && visual != null) return true;
             var meshes = asset.GetComponentsInChildren<MeshRenderer>(true).Where(renderer =>
                 renderer.enabled && renderer.GetComponent<MeshFilter>()?.sharedMesh != null &&
                 renderer.sharedMaterials.Length > 0 &&
                 renderer.sharedMaterials.All(material => material != null && material.shader.isSupported)).ToArray();
-            if (meshes.Length == 0) return false;
+            if (meshes.Length == 0 || colorable == null) return false;
 
             Clear();
+            var tinted = new HashSet<Material>(colorable);
             var target = GetComponentsInChildren<MeshRenderer>(true).Where(renderer => renderer.enabled).ToArray();
             var root = new GameObject("Remote cosmetic meshes");
             root.SetActive(false);
@@ -52,6 +56,14 @@ namespace MultiplayerCosmetics {
                     var properties = new MaterialPropertyBlock();
                     mesh.GetPropertyBlock(properties);
                     destination.SetPropertyBlock(properties);
+                    var materials = destination.sharedMaterials;
+                    for (int slot = 0; slot < materials.Length; slot++) {
+                        if (!tinted.Contains(materials[slot])) continue;
+                        mesh.GetPropertyBlock(properties, slot);
+                        if (properties.isEmpty) mesh.GetPropertyBlock(properties);
+                        properties.SetColor(ColorProperty, Tint);
+                        destination.SetPropertyBlock(properties, slot);
+                    }
                 }
                 hidden = target;
                 foreach (var renderer in hidden) renderer.enabled = false;

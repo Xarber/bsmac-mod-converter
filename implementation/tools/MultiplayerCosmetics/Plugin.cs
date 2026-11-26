@@ -108,7 +108,14 @@ namespace MultiplayerCosmetics {
                     if (lite != null) localSabers[hand] = __instance.GetComponentInChildren(lite, true);
                     return;
                 }
+                var controller = __instance.GetComponentInChildren(AccessTools.TypeByName("SaberModelController"), true);
+                var manager = Field(controller, "_colorManager");
+                var colorType = AccessTools.TypeByName("ColorType");
+                var lookup = manager == null || colorType == null ? null :
+                    AccessTools.Method(manager.GetType(), "ColorForType", new[] { colorType });
+                if (lookup?.Invoke(manager, new[] { Enum.Parse(colorType, hand == 0 ? "ColorA" : "ColorB") }) is not Color tint) return;
                 var visual = __instance.gameObject.AddComponent<RemoteVisual>();
+                visual.Tint = tint;
                 visual.Source = () => localSabers[hand];
             } catch (Exception e) { ReportOnce("saber", e); }
         }
