@@ -17,7 +17,7 @@
     <button text="Back up now" on-click="backup" active="~show-backup" />
     <button text="Cancel operation" on-click="cancel" active="~show-cancel" />
   </horizontal>
-  <text text="No backups yet" active="~no-backups" font-size="3" />
+  <text text="No backups yet" active="~no-backups" font-size="3" preferred-height="5" word-wrapping="false" />
   <horizontal active="~has-a" child-control-width="true" child-expand-width="false" child-control-height="true" child-expand-height="false" min-height="6" spacing="2">
     <text text="~row-a" font-size="3" flexible-width="1" word-wrapping="false" overflow-mode="Ellipsis" />
     <button text="Download" on-click="download-row-a" active="~download-a" />

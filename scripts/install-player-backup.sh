@@ -14,6 +14,7 @@ if [[ -e "$resources/Plugins/PlayerBackup.dll" && $# == 0 ]]; then
     exit 1
 fi
 mkdir -p "$runtime"
+install -m 0644 "$repo/implementation/tools/PlayerBackup/activate-game.js" "$runtime/activate-game.js"
 python3.12 -m venv "$runtime/venv"
 "$runtime/venv/bin/python" -m pip install "$repo"
 stage=$(mktemp -d "$runtime/stage.XXXXXXXX")

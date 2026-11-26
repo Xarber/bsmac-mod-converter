@@ -213,6 +213,14 @@ def main(argv=None):
                         launch_code = 0
                     if launch_code:
                         raise RuntimeError(f"MoltenVR launcher exited with status {launch_code}")
+                    helper = ROOT / "player-sync" / "activate-game.js"
+                    try:
+                        subprocess.run(["/usr/bin/osascript", "-l", "JavaScript", str(helper),
+                                        str(args.instance / "Beat Saber.app")],
+                                       stdout=log, stderr=log, timeout=15, check=True)
+                    except (subprocess.CalledProcessError, subprocess.TimeoutExpired):
+                        record("Restore finished · bring Beat Saber forward")
+                        print("MoltenVR ran, but desktop activation could not be confirmed.", flush=True)
                 except Exception:
                     traceback.print_exc()
                     record("Restore finished · MoltenVR relaunch failed")
