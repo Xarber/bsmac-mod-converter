@@ -14,12 +14,20 @@ test('single-use sign-in pickup and account-scoped revision-guarded backup', asy
   const configuration = new Configuration({
     issuer: 'https://id.xcenter.it', authorization_endpoint: 'https://id.xcenter.it/auth',
   }, 'test-client');
+  let renewals = 0;
   const server = service({
     configuration, origin: 'https://beatsaber.xcenter.it', storage,
+    refresh: async (_, token) => {
+      assert.equal(token, "original-test-refresh");
+      renewals++;
+      return { refresh_token: "rotated-test-refresh", expires_in: 600 };
+    },
     exchange: async (_, url, checks) => {
       assert.equal(url.searchParams.get('state'), checks.expectedState);
       assert.ok(checks.expectedNonce && checks.pkceCodeVerifier);
-      return { claims: () => ({ iss: 'https://id.xcenter.it', sub: url.searchParams.get('code') }) };
+      const subject = url.searchParams.get('code');
+      return { claims: () => ({ iss: 'https://id.xcenter.it', sub: subject }),
+        ...(subject === 'first-account' ? { refresh_token: 'original-test-refresh', expires_in: 1 } : {}) };
     },
   });
   server.listen(0, '127.0.0.1');
@@ -43,7 +51,10 @@ test('single-use sign-in pickup and account-scoped revision-guarded backup', asy
     const pickup = await post('/api/account/pickup', {handle, proof});
     assert.equal(pickup.status, 200);
     assert.equal((await post('/api/account/pickup', {handle, proof})).status, 401);
-    return 'Bearer ' + (await pickup.json()).session;
+    const result = await pickup.json();
+    assert.equal(result.persistent, account === 'first-account');
+    assert.equal(result.expiresIn, result.persistent ? 14 * 24 * 60 * 60 : 28800);
+    return 'Bearer ' + result.session;
   }
   const authorization = await signIn('test proof', 'first-account');
   const url = '/api/backups/1.40.8';
@@ -51,6 +62,7 @@ test('single-use sign-in pickup and account-scoped revision-guarded backup', asy
     body: Buffer.from([0x50, 0x4b, 0x03, 0x04, 0x0a]) };
   assert.equal((await request(url, upload)).status, 204);
   assert.equal((await request(url, upload)).status, 412);
+  assert.equal(renewals, 1);
   assert.equal((await request(url, {headers: {authorization}})).status, 200);
   const other = await signIn('other test proof', 'second-account');
   assert.equal((await request(url, {headers: {authorization: other}})).status, 404);
