@@ -15,3 +15,7 @@ From the installed worker environment, run `python -m bsmac_converter.backup_syn
 ## Verification
 
 The local HTTP test mocks the issuer exchange and verifies proof binding, single-use callback and pickup, per-account isolation, revision conflicts, and logout. Live issuer consent, the public callback, and actual cloud transfer require the deployed service.
+
+## Deployment record
+
+On November 26, 2026 X-Center deployed backend revision `82befe4` with the original registration and shared persistent storage. The loopback service is on port 18423. Public health, unauthenticated backup rejection, issuer sign-in page, and proof-bound pending pickup were verified. A user-signed-in callback and live backup transfer remain pending. The appliance change record contains rollback steps.

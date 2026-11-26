@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using BeatSaberMarkupLanguage.Attributes;
 using BeatSaberMarkupLanguage.Settings;
+using BeatSaberMarkupLanguage.Util;
 using IPA;
 using UnityEngine;
 
@@ -14,18 +15,33 @@ namespace PlayerBackup {
         readonly IPA.Logging.Logger log;
         string[] pending;
         bool restoring;
+        int menuGeneration;
+        BSMLSettings settings;
 
         [Init]
         public Plugin(IPA.Logging.Logger logger) { log = logger; }
 
         [OnEnable]
-        public void Enable() => BSMLSettings.Instance.AddSettingsMenu(
-            "Player Backup", "PlayerBackup.Settings.bsml", this);
+        public async void Enable() {
+            int generation = ++menuGeneration;
+            try {
+                await MainMenuAwaiter.WaitForMainMenuAsync();
+                if (generation != menuGeneration) return;
+                var menu = BSMLSettings.Instance;
+                menu.AddSettingsMenu("Player Backup", "PlayerBackup.Settings.bsml", this);
+                settings = menu;
+                log.Info("Player Backup settings registered.");
+            } catch (Exception error) {
+                log.Error("Could not register Player Backup settings: " + error.Message);
+            }
+        }
 
         [OnDisable]
         public void Disable() {
+            ++menuGeneration;
             pending = null;
-            BSMLSettings.Instance.RemoveSettingsMenu(this);
+            settings?.RemoveSettingsMenu(this);
+            settings = null;
         }
 
         [UIValue("player")] public bool Player { get; set; } = true;

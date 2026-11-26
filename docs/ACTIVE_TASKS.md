@@ -75,3 +75,5 @@ Desktop independence checkpoint: verified 475 archive entries outside Desktop an
 T28 — Player Backup plugin installed on the reference Mac after a warning-free build and signed transaction. Local versioned backup, selective restore, and hash-pinned model download tests passed. In-game interaction, map and mod download resolvers, and X-Center ID backend deployment remain pending. See [player backups](features-player-backup.md).
 
 T29 — Fixed the BSIPA manifest namespace rejection from the reference Player.log. Selectable restore now covers model files and reviewed map/mod packages. Added OIDC handoff service and cloud CLI. Pending live menu retest, automatic discovery of source URLs, and production deployment and consent verification.
+
+T30 — Deployed Player Sync on X-Center and verified public health, issuer sign-in entry, and pending pickup. The second game log showed BSMLSettings was accessed before initialization. The installed plugin now waits for the main menu. Runtime menu and authenticated transfer remain pending.
