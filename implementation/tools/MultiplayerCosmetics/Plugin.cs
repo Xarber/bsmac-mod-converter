@@ -26,6 +26,7 @@ namespace MultiplayerCosmetics {
         public void Enable() {
             Patch("CustomNotes.Managers.NoteAssetLoader", "Initialize", nameof(NoteLoaderReady));
             Patch("MultiplayerConnectedPlayerGameNoteController", "Init", nameof(NoteReady), 4);
+            Patch("MultiplayerConnectedPlayerBombNoteController", "Init", nameof(BombReady), 2);
             Patch("MultiplayerConnectedPlayerObstacleController", "Init", nameof(WallReady), 2);
             RegisterSettings();
             Patch("CustomSabersLite.Components.LiteSaberModelController", "PreInit", nameof(LocalSaberReady), 2);
@@ -58,38 +59,42 @@ namespace MultiplayerCosmetics {
             list is IList items && index is int selected && selected >= 0 && selected < items.Count ? items[selected] : null;
         static void NoteLoaderReady(object __instance) => noteLoader = __instance;
 
-        static void NoteReady(Component __instance, object __0) {
+        static void NoteReady(Component __instance, object __0) => ApplyNote(__instance, __0, false);
+
+        static void BombReady(Component __instance, object __0) => ApplyNote(__instance, __0, true);
+
+        static void ApplyNote(Component __instance, object __0, bool bomb) {
             try {
                 var existing = __instance.GetComponent<RemoteNote>();
-                if (!Options.Enabled) { existing?.Clear(); return; }
+                if (!Options.Enabled || !(bomb ? Options.Bombs : Options.Blocks)) { existing?.Clear(); return; }
                 var color = Property(__0, "colorType")?.ToString();
                 var direction = Property(__0, "cutDirection")?.ToString();
-                if (color != "ColorA" && color != "ColorB") { existing?.Clear(); return; }
+                if (!bomb && color != "ColorA" && color != "ColorB") { existing?.Clear(); return; }
                 var selection = Property(noteLoader, "CustomNoteSelected") is true
                     ? Selection(Property(noteLoader, "CustomNoteObjects"), Property(noteLoader, "SelectedNoteIdx")) : null;
                 var side = color == "ColorA" ? "Left" : "Right";
-                var prefab = Property(selection, "Note" + (direction == "Any" ? "Dot" : "") + side) as GameObject;
+                var prefab = Property(selection, bomb ? "NoteBomb" : "Note" + (direction == "Any" ? "Dot" : "") + side) as GameObject;
                 var anchor = Field(__instance, "_noteTransform") as Transform;
                 var cube = anchor == null ? null : anchor.Find("NoteCube");
                 if (prefab == null || anchor == null) { existing?.Clear(); return; }
 
                 var visualsType = AccessTools.TypeByName("ColorNoteVisuals");
                 var stock = visualsType == null ? null : __instance.GetComponentInChildren(visualsType, true);
-                var tint = Field(stock, "_noteColor") is Color noteColor ? (Color?)noteColor : null;
+                var tint = !bomb && Field(stock, "_noteColor") is Color noteColor ? (Color?)noteColor : null;
                 var descriptor = Property(selection, "Descriptor");
                 float strength = Field(descriptor, "NoteColorStrength") is float multiplier ? multiplier : 1f;
                 var config = Field(noteLoader, "config");
                 var sizeMethod = config == null ? null : AccessTools.Method(config.GetType(), "GetNoteSize");
                 float size = sizeMethod?.Invoke(config, null) is float customSize ? customSize : 1f;
                 (existing ?? __instance.gameObject.AddComponent<RemoteNote>()).Apply(prefab, cube ?? anchor, 0.4f * size, tint, strength);
-            } catch (Exception e) { ReportOnce("note", e); }
+            } catch (Exception e) { ReportOnce(bomb ? "bomb" : "note", e); }
         }
 
         static void WallReady(Component __instance) {
             try {
                 var old = __instance.GetComponent<RemoteWall>();
                 old?.Restore();
-                if (!Options.Enabled) return;
+                if (!Options.Enabled || !Options.Walls) return;
                 var loader = WallLoader;
                 var selection = Selection(StaticProperty(loader, "CustomMaterialObjects"), StaticProperty(loader, "SelectedMaterial"));
                 var selected = Property(selection, "MaterialRenderer") as Renderer;
@@ -124,7 +129,7 @@ namespace MultiplayerCosmetics {
                     if (lite != null && __instance.GetComponentInChildren(lite, true) is Component model) localSabers[hand] = model;
                     return;
                 }
-                if (!Options.Enabled) return;
+                if (!Options.Enabled || !Options.Sabers) return;
                 var controller = __instance.GetComponentInChildren(AccessTools.TypeByName("SaberModelController"), true);
                 var manager = Field(controller, "_colorManager");
                 var colorType = AccessTools.TypeByName("ColorType");

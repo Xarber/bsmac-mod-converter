@@ -1,4 +1,8 @@
 <vertical child-control-height="false">
   <toggle-setting text="Remote cosmetics" value="cosmetics" apply-on-change="true" />
+  <toggle-setting text="Remote blocks" value="blocks" apply-on-change="true" />
+  <toggle-setting text="Remote bombs" value="bombs" apply-on-change="true" />
+  <toggle-setting text="Remote sabers" value="sabers" apply-on-change="true" />
+  <toggle-setting text="Remote walls" value="walls" apply-on-change="true" />
   <toggle-setting text="Physical keyboard" value="desktop-typing" apply-on-change="true" />
 </vertical>

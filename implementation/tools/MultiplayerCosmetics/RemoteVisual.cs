@@ -16,7 +16,7 @@ namespace MultiplayerCosmetics {
 
         void LateUpdate() {
             if (Source == null) return;
-            if (!Plugin.Options.Enabled) { Source = null; return; }
+            if (!Plugin.Options.Enabled || !Plugin.Options.Sabers) { Source = null; return; }
             try {
                 var model = Source();
                 var instance = Plugin.Field(model, "liteSaberInstance");

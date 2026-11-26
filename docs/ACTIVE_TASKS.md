@@ -125,3 +125,6 @@ T53 — Remote notes rendered but the user reported oversized meshes, missing co
 T54 — User verified remote blocks. Updated remote saber material overrides to use each remote player's note palette. Build and IPA entry-point validation passed. Live comparison with different palettes is pending.
 
 T55 — User confirmed Windows remote blocks and reported missing remote sabers. Added the CustomSabersLite initialization hook, persisted cosmetics and typing toggles, and a Windows desktop-input route. Windows VR verification pending. Removed Camera2 from the Mac instance with a rollback copy.
+
+T56 — Add independent remote blocks, bombs, sabers, and walls preferences and support CustomNotes bomb prefabs. Live multiplayer and settings persistence require retesting.
+T57 — Replay names in X-Center ID. The current Beat Saber service only uploads backup ZIPs. BeatLeader replays are local files and public leaderboard downloads. Identify an existing replay uploader or confirm a new replay cloud workflow before changing file permissions.

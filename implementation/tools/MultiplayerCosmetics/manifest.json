@@ -2,7 +2,7 @@
   "id": "BsmacMultiplayerCosmetics",
   "name": "Multiplayer Cosmetics",
   "author": "Xarber",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "gameVersion": "1.40.8",
   "description": "Shows selected cosmetics on remote gameplay objects and accepts desktop input in the game keyboard.",
   "dependsOn": {"BSIPA": "^4.2.2", "BeatSaberMarkupLanguage": "^1.12.5"}

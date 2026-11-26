@@ -8,6 +8,10 @@ using IPA.Config.Stores;
 namespace MultiplayerCosmetics {
     public class Preferences {
         public virtual bool Enabled { get; set; } = true;
+        public virtual bool Blocks { get; set; } = true;
+        public virtual bool Bombs { get; set; } = true;
+        public virtual bool Sabers { get; set; } = true;
+        public virtual bool Walls { get; set; } = true;
         public virtual bool DesktopTyping { get; set; } = true;
     }
 
@@ -20,6 +24,30 @@ namespace MultiplayerCosmetics {
         public bool Cosmetics {
             get => Options.Enabled;
             set => Options.Enabled = value;
+        }
+
+        [UIValue("blocks")]
+        public bool Blocks {
+            get => Options.Blocks;
+            set => Options.Blocks = value;
+        }
+
+        [UIValue("bombs")]
+        public bool Bombs {
+            get => Options.Bombs;
+            set => Options.Bombs = value;
+        }
+
+        [UIValue("sabers")]
+        public bool Sabers {
+            get => Options.Sabers;
+            set => Options.Sabers = value;
+        }
+
+        [UIValue("walls")]
+        public bool Walls {
+            get => Options.Walls;
+            set => Options.Walls = value;
         }
 
         [UIValue("desktop-typing")]
