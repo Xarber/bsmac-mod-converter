@@ -97,3 +97,5 @@ T38 — Hide the empty history footer. Both reference snapshots contained distin
 T39 — Restore receipt and logs confirmed MoltenVR launched and OpenXR reached a focused session. Added targeted macOS activation of only the already-running instance, and a fixed-height empty-history row. Cloud-only download and foreground restart await native verification.
 
 T40 — The live black-screen process inherited DOORSTOP_INITIALIZED and reported a BSIPA Harmony load failure. Relaunch now clears old injector and launcher state. Empty history uses the existing backup row. Native relaunch verification pending.
+
+T41 — Cloud archives move to delegated personal Files. Legacy archives migrate only for the matching owner after consent and byte verification. Added reversible local-only clearing. Live user consent and migration checks remain pending.

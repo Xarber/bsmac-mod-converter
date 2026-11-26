@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 using System;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -18,8 +19,42 @@ namespace PlayerBackup {
         [UIValue("confirm-c")] public bool ConfirmC => CanConfirm(2);
         bool ShowConfirmDelete => deleteTarget != null && job == null;
         bool CanConfirm(int row) => ShowConfirmDelete && At(row) == deleteTarget;
+        bool confirmClearLocal;
+        [UIValue("show-clear-local")] public bool ShowClearLocal => ShowBackup &&
+            versions.Any(id => File.Exists(LocalBackup(id)));
+        [UIValue("confirm-clear-local")] public bool ShowConfirmClearLocal => confirmClearLocal;
+        [UIAction("clear-local")]
+        public void ClearLocal() {
+            if (!ShowClearLocal) return;
+            confirmClearLocal = true;
+            RestoreStatus = "Clear local copies only?";
+            Draw();
+        }
+
+        [UIAction("confirm-clear-local-action")]
+        public void ConfirmClearLocal() {
+            if (!confirmClearLocal) return;
+            try {
+                var folder = Path.Combine(Root, "player-sync", "cleared-backups", Guid.NewGuid().ToString("N"));
+                Directory.CreateDirectory(folder);
+                foreach (var id in versions) {
+                    string source = LocalBackup(id);
+                    if (File.Exists(source)) File.Move(source, Path.Combine(folder, Path.GetFileName(source)));
+                }
+                RestoreStatus = "Local copies cleared";
+            } catch (Exception error) {
+                log.Warn("Could not clear all local backups: " + error.GetType().Name);
+                RestoreStatus = "Could not clear all local copies";
+            } finally {
+                confirmClearLocal = false;
+                RefreshHistory();
+            }
+        }
+
         bool CanDelete(int row) => ShowBackup && At(row) != null;
         void DrawDelete() {
+            Changed(nameof(ShowClearLocal));
+            Changed(nameof(ShowConfirmClearLocal));
             Changed(nameof(CanDeleteA));
             Changed(nameof(CanDeleteB));
             Changed(nameof(CanDeleteC));

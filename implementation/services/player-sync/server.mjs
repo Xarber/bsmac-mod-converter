@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
 import { createServer } from 'node:http';
-import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, renameSync, unlinkSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, unlinkSync } from 'node:fs';
+import { fileLimit, personalFiles } from './personal-files.mjs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import * as oidc from 'openid-client';
@@ -13,7 +14,7 @@ const transactionLifetime = 5 * 60_000;
 const sessionLifetime = 8 * 60 * 60_000;
 const persistentLifetime = 14 * 24 * 60 * 60_000;
 const snapshotPattern = /^(\d{1,5}\.\d{1,5}\.\d{1,5})(?:-(?:manual|auto)-\d{17}-[a-f0-9]{8})?$/;
-const maxBackup = 32 * 1024 * 1024;
+const maxBackup = fileLimit;
 
 async function body(request, limit) {
   const pieces = [];
@@ -32,10 +33,11 @@ function reply(response, status, value, headers = {}) {
   response.end(value === undefined ? undefined : Buffer.isBuffer(value) ? value : JSON.stringify(value));
 }
 
-export function service({ configuration, origin, storage, exchange = oidc.authorizationCodeGrant, refresh = oidc.refreshTokenGrant }) {
+export function service({ configuration, origin, storage, exchange = oidc.authorizationCodeGrant, refresh = oidc.refreshTokenGrant, files = personalFiles }) {
   const callback = new URL('/api/account/callback', origin);
   const pending = new Map();
   const sessions = new Map();
+  const locks = new Map();
 
   return createServer(async (request, response) => {
     try {
@@ -59,7 +61,7 @@ export function service({ configuration, origin, storage, exchange = oidc.author
         const codeChallenge = await oidc.calculatePKCECodeChallenge(verifier);
         pending.set(handle, { state, nonce, verifier, challenge, callbackUsed: false, until: now + transactionLifetime });
         const authorization = oidc.buildAuthorizationUrl(configuration, {
-          redirect_uri: callback.href, scope: 'openid offline_access', prompt: 'consent', state, nonce,
+          redirect_uri: callback.href, scope: 'openid offline_access files_write', prompt: 'consent', state, nonce,
           code_challenge: codeChallenge, code_challenge_method: 'S256',
         });
         return reply(response, 201, { handle, authorization: authorization.href });
@@ -90,6 +92,7 @@ export function service({ configuration, origin, storage, exchange = oidc.author
         const claims = result.claims();
         if (!claims || claims.iss !== issuer.href.replace(/\/$/, '') || typeof claims.sub !== 'string')
           return reply(response, 401, { error: 'Invalid account' });
+        entry.access = result.access_token;
         entry.refresh = typeof result.refresh_token === 'string' ? result.refresh_token : null;
         entry.refreshAfter = now + Math.max(0, (Number(result.expires_in) || 60) - 60) * 1000;
         entry.owner = digest(JSON.stringify([claims.iss, claims.sub]));
@@ -113,7 +116,7 @@ export function service({ configuration, origin, storage, exchange = oidc.author
         const session = token();
         const lifetime = entry.refresh ? persistentLifetime : sessionLifetime;
         sessions.set(digest(session), { owner: entry.owner, until: now + lifetime,
-          refresh: entry.refresh, refreshAfter: entry.refreshAfter });
+          access: entry.access, refresh: entry.refresh, refreshAfter: entry.refreshAfter });
         return reply(response, 200, { session, expiresIn: lifetime / 1000, persistent: Boolean(entry.refresh) });
       }
 
@@ -130,6 +133,7 @@ export function service({ configuration, origin, storage, exchange = oidc.author
         session.renewing ??= Promise.resolve().then(() => refresh(configuration, previous))
           .then((tokens) => {
             if (!tokens.refresh_token) throw new Error('Missing rotated credential');
+            session.access = tokens.access_token;
             session.refresh = tokens.refresh_token;
             session.refreshAfter = Date.now() + Math.max(1, (Number(tokens.expires_in) || 60) - 60) * 1000;
           }).finally(() => { session.renewing = null; });
@@ -140,42 +144,62 @@ export function service({ configuration, origin, storage, exchange = oidc.author
         }
         if (!sessions.has(sessionKey)) return reply(response, 401, { error: 'Sign in again' });
       }
-      const folder = resolve(storage, session.owner);
-      if (method === 'GET' && url.pathname === '/api/backups') {
-        const versions = existsSync(folder) ? readdirSync(folder)
-          .filter(name => name.endsWith(".zip") && snapshotPattern.test(name.slice(0, -4)))
-          .map(name => ({ version: name.slice(0, -4), modified: statSync(resolve(folder, name)).mtime.toISOString() }))
-          : [];
-        return reply(response, 200, { versions });
-      }
+      const listing = method === 'GET' && url.pathname === '/api/backups';
       const version = url.pathname.match(/^\/api\/backups\/([^/]+)$/)?.[1];
-      if (!version || !snapshotPattern.test(version)) return reply(response, 404, { error: 'Unknown route' });
-      const target = resolve(folder, version + '.zip');
-      const current = () => existsSync(target) ? readFileSync(target) : undefined;
-      if (method === 'GET' || method === 'HEAD') {
-        const saved = current();
-        return saved ? reply(response, 200, method === 'HEAD' ? undefined : saved, { 'Content-Type': 'application/zip', ETag: '"' + digest(saved) + '"' })
-          : reply(response, 404, { error: 'No backup for this version' });
-      }
-      if (method !== 'PUT' && method !== 'DELETE') return reply(response, 405, { error: 'Unsupported method' });
+      if (!listing && (!version || !snapshotPattern.test(version)))
+        return reply(response, 404, { error: 'Unknown route' });
+      if (!['GET', 'HEAD', 'PUT', 'DELETE'].includes(method))
+        return reply(response, 405, { error: 'Unsupported method' });
       const uploaded = method === 'PUT' ? await body(request, maxBackup) : undefined;
-      if (!sessions.has(sessionKey) || session.until <= Date.now()) return reply(response, 401, { error: 'Session expired' });
-      const saved = current();
-      const previous = saved ? '"' + digest(saved) + '"' : '"0"';
-      if (request.headers['if-match'] !== previous) return reply(response, 412, { error: 'Backup changed', revision: previous });
-      if (method === 'DELETE') {
-        if (saved) unlinkSync(target);
-        return reply(response, 204);
-      }
-      if (request.headers['content-type'] !== 'application/zip' ||
-          uploaded.length < 4 || uploaded.readUInt32LE(0) !== 0x04034b50)
+      if (uploaded && (request.headers['content-type'] !== 'application/zip' ||
+          uploaded.length < 4 || uploaded.readUInt32LE(0) !== 0x04034b50))
         return reply(response, 400, { error: 'Expected a backup ZIP' });
-      mkdirSync(folder, { recursive: true, mode: 0o700 });
-      const temporary = target + '.' + token();
-      writeFileSync(temporary, uploaded, { mode: 0o600, flag: 'wx' });
-      try { renameSync(temporary, target); }
-      finally { if (existsSync(temporary)) unlinkSync(temporary); }
-      return reply(response, 204, undefined, { ETag: '"' + digest(uploaded) + '"' });
+      if (locks.has(session.owner)) return reply(response, 409, { error: 'Backup operation already running' });
+      if (!sessions.has(sessionKey) || session.until <= Date.now())
+        return reply(response, 401, { error: 'Session expired' });
+      locks.set(session.owner, true);
+      try {
+        const personal = files(session.access);
+        let entries = await personal.list();
+        const legacy = resolve(storage, session.owner);
+        if (listing && existsSync(legacy)) {
+          for (const name of readdirSync(legacy)) {
+            if (!name.endsWith('.zip') || !snapshotPattern.test(name.slice(0, -4))) continue;
+            const path = resolve(legacy, name);
+            const bytes = readFileSync(path);
+            if (bytes.length > maxBackup) continue;
+            const existing = entries.find(item => item.name === name);
+            if (!existing) await personal.save(name, bytes);
+            entries = await personal.list();
+            const migrated = entries.filter(item => item.name === name);
+            if (migrated.length === 1 && digest(await personal.read(migrated[0].id)) === digest(bytes))
+              unlinkSync(path);
+          }
+        }
+        if (listing) return reply(response, 200, {
+          versions: entries.filter(item => item.name.endsWith('.zip') && snapshotPattern.test(item.name.slice(0, -4)))
+            .map(item => ({ version: item.name.slice(0, -4), modified: new Date(item.created).toISOString() })),
+        });
+        const name = version + '.zip';
+        const matches = entries.filter(item => item.name === name);
+        if (matches.length > 1) return reply(response, 409, { error: 'Duplicate backup in Files' });
+        const entry = matches[0];
+        const saved = entry && await personal.read(entry.id);
+        const revision = saved ? '"' + digest(saved) + '"' : '"0"';
+        if (method === 'GET' || method === 'HEAD') {
+          return saved ? reply(response, 200, method === 'HEAD' ? undefined : saved,
+            { 'Content-Type': 'application/zip', ETag: revision })
+            : reply(response, 404, { error: 'No backup for this version' });
+        }
+        if (request.headers['if-match'] !== revision) return reply(response, 412, { error: 'Backup changed' });
+        if (method === 'DELETE') {
+          if (entry) await personal.remove(entry.id);
+          return reply(response, 204);
+        }
+        if (entry) return reply(response, 409, { error: 'Delete the existing snapshot before replacing it' });
+        await personal.save(name, uploaded);
+        return reply(response, 204, undefined, { ETag: '"' + digest(uploaded) + '"' });
+      } finally { locks.delete(session.owner); }
     } catch (error) {
       return reply(response, error.status || (error instanceof SyntaxError ? 400 : 502),
         { error: 'Request could not be completed' });

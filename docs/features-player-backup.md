@@ -52,3 +52,5 @@ Cloud-only entries offer **Download**. Downloading saves a local ZIP without mod
 New in-game backups have separate dated snapshot IDs. Existing version-only backups remain available. Manual backups have no count limit. The automatic backup limit is per game version and defaults to five. Scheduled backups pause at the limit until you delete an automatic snapshot or raise the limit. Select **Delete** beside an item and confirm to remove its local file and, when signed in, the matching cloud copy. The legacy CLI continues to use a single version-only ZIP.
 
 Delete confirmation stays in the selected backup row. Backup feedback stays beside the backup action and list feedback stays below the list.
+
+**Clear local backups** moves local ZIPs into a recoverable folder under `player-sync/cleared-backups` after confirmation. It leaves the user's cloud Files alone. After clearing, entries in personal Files show **Download**.

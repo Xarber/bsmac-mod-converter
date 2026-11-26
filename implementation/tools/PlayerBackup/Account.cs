@@ -103,7 +103,7 @@ namespace PlayerBackup {
                         else DeleteSession();
                         SetAccountStatus("Signed in to X-Center ID");
                         try { await RefreshCloud(attempt.Token); }
-                        catch (HttpRequestException) { SetAccountStatus("Signed in. Could not load cloud history."); }
+                        catch (HttpRequestException) { SetAccountStatus("Cloud unavailable · allow Files access"); }
                         RunScheduledBackup();
                         break;
                     }
@@ -148,6 +148,11 @@ namespace PlayerBackup {
         async Task RefreshCloud(CancellationToken cancellation) {
             var owner = session;
             using (var reply = await SendBackup(HttpMethod.Get, "/api/backups", owner, cancellation)) {
+                if (reply.StatusCode == HttpStatusCode.Forbidden) {
+                    ClearAccount();
+                    SetAccountStatus("Sign in and allow Files access");
+                    throw new HttpRequestException("Files permission required");
+                }
                 reply.EnsureSuccessStatusCode();
                 var history = JsonUtility.FromJson<CloudHistory>(await reply.Content.ReadAsStringAsync());
                 if (session != owner) return;
@@ -180,7 +185,7 @@ namespace PlayerBackup {
             if (owner != session) throw new OperationCanceledException();
             using (var input = File.OpenRead(LocalBackup(version)))
             using (var request = new HttpRequestMessage(HttpMethod.Put, path)) {
-                if (input.Length > MaxBackup) throw new InvalidDataException();
+                if (input.Length > 2 * 1024 * 1024) throw new InvalidDataException("Personal Files uploads are limited to 2 MB");
                 CheckBackup(input, SnapshotVersion(version));
                 request.Content = new StreamContent(input);
                 request.Content.Headers.ContentType = new MediaTypeHeaderValue("application/zip");

@@ -47,7 +47,7 @@ namespace PlayerBackup {
             BackupProgress = new string('■', blocks) + new string('□', 10 - blocks) + $"  {percent}%";
             Changed(nameof(BackupFeedback));
         }
-        [UIValue("show-backup")] public bool ShowBackup => job == null && restoreVersion == null && deleteTarget == null;
+        [UIValue("show-backup")] public bool ShowBackup => job == null && restoreVersion == null && deleteTarget == null && !confirmClearLocal;
         [UIValue("show-cancel")] public bool ShowCancel => !ShowBackup;
         [UIValue("show-restart")] public bool ShowRestart => restoreCategories != null && job == null;
         bool NoBackups => versions.Length == 0;
@@ -286,6 +286,7 @@ namespace PlayerBackup {
         [UIAction("cancel")]
         public void Cancel() {
             job?.Cancel();
+            confirmClearLocal = false;
             deleteTarget = null;
             restoreCategories = null;
             restoreVersion = null;

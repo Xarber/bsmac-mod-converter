@@ -15,18 +15,29 @@ test('single-use sign-in pickup and account-scoped revision-guarded backup', asy
     issuer: 'https://id.xcenter.it', authorization_endpoint: 'https://id.xcenter.it/auth',
   }, 'test-client');
   let renewals = 0;
+  const accounts = new Map();
+  const files = (access) => {
+    if (!accounts.has(access)) accounts.set(access, new Map());
+    const entries = accounts.get(access);
+    return {
+      list: async () => [...entries.keys()].map(name => ({name, id: name, created: Date.now()})),
+      read: async (id) => entries.get(id),
+      save: async (name, data) => entries.set(name, data),
+      remove: async (id) => entries.delete(id),
+    };
+  };
   const server = service({
-    configuration, origin: 'https://beatsaber.xcenter.it', storage,
+    configuration, files, origin: 'https://beatsaber.xcenter.it', storage,
     refresh: async (_, token) => {
       assert.equal(token, "original-test-refresh");
       renewals++;
-      return { refresh_token: "rotated-test-refresh", expires_in: 600 };
+      return { refresh_token: "rotated-test-refresh", access_token: "first-account", expires_in: 600 };
     },
     exchange: async (_, url, checks) => {
       assert.equal(url.searchParams.get('state'), checks.expectedState);
       assert.ok(checks.expectedNonce && checks.pkceCodeVerifier);
       const subject = url.searchParams.get('code');
-      return { claims: () => ({ iss: 'https://id.xcenter.it', sub: subject }),
+      return { access_token: subject, claims: () => ({ iss: 'https://id.xcenter.it', sub: subject }),
         ...(subject === 'first-account' ? { refresh_token: 'original-test-refresh', expires_in: 1 } : {}) };
     },
   });
