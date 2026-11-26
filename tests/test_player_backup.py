@@ -111,3 +111,33 @@ def test_separate_snapshots_preserve_legacy_and_previous_manual_backup(tmp_path)
     for path in (legacy, first):
         with zipfile.ZipFile(path) as archive:
             assert archive.read("player/PlayerData.dat") == b"first"
+
+
+def test_restore_worker_restores_avatar_after_game_exits(tmp_path, monkeypatch):
+    from bsmac_converter.player_backup import main
+
+    (tmp_path / "BeatSaberVersion.txt").write_text("1.40.8")
+    (tmp_path / "Beat Saber.app/Contents/Resources/UserData").mkdir(parents=True)
+    player = tmp_path / "player"
+    player.mkdir()
+    (player / "PlayerData.dat").write_bytes(b"player")
+    avatar = player / "AvatarData.dat"
+    avatar.write_bytes(b"older avatar")
+    backup = create(tmp_path, player, tmp_path / "out", categories=("player",))
+    avatar.write_bytes(b"newer avatar")
+    result = tmp_path / "restore-result.txt"
+
+    def exited(pid, signal):
+        assert (pid, signal) == (12345, 0)
+        raise ProcessLookupError
+
+    monkeypatch.setattr("bsmac_converter.player_backup.os.kill", exited)
+    monkeypatch.setattr("bsmac_converter.player_backup.require_closed", lambda: None)
+    main([str(tmp_path), str(player), str(backup), "--include", "player", "--after-pid",
+          "12345", "--restore", "--apply", "--result-file", str(result)])
+    assert avatar.read_bytes() == b"older avatar"
+    receipt, = (tmp_path / "PlayerBackup-Rollback").glob("*/receipt.json")
+    record = json.loads(receipt.read_text())
+    previous = next(row for row in record["entries"] if row["target"] == str(avatar))
+    assert Path(previous["backup"]).read_bytes() == b"newer avatar"
+    assert result.read_text().startswith("Restore finished")

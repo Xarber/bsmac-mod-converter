@@ -35,6 +35,9 @@ namespace PlayerBackup {
 
         string BackupStatus { get; set; } = "";
         [UIValue("restore-status")] public string RestoreStatus { get; private set; } = "";
+        [UIValue("show-restore-footer")] public bool ShowRestoreFooter => !NoBackups &&
+            (RestoreStatus.Length != 0 || ShowRestart);
+        static string RestoreResult => Path.Combine(Root, "player-sync", "restore-result.txt");
         [UIValue("backup-feedback")] public string BackupFeedback =>
             job != null && restoreVersion == null && deleteTarget == null && BackupStatus == "Saving backup…"
                 ? BackupProgress : BackupStatus;
@@ -121,7 +124,7 @@ namespace PlayerBackup {
 
         void Draw() {
             DrawDelete();
-            foreach (var property in new[] { nameof(BackupFeedback), nameof(RestoreStatus), nameof(ShowBackup), nameof(ShowCancel), nameof(ShowRestart),
+            foreach (var property in new[] { nameof(BackupFeedback), nameof(RestoreStatus), nameof(ShowRestoreFooter), nameof(ShowBackup), nameof(ShowCancel), nameof(ShowRestart),
                 nameof(HistoryPage), nameof(NoBackups), nameof(ShowPrevious), nameof(ShowNext), nameof(RowA), nameof(RowB), nameof(RowC),
                 nameof(ShowPages), nameof(CanDownloadA), nameof(CanDownloadB), nameof(CanDownloadC), nameof(HasA), nameof(HasB), nameof(HasC), nameof(CanRestoreA), nameof(CanRestoreB), nameof(CanRestoreC),
                 nameof(CanCancelA), nameof(CanCancelB), nameof(CanCancelC) }) Changed(property);
@@ -147,6 +150,10 @@ namespace PlayerBackup {
             try {
                 await MainMenuAwaiter.WaitForMainMenuAsync();
                 if (generation != menuGeneration) return;
+                if (File.Exists(RestoreResult)) {
+                    RestoreStatus = File.ReadAllText(RestoreResult).Trim();
+                    if (RestoreStatus != "Restore in progress") File.Delete(RestoreResult);
+                }
                 RefreshHistory();
                 settings = BSMLSettings.Instance;
                 settings.AddSettingsMenu("Player Backup", "PlayerBackup.Settings.bsml", this);
@@ -289,17 +296,16 @@ namespace PlayerBackup {
 
         [UIAction("quit-restore")]
         public void QuitForRestore() {
-            if (ShowRestart) Application.Quit();
-        }
-
-        [OnExit]
-        public void Exit() {
-            if (restoreCategories == null || restoreVersion == null || restoreDigest == null) return;
+            if (!ShowRestart) return;
             try {
                 using (StartWorker(LocalBackup(restoreVersion), restoreCategories,
-                    "--after-pid " + Process.GetCurrentProcess().Id + " --restore --apply --expected-sha256 " + restoreDigest)) { }
+                    "--after-pid " + Process.GetCurrentProcess().Id + " --restore --apply --expected-sha256 " +
+                    restoreDigest + " --relaunch --result-file " + Quote(RestoreResult))) { }
+                Application.Quit();
             } catch (Exception error) {
                 log.Error("Could not start restore: " + error.GetType().Name);
+                RestoreStatus = "Could not start restore";
+                Draw();
             }
         }
 

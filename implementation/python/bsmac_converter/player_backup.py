@@ -2,6 +2,8 @@
 """Create a private local Beat Saber backup for one exact game version."""
 
 import argparse
+from contextlib import redirect_stderr, redirect_stdout
+import traceback
 import hashlib
 from datetime import datetime, timezone
 import json
@@ -9,11 +11,12 @@ import os
 from pathlib import Path
 import re
 import tempfile
+import subprocess
 import time
 import zipfile
 
 from .index import sha256
-from .mod_installer import require_closed
+from .mod_installer import ENGINE, ROOT, require_closed
 from .transaction import install
 
 PLAYER_FILES = ("AvatarData.dat", "ControllerProfiles.dat", "PlayerData.dat", "settings.ini")
@@ -165,7 +168,58 @@ def main(argv=None):
     parser.add_argument("--progress", action="store_true", help=argparse.SUPPRESS)
     parser.add_argument("--live-snapshot", action="store_true", help=argparse.SUPPRESS)
     parser.add_argument("--after-pid", type=int, help=argparse.SUPPRESS)
+    parser.add_argument("--relaunch", action="store_true", help=argparse.SUPPRESS)
+    parser.add_argument("--result-file", type=Path, help=argparse.SUPPRESS)
     args = parser.parse_args(argv)
+    if args.relaunch and (not args.result_file or not args.after_pid or not args.restore or not args.apply):
+        parser.error("--relaunch requires an applied restore after the game quits")
+    if args.relaunch:
+        version = game_version(args.instance)
+        if args.instance.resolve() != (ROOT / "instances" / version).resolve() or not ENGINE.is_file():
+            parser.error("could not find the MoltenVR launcher for this instance")
+
+    if args.result_file is None:
+        run(args, parser)
+        return
+    if not (args.restore and args.apply):
+        parser.error("--result-file requires an applied restore")
+
+    with tempfile.TemporaryDirectory(dir=args.result_file.parent) as directory:
+        staged = Path(directory) / "status"
+
+        def record(message):
+            staged.write_text(message + "\n")
+            os.replace(staged, args.result_file)
+
+        fd = os.open(args.result_file.with_suffix(".log"),
+                     os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+        with os.fdopen(fd, "w") as log, redirect_stdout(log), redirect_stderr(log):
+            record("Restore in progress")
+            try:
+                run(args, parser)
+            except (Exception, SystemExit):
+                traceback.print_exc()
+                record("Restore incomplete · check worker log")
+                raise
+            record("Restore finished · check selected data")
+            if args.relaunch:
+                try:
+                    require_closed()
+                    child = subprocess.Popen([str(ENGINE), "launch", version], cwd=ROOT,
+                                             stdout=log, stderr=log, start_new_session=True)
+                    try:
+                        launch_code = child.wait(timeout=3)
+                    except subprocess.TimeoutExpired:
+                        launch_code = 0
+                    if launch_code:
+                        raise RuntimeError(f"MoltenVR launcher exited with status {launch_code}")
+                except Exception:
+                    traceback.print_exc()
+                    record("Restore finished · MoltenVR relaunch failed")
+                    raise
+
+
+def run(args, parser):
     if args.after_pid is not None:
         if args.after_pid <= 1:
             parser.error("invalid game PID")

@@ -47,8 +47,8 @@
     <text text="~history-page" font-size="3" />
     <button text="More backups" on-click="next" active="~show-next" />
   </horizontal>
-  <horizontal spacing="2" child-control-width="true" child-expand-width="false" child-control-height="true" child-expand-height="false" min-height="6" preferred-height="6">
+  <horizontal active="~show-restore-footer" spacing="2" child-control-width="true" child-expand-width="false" child-control-height="true" child-expand-height="false" min-height="6" preferred-height="6">
     <text text="~restore-status" font-size="3" flexible-width="1" word-wrapping="false" overflow-mode="Ellipsis" />
-    <button text="Quit and apply restore" on-click="quit-restore" active="~show-restart" />
+    <button text="Restore and restart" on-click="quit-restore" active="~show-restart" />
   </horizontal>
 </scrollable-settings-container>

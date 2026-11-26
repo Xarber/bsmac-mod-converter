@@ -91,3 +91,5 @@ T35 — Add opt-in Keychain session reuse, launch-based backup frequency, compac
 T36 — Add multiple dated snapshots per game version, automatic backup cap, and confirmation-based deletion. Browser-hosted renewal consent documented in the SDK. Native layout and signed-in round trip pending.
 
 T37 — Keep delete confirmation in the selected row and constrain feedback to single-line layout. Native visual check pending.
+
+T38 — Hide the empty history footer. Both reference snapshots contained distinct avatar bytes, but no restore receipt was present. The confirmation action now starts the worker before shutdown. The worker waits for the previous process, applies the restore and requests a MoltenVR relaunch only on success. Avatar byte restore and rollback are tested offline. User-owned in-game confirmation remains pending.
