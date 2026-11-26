@@ -1,3 +1,0 @@
-[console_scripts]
-bsmac-mod-converter = bsmac_converter.cli:main
-bsmac-mod-installer = bsmac_converter.mod_installer:main

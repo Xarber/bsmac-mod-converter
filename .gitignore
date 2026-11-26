@@ -20,3 +20,5 @@ cache/
 # Player sync server dependencies
 implementation/services/player-sync/node_modules/
 implementation/services/player-sync/.env
+
+*.egg-info/
